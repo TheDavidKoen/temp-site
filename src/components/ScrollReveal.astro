@@ -1,0 +1,103 @@
+---
+interface Props {
+  text: string;
+  index: number;
+  count: number;
+}
+
+const { text, index, count }: Props = Astro.props;
+
+/* Deterministic jitter so a rebuild produces identical markup — Math.random
+   here would churn the output on every build. */
+const jitter = (index: number, seed: number): number => {
+  const n = Math.sin(index * 12.9898 + seed * 78.233) * 43758.5453;
+  return n - Math.floor(n);
+};
+
+const letters = text.replace(/\s/g, '').length;
+
+let seen = 0;
+const words = text.split(' ').map((word) =>
+  Array.from(word).map((char) => {
+    const i = seen++;
+    return {
+      char,
+      d: ((index + i / letters) / count).toFixed(4),
+      x: ((jitter(i, 1) - 0.5) * 150).toFixed(1),
+      y: ((jitter(i, 2) - 0.5) * 90).toFixed(1),
+      r: ((jitter(i, 3) - 0.5) * 240).toFixed(0),
+    };
+  }),
+);
+---
+
+<div class="reveal">
+  <p class="reveal__line" aria-hidden="true">
+    {
+      words.map((chars) => (
+        <span class="reveal__word">
+          {chars.map(({ char, d, x, y, r }) => (
+            <span class="reveal__char" style={`--d:${d};--x:${x}vw;--y:${y}vh;--r:${r}deg`}>
+              {char}
+            </span>
+          ))}
+        </span>
+      ))
+    }
+  </p>
+
+  <span class="sr-only">{text}</span>
+</div>
+
+<style>
+  .reveal__line {
+    max-width: var(--container-prose);
+    font-size: var(--text-lg);
+    line-height: 1.55;
+    color: var(--color-ink);
+  }
+
+  .reveal__word {
+    display: inline-block;
+    margin-right: 0.26em;
+  }
+
+  .reveal__char {
+    display: inline-block;
+  }
+
+  /* Animates against --exp, the named view timeline declared by PinnedText,
+     so the reveal is driven by scroll through the pinned section rather than
+     by this paragraph's own position. Only usable inside PinnedText.
+     The contain range covers exactly the period the stage is pinned.
+     Unsupported browsers skip this block and render static text. */
+  @supports (animation-timeline: view()) {
+    .reveal__char {
+      animation: char-fly linear both;
+      animation-timeline: --exp;
+      animation-range: contain calc(var(--d) * 78%) contain calc(20% + var(--d) * 78%);
+    }
+  }
+
+  @keyframes char-fly {
+    from {
+      opacity: 0;
+      transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0.7);
+    }
+    20% {
+      opacity: 1;
+    }
+    to {
+      opacity: 1;
+      transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+  }
+
+  /* The global reduced-motion rule only shortens durations, which can leave a
+     scroll-driven transform frozen mid-flight, off screen. */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal__char {
+      animation: none;
+    }
+  }
+</style>

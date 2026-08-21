@@ -7,7 +7,7 @@ export const SITE = {
   location: 'South Africa',
 } as const;
 
-export const CONTACT_EMAIL = 'CHANGE-ME@example.com';
+export const CONTACT_EMAIL = 'DavidoDawie@gmail.com';
 
 export const NAV_LINKS = [
   { href: '#about', label: 'About' },
@@ -28,6 +28,7 @@ export const MARQUEE_PHRASES = [
   'JRR Tolkien Nerd',
   'Book Reader',
   'Cinema Junkie',
+  'YNWA',
 ] as const;
 
 /* Rendered in DOM order into a wrapped flex row, which reads top-left to
@@ -138,6 +139,13 @@ export const SKILL_GROUPS = [
       'SQL and NoSQL database management',
     ],
   },
+] as const;
+
+export const EXPERIENCE_NARRATIVE = [
+  'I began my career in web and software development in 2017, starting as a WordPress Developer Intern. Since then, I have worked in a variety of roles, including as a Coding Facilitator position, teaching foundational coding and computer literacy skills to both professionals and aspiring professionals.',
+  'I have a strong interest in the continually evolving technology and software ecosystem. This has driven me to build a professional network that keeps me informed of emerging trends and industry best practices.',
+  'Through this experience, I have developed a solid understanding of what it takes to build functional digital products and services, along with the ability to translate that technical knowledge for non-technical stakeholders and to lead productive discussions with cross-functional teams.',
+  'As AI-driven tools continue to reshape how consumers and professionals work, I’ve embraced this shift while remaining committed to continuous skill development, so that I stay among those directing this technological transformation rather than merely riding its wave.',
 ] as const;
 
 export const EXPERIENCE = [
