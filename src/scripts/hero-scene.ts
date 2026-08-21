@@ -129,7 +129,7 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     const begin = (i / count) * 0.78;
     return {
       ...member,
-      from: [(Math.random() - 0.5) * 24, (Math.random() - 0.5) * 16, (Math.random() - 0.5) * 18],
+      from: [(Math.random() - 0.5) * 13, (Math.random() - 0.5) * 9, (Math.random() - 0.5) * 11],
       spin: [Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2],
       begin,
       end: begin + 0.22,
