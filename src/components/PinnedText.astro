@@ -1,0 +1,71 @@
+---
+import Container from '@/components/Container.astro';
+
+interface Props {
+  id: string;
+  label: string;
+}
+
+const { id, label }: Props = Astro.props;
+---
+
+<section class="pin" aria-labelledby={`${id}-label`}>
+  <div class="pin__stage">
+    <Container>
+      <h2 id={`${id}-label`} class="font-mono text-xs uppercase tracking-label text-ink-muted">
+        {label}
+      </h2>
+      <div class="pin__body">
+        <slot />
+      </div>
+    </Container>
+  </div>
+
+  <span id={id} class="pin__anchor" aria-hidden="true"></span>
+</section>
+
+<style>
+  /* Scroll distance is the reveal's timeline, and --exp is the named view
+     timeline ScrollReveal animates against. Renaming it here breaks every
+     character in the slot. */
+  .pin {
+    position: relative;
+    height: 380vh;
+    border-top: 1px solid var(--color-surface-muted);
+    view-timeline: --exp block;
+  }
+
+  @media (width < 40rem) {
+    .pin {
+      height: 300vh;
+    }
+  }
+
+  /* Clip lives on the sticky element itself, never an ancestor — overflow on
+     an ancestor would cancel the stickiness. */
+  .pin__stage {
+    position: sticky;
+    top: 0;
+    display: grid;
+    align-content: center;
+    min-height: 100dvh;
+    overflow: clip;
+    padding-block: 4rem;
+  }
+
+  /* Holds the section id so jumping to it lands at the end of the pinned
+     window on settled text, not the empty start. The 100% is the pin height,
+     so this tracks any change to it without a second number to maintain. */
+  .pin__anchor {
+    position: absolute;
+    top: calc(100% - 102vh);
+    width: 1px;
+    height: 1px;
+  }
+
+  .pin__body {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: 2.5rem;
+  }
+</style>

@@ -2,8 +2,10 @@
 import Button from '@/components/Button.astro';
 import Hero from '@/components/Hero.astro';
 import Marquee from '@/components/Marquee.astro';
+import PinnedText from '@/components/PinnedText.astro';
+import ScrollReveal from '@/components/ScrollReveal.astro';
 import Section from '@/components/Section.astro';
-import { CONTACT_EMAIL, EXPERIENCE, MARQUEE_PHRASES, SKILL_GROUPS } from '@/consts';
+import { CONTACT_EMAIL, EXPERIENCE_NARRATIVE, MARQUEE_PHRASES, SKILL_GROUPS } from '@/consts';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
@@ -82,24 +84,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     </div>
   </Section>
 
-  <Section id="experience" label="Experience">
-    <ol class="space-y-12">
-      {
-        EXPERIENCE.map(({ role, company, location, period, summary }) => (
-          <li class="grid gap-2 border-l-2 border-surface-muted pl-5 transition-colors hover:border-signal md:grid-cols-[1fr_2fr] md:gap-8">
-            <div>
-              <h3 class="font-display text-2xl font-medium text-ink">{role}</h3>
-              <p class="mt-1 text-sm text-ink-muted">
-                {company} &mdash; {location}
-              </p>
-              <p class="mt-1 font-mono text-xs text-ink-muted">{period}</p>
-            </div>
-            <p class="max-w-prose text-ink-muted">{summary}</p>
-          </li>
-        ))
-      }
-    </ol>
-  </Section>
+  <PinnedText id="experience" label="Experience">
+    {
+      EXPERIENCE_NARRATIVE.map((paragraph, i) => (
+        <ScrollReveal text={paragraph} index={i} count={EXPERIENCE_NARRATIVE.length} />
+      ))
+    }
+  </PinnedText>
 
   <Section id="contact" label="Contact">
     <div class="max-w-prose space-y-8">
@@ -109,7 +100,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <p class="text-ink-muted">
         I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.
       </p>
-      <Button href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Button>
+      <Button href={`mailto:${CONTACT_EMAIL}`}>Let's Get In Touch</Button>
     </div>
   </Section>
 </BaseLayout>
