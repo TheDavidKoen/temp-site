@@ -1,14 +1,6 @@
----
-import Container from '@/components/Container.astro';
----
-
 <section class="hero" data-hero>
   <div class="hero__stage">
     <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
-
-    <Container class="hero__content">
-      <slot />
-    </Container>
 
     <span class="hero__cue" aria-hidden="true">Scroll down</span>
   </div>
@@ -23,8 +15,6 @@ import Container from '@/components/Container.astro';
   const capable = (nav.deviceMemory ?? 8) >= 4 && (nav.hardwareConcurrency ?? 8) >= 4;
 
   if (section && canvas && wanted && capable) {
-    // Three.js is only fetched once the hero is near the viewport, so the
-    // bundle never sits on the critical path.
     const observer = new IntersectionObserver(
       (entries) => {
         if (!entries.some((entry) => entry.isIntersecting)) return;
@@ -58,7 +48,8 @@ import Container from '@/components/Container.astro';
     display: grid;
     grid-template: 1fr / 1fr;
     height: 100dvh;
-    overflow: hidden;
+    overflow: clip;
+    contain: paint;
   }
 
   .hero__canvas {
@@ -66,13 +57,6 @@ import Container from '@/components/Container.astro';
     display: block;
     width: 100%;
     height: 100%;
-  }
-
-  .hero__content {
-    grid-area: 1 / 1;
-    z-index: 1;
-    align-self: start;
-    padding-top: 7rem;
   }
 
   .hero__cue {
@@ -96,8 +80,6 @@ import Container from '@/components/Container.astro';
     background: linear-gradient(to bottom, var(--color-ink-muted), transparent);
   }
 
-  /* Short viewports cannot fit the copy block and a centred cue without them
-     colliding, so the cue drops out rather than overlapping. */
   @media (height < 44rem) {
     .hero__cue {
       display: none;

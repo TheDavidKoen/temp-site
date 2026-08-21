@@ -1,26 +1,29 @@
 ---
 import Button from '@/components/Button.astro';
+import Container from '@/components/Container.astro';
 import Hero from '@/components/Hero.astro';
 import Marquee from '@/components/Marquee.astro';
 import PinnedText from '@/components/PinnedText.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Section from '@/components/Section.astro';
-import { CONTACT_EMAIL, EXPERIENCE_NARRATIVE, MARQUEE_PHRASES, SKILL_GROUPS } from '@/consts';
+import { CONTACT_MAILTO, EXPERIENCE_NARRATIVE, MARQUEE_PHRASES, SKILL_GROUPS } from '@/consts';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout>
-  <Hero>
+  <Hero />
+
+  <Container as="section" class="py-[var(--section-space)]">
     <p class="mb-6 font-mono text-xs uppercase tracking-label text-signal-text">
-      Digital Project Manager
+      Tech Enthusiast 
     </p>
 
     <h1 class="max-w-[14ch] font-display text-display font-bold text-ink">
-      Building the bridge<span class="text-signal">.</span>
+      David Koen<span class="text-signal">.</span>
     </h1>
 
     <p class="mt-8 max-w-prose text-lg text-ink-muted">
-      I&rsquo;m David &mdash; a web professional since 2017 who leads delivery without losing the
+      I lead delivery without losing the
       technical thread. I translate between marketing, design and engineering, and I plan work in
       stages across a project&rsquo;s full scope.
     </p>
@@ -29,7 +32,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <Button href="#experience">View experience</Button>
       <Button href="#contact" variant="outline">Get in touch</Button>
     </div>
-  </Hero>
+  </Container>
 
   <Section id="about" label="About">
     <div class="grid gap-10 lg:grid-cols-[2fr_1fr] lg:gap-16">
@@ -100,7 +103,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <p class="text-ink-muted">
         I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.
       </p>
-      <Button href={`mailto:${CONTACT_EMAIL}`}>Let's Get In Touch</Button>
+      <Button href={CONTACT_MAILTO}>Let's Get In Touch</Button>
     </div>
   </Section>
 </BaseLayout>

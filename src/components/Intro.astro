@@ -1,7 +1,7 @@
 ---
 import { INTRO_FIELD, SITE } from '@/consts';
 
-const NAME = `${SITE.name}.`;
+const NAME = SITE.name;
 ---
 
 <div class="intro" aria-hidden="true">
@@ -10,8 +10,10 @@ const NAME = `${SITE.name}.`;
   </div>
 
   <p class="intro__name">
-    <span class="intro__name-sizer">{NAME}</span>
-    <span class="intro__name-text">{NAME}</span>
+    <span class="intro__name-slot">
+      <span class="intro__name-sizer">{NAME}</span>
+      <span class="intro__name-text">{NAME}</span>
+    </span><span class="intro__dot">.</span>
   </p>
 </div>
 
@@ -129,7 +131,7 @@ const NAME = `${SITE.name}.`;
   }
 
   .intro.is-done {
-    animation: intro-exit 0.38s var(--ease-in-expo) 0.25s forwards;
+    animation: intro-exit 0.38s var(--ease-in-expo) 0.75s forwards;
   }
 
   .intro__field,
@@ -173,10 +175,41 @@ const NAME = `${SITE.name}.`;
     color: var(--color-surface);
   }
 
+  .intro__name-slot {
+    position: relative;
+    display: inline-block;
+  }
+
   /* Reserves the settled width so the proportional display face cannot shift
      the centred name while its characters are still cycling. */
   .intro__name-sizer {
     visibility: hidden;
+  }
+
+  .intro__dot {
+    color: var(--color-signal);
+  }
+
+  /* Hidden only once the script takes over, so a no-script render still shows
+     the stop. Both rules key off the classes the scramble sets, so the drop
+     cannot fire before the name has settled. */
+  .intro.is-running .intro__dot {
+    opacity: 0;
+  }
+
+  .intro.is-done .intro__dot {
+    animation: dot-drop 0.4s var(--ease-out-expo) forwards;
+  }
+
+  @keyframes dot-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-0.7em) scale(0.5);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .intro__name-text {

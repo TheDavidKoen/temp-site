@@ -6,6 +6,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 
 export default defineConfig({
   site: 'https://davidkoen.is-a.dev',
+  devToolbar: { enabled: false },
   integrations: [sitemap()],
   fonts: [
     {

@@ -50,7 +50,8 @@ const { id, label }: Props = Astro.props;
     align-content: center;
     min-height: 100dvh;
     overflow: clip;
-    padding-block: 4rem;
+    contain: paint;
+    padding-block: var(--section-space);
   }
 
   /* Holds the section id so jumping to it lands at the end of the pinned

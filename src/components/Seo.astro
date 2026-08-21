@@ -1,5 +1,5 @@
 ---
-import { SITE } from '@/consts';
+import { CONTACT_EMAIL, SITE, SKILL_GROUPS, SOCIAL_LINKS } from '@/consts';
 
 interface Props {
   title?: string;
@@ -13,39 +13,69 @@ const {
   description = SITE.description,
   image = '/og-default.png',
   noindex = false,
-} = Astro.props;
+}: Props = Astro.props;
 
 const pageTitle = title ? `${title} — ${SITE.name}` : SITE.title;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(image, Astro.site);
 
-const personSchema = {
+const schema = {
   '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: SITE.name,
-  url: canonical.origin,
-  jobTitle: 'Digital Project Manager',
-  description: SITE.description,
-  sameAs: ['https://github.com/TheDavidKoen'],
+  '@type': 'ProfilePage',
+  url: canonical.href,
+  name: pageTitle,
+  description,
+  inLanguage: SITE.locale.replace('_', '-'),
+  mainEntity: {
+    '@type': 'Person',
+    '@id': `${canonical.origin}/#person`,
+    name: SITE.name,
+    url: canonical.origin,
+    email: `mailto:${CONTACT_EMAIL}`,
+    description,
+    jobTitle: ['Digital Project Manager', 'Web Developer'],
+    knowsAbout: SKILL_GROUPS.flatMap((group) => group.items),
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'ZA',
+      addressRegion: SITE.location,
+    },
+    sameAs: SOCIAL_LINKS.map((link) => link.href),
+  },
 };
 ---
 
 <title>{pageTitle}</title>
 <meta name="description" content={description} />
+<meta name="author" content={SITE.name} />
 <link rel="canonical" href={canonical.href} />
-{noindex && <meta name="robots" content="noindex, nofollow" />}
+<meta name="theme-color" content="#f5f5f5" />
 
-<meta property="og:type" content="website" />
+{
+  noindex ? (
+    <meta name="robots" content="noindex, nofollow" />
+  ) : (
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  )
+}
+
+<meta property="og:type" content="profile" />
 <meta property="og:site_name" content={SITE.name} />
 <meta property="og:url" content={canonical.href} />
 <meta property="og:title" content={pageTitle} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={ogImage.href} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={`${SITE.name} — ${SITE.title}`} />
 <meta property="og:locale" content={SITE.locale} />
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={pageTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage.href} />
+<meta name="twitter:image:alt" content={`${SITE.name} — ${SITE.title}`} />
 
-<script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
+{SOCIAL_LINKS.map((link) => <link rel="me" href={link.href} />)}
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} is:inline />

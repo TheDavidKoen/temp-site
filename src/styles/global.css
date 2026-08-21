@@ -44,6 +44,8 @@
 
   --tracking-label: 0.18em;
 
+  --section-space: 4rem;
+
   --breakpoint-3xl: 120rem;
 
   --container-prose: 68ch;
@@ -63,6 +65,12 @@
     color-scheme: light;
     scrollbar-gutter: stable;
     scroll-behavior: smooth;
+  }
+
+  @media (width >= 40rem) {
+    :root {
+      --section-space: 6rem;
+    }
   }
 
   body {
