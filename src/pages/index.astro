@@ -1,5 +1,6 @@
 ---
 import Button from '@/components/Button.astro';
+import Container from '@/components/Container.astro';
 import Hero from '@/components/Hero.astro';
 import Marquee from '@/components/Marquee.astro';
 import PinnedText from '@/components/PinnedText.astro';
@@ -10,7 +11,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout>
-  <Hero>
+  <Hero />
+
+  <Container as="section" class="pt-16 pb-4 sm:pt-24">
     <p class="mb-6 font-mono text-xs uppercase tracking-label text-signal-text">
       Digital Project Manager
     </p>
@@ -29,7 +32,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <Button href="#experience">View experience</Button>
       <Button href="#contact" variant="outline">Get in touch</Button>
     </div>
-  </Hero>
+  </Container>
 
   <Section id="about" label="About">
     <div class="grid gap-10 lg:grid-cols-[2fr_1fr] lg:gap-16">

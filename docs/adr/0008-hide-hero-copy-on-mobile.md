@@ -1,32 +1,35 @@
-# 0008 — Hero copy hidden on mobile
+# 0008 — Hero copy moved out of the pinned stage
 
-**Status:** Accepted, with a known cost · 2026-08-21
+**Status:** Superseded by this record's own revision · 2026-08-21
 
-## Context
+## Original decision
 
-Below 40rem the hero copy block sits over the WebGL scene and was judged too
-cluttered. The block contains the eyebrow, the page's only `h1`, the intro
-paragraph and both calls to action.
+`display: none` on `.hero__content` below 40rem, to stop the copy block sitting
+over the WebGL scene on narrow viewports. The markup stayed in the DOM.
 
-## Decision
+That carried a known cost: Google indexes mobile-first, so the mobile viewport
+rendered no visible `h1`, and screen reader users on phones lost the heading and
+both calls to action.
 
-`display: none` on `.hero__content` below 40rem. The markup stays in the DOM.
+## What replaced it
 
-## Cost
+The copy block was removed from the pinned hero entirely, at every viewport, and
+now renders as an ordinary section immediately below it.
 
-Google indexes mobile-first. The mobile viewport now renders no visible `h1`,
-and screen reader users on phones lose both the heading and the two calls to
-action. Navigation is not lost, since the header nav carries the same anchors.
+## Why
 
-This directly undercuts the structured data added in the same release.
+The visual goal was a clean 3D hero with nothing overlaying the scene. Hiding
+the block achieved that only on mobile, and did so by suppressing the page's
+only `h1`.
 
-## Remedies, if revisited
+Moving it achieves the same visual result at every width, and the `h1` stays in
+the rendered document — so the SEO and accessibility cost disappears rather than
+being accepted.
 
-1. Keep only the `h1` on mobile and hide the rest. Cheapest, preserves the
-   heading.
-2. Move the copy below the pinned hero on mobile rather than hiding it. Needs a
-   markup change.
-3. Promote another section's heading to `h1` on mobile. Works, but splits the
-   heading structure across breakpoints.
+## Consequences
 
-Option 1 is recommended.
+- `Hero.astro` no longer takes a slot; it renders the canvas and the scroll cue.
+  It imports nothing.
+- The page opens on the scene, then reveals the headline as you scroll past it.
+- The breakpoint-specific `display: none` is gone, so there is no longer a
+  viewport at which content is present but unrendered.
