@@ -1,0 +1,201 @@
+---
+import { INTRO_FIELD, SITE } from '@/consts';
+
+const NAME = SITE.name + '.';
+---
+
+<div class="intro" aria-hidden="true">
+  <div class="intro__field">
+    {INTRO_FIELD.map((word) => <span class="intro__word">{word}</span>)}
+  </div>
+
+  <p class="intro__name">
+    <span class="intro__name-sizer">{NAME}</span>
+    <span class="intro__name-text">{NAME}</span>
+  </p>
+</div>
+
+<script is:inline>
+  (() => {
+    if (document.documentElement.dataset.intro === 'skip') return;
+
+    const root = document.querySelector('.intro');
+    const nameEl = document.querySelector('.intro__name-text');
+    const words = [...document.querySelectorAll('.intro__word')].filter(
+      (el) => el.offsetParent !== null,
+    );
+    if (!root || !nameEl || !words.length) return;
+
+    root.classList.add('is-running');
+
+    const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*';
+    const WORD_STEP = 26;
+    const WORD_DURATION = 520;
+    const NAME_START = 2100;
+    const NAME_DURATION = 1000;
+
+    const rand = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
+
+    const entries = words.map((el, i) => ({
+      el,
+      final: el.textContent,
+      start: i * WORD_STEP,
+      duration: WORD_DURATION,
+    }));
+
+    entries.push({
+      el: nameEl,
+      final: nameEl.textContent,
+      start: NAME_START,
+      duration: NAME_DURATION,
+    });
+
+    for (const entry of entries) {
+      entry.settle = Array.from(
+        entry.final,
+        (_, i) =>
+          (i / entry.final.length) * entry.duration * 0.6 +
+          Math.random() * entry.duration * 0.4,
+      );
+      entry.done = false;
+      entry.el.textContent = Array.from(entry.final, (c) =>
+        c === ' ' ? ' ' : rand(),
+      ).join('');
+    }
+
+    let origin = 0;
+    const frame = (now) => {
+      if (!origin) origin = now;
+      const t = now - origin;
+      let pending = false;
+
+      for (const entry of entries) {
+        if (entry.done || t < entry.start) {
+          if (!entry.done) pending = true;
+          continue;
+        }
+        const elapsed = t - entry.start;
+        if (elapsed >= entry.duration) {
+          entry.el.textContent = entry.final;
+          entry.done = true;
+          continue;
+        }
+        pending = true;
+        let out = '';
+        for (let i = 0; i < entry.final.length; i++) {
+          const char = entry.final[i];
+          if (char === ' ') out += ' ';
+          else out += elapsed >= entry.settle[i] ? char : rand();
+        }
+        entry.el.textContent = out;
+      }
+
+      if (pending) {
+        requestAnimationFrame(frame);
+      } else {
+        root.classList.remove('is-running');
+        root.classList.add('is-done');
+      }
+    };
+
+    requestAnimationFrame(frame);
+  })();
+</script>
+
+<style>
+  /* The skip flag is set on <html> by the inline script in BaseLayout before
+     first paint; without that ordering a returning visitor sees a flash. */
+  :global(html[data-intro='skip']) .intro {
+    display: none;
+  }
+
+  .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background-color: var(--color-ink);
+    will-change: transform;
+    animation: intro-exit 0.38s var(--ease-in-expo) 1.2s forwards;
+  }
+
+  /* The scramble script owns the exit: it suspends the fallback above while
+     running, then triggers the real exit once every word has settled. The
+     1.2s fallback only fires if the script never runs. */
+  .intro.is-running {
+    animation: none;
+  }
+
+  .intro.is-done {
+    animation: intro-exit 0.38s var(--ease-in-expo) 0.25s forwards;
+  }
+
+  .intro__field,
+  .intro__name {
+    grid-area: 1 / 1;
+  }
+
+  .intro__field {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: 0.5rem 1.25rem;
+    width: 100%;
+    height: 100%;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Monospace holds every glyph at one width, so swapping characters cannot
+     reflow the field mid-scramble. */
+  .intro__word {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.12em;
+    color: color-mix(in srgb, var(--color-surface-muted) 42%, transparent);
+  }
+
+  .intro__word:nth-child(5n) {
+    color: color-mix(in srgb, var(--color-signal) 55%, transparent);
+  }
+
+  .intro__name {
+    position: relative;
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--color-surface);
+  }
+
+  /* Reserves the settled width so the proportional display face cannot shift
+     the centred name while its characters are still cycling. */
+  .intro__name-sizer {
+    visibility: hidden;
+  }
+
+  .intro__name-text {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  @media (width < 40rem) {
+    .intro__word:nth-child(n + 37) {
+      display: none;
+    }
+  }
+
+  @keyframes intro-exit {
+    to {
+      transform: translateY(-100%);
+      visibility: hidden;
+    }
+  }
+</style>

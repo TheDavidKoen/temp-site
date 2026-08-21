@@ -2,6 +2,7 @@
 import { Font } from 'astro:assets';
 import Footer from '@/components/Footer.astro';
 import Header from '@/components/Header.astro';
+import Intro from '@/components/Intro.astro';
 import Seo from '@/components/Seo.astro';
 import '@/styles/global.css';
 
@@ -26,8 +27,28 @@ const { title, description } = Astro.props;
     <Font cssVariable="--font-jetbrains-mono" />
 
     <Seo title={title} description={description} />
+
+    <!-- Must stay inline and in <head>: it flags the intro as already-seen
+         before first paint. Deferring it makes returning visitors flash the
+         overlay. Paired with the skip rule in Intro.astro. -->
+    <script is:inline>
+      (() => {
+        try {
+          const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (reduced || sessionStorage.getItem('intro') === 'seen') {
+            document.documentElement.dataset.intro = 'skip';
+          } else {
+            sessionStorage.setItem('intro', 'seen');
+          }
+        } catch {
+          document.documentElement.dataset.intro = 'skip';
+        }
+      })();
+    </script>
   </head>
   <body class="flex min-h-dvh flex-col">
+    <Intro />
+
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-100 focus:bg-ink focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:tracking-label focus:text-surface focus:uppercase"

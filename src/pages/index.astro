@@ -1,9 +1,13 @@
 ---
+import Button from '@/components/Button.astro';
+import Container from '@/components/Container.astro';
+import Section from '@/components/Section.astro';
+import { CONTACT_EMAIL, EXPERIENCE, SKILL_GROUPS } from '@/consts';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout>
-  <section class="mx-auto w-full max-w-wide px-6 pt-20 pb-16 sm:px-8 sm:pt-28 lg:px-12 lg:pt-36">
+  <Container as="section" class="pt-20 pb-20 sm:pt-28 lg:pt-36">
     <p class="mb-6 font-mono text-xs uppercase tracking-label text-signal-text">
       Digital Project Manager
     </p>
@@ -19,38 +23,94 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     </p>
 
     <div class="mt-10 flex flex-wrap gap-4">
-      <a
-        href="/work"
-        class="bg-ink px-6 py-3 font-mono text-xs uppercase tracking-label text-surface transition-colors hover:bg-signal-text"
-      >
-        View work
-      </a>
-      <a
-        href="/contact"
-        class="border border-ink-muted px-6 py-3 font-mono text-xs uppercase tracking-label text-ink transition-colors hover:border-signal hover:text-signal-text"
-      >
-        Get in touch
-      </a>
+      <Button href="#experience">View experience</Button>
+      <Button href="#contact" variant="outline">Get in touch</Button>
     </div>
-  </section>
+  </Container>
 
-  <section class="mx-auto w-full max-w-wide px-6 sm:px-8 lg:px-12">
-    <div class="border-t border-surface-muted pt-12">
-      <h2 class="font-mono text-xs uppercase tracking-label text-ink-muted">Currently</h2>
-      <dl class="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+  <Section id="about" label="About">
+    <div class="grid gap-10 lg:grid-cols-[2fr_1fr] lg:gap-16">
+      <div class="space-y-6">
+        <p class="max-w-prose text-xl text-ink">
+          Most projects don&rsquo;t fail on code. They fail on the handoffs &mdash; the brief that
+          lost a requirement, the estimate nobody stress-tested, the dependency nobody flagged
+          until it blocked three people.
+        </p>
+        <p class="max-w-prose text-ink-muted">
+          I&rsquo;ve spent six years on the building side of those handoffs: agency client work,
+          in-house maintenance cycles, internal frameworks, and a year teaching developers how to
+          structure work they hadn&rsquo;t met yet. That background means I can read an
+          engineering estimate, ask the question that surfaces the hidden dependency, and explain
+          the answer to a marketing stakeholder without either side losing the thread.
+        </p>
+        <p class="max-w-prose text-ink-muted">
+          This site is built the way I&rsquo;d run a project &mdash; scoped deliberately, tracked
+          in the open, documented as it goes.
+        </p>
+      </div>
+
+      <dl class="space-y-6 border-t border-surface-muted pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
         <div>
-          <dt class="font-display text-2xl font-medium text-ink">Web Developer Lead</dt>
-          <dd class="mt-2 text-sm text-ink-muted">Lyons Presentation Group &mdash; Remote</dd>
+          <dt class="font-mono text-xs uppercase tracking-label text-ink-muted">Based in</dt>
+          <dd class="mt-1 font-display text-lg text-ink">South Africa</dd>
         </div>
         <div>
-          <dt class="font-display text-2xl font-medium text-ink">Frontend architecture</dt>
-          <dd class="mt-2 text-sm text-ink-muted">SPA and SSR, design systems, performance</dd>
+          <dt class="font-mono text-xs uppercase tracking-label text-ink-muted">Currently</dt>
+          <dd class="mt-1 font-display text-lg text-ink">Web Developer Lead</dd>
         </div>
         <div>
-          <dt class="font-display text-2xl font-medium text-ink">Delivery ownership</dt>
-          <dd class="mt-2 text-sm text-ink-muted">Sprint planning, scope, estimation, roadmap</dd>
+          <dt class="font-mono text-xs uppercase tracking-label text-ink-muted">In web since</dt>
+          <dd class="mt-1 font-display text-lg text-ink">2017</dd>
         </div>
       </dl>
     </div>
-  </section>
+  </Section>
+
+  <Section id="skills" label="Skills">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        SKILL_GROUPS.map(({ title, items }) => (
+          <div class="border-l-2 border-signal pl-5">
+            <h3 class="font-display text-xl font-medium text-ink">{title}</h3>
+            <ul class="mt-4 space-y-2">
+              {items.map((item) => (
+                <li class="text-sm text-ink-muted">{item}</li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+
+  <Section id="experience" label="Experience">
+    <ol class="space-y-12">
+      {
+        EXPERIENCE.map(({ role, company, location, period, summary }) => (
+          <li class="grid gap-2 border-l-2 border-surface-muted pl-5 transition-colors hover:border-signal md:grid-cols-[1fr_2fr] md:gap-8">
+            <div>
+              <h3 class="font-display text-2xl font-medium text-ink">{role}</h3>
+              <p class="mt-1 text-sm text-ink-muted">
+                {company} &mdash; {location}
+              </p>
+              <p class="mt-1 font-mono text-xs text-ink-muted">{period}</p>
+            </div>
+            <p class="max-w-prose text-ink-muted">{summary}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  <Section id="contact" label="Contact">
+    <div class="max-w-prose space-y-8">
+      <p class="font-display text-3xl font-medium text-ink">
+        Looking for someone who can hold both sides of the brief<span class="text-signal">?</span>
+      </p>
+      <p class="text-ink-muted">
+        I&rsquo;m open to Digital Project Manager roles. The fastest way to reach me is email.
+      </p>
+      <Button href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Button>
+    </div>
+  </Section>
 </BaseLayout>

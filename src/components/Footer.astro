@@ -1,19 +1,18 @@
 ---
+import Container from '@/components/Container.astro';
 import { SITE, SOCIAL_LINKS } from '@/consts';
 
 const year = new Date().getFullYear();
 ---
 
-<footer class="mt-24 border-t border-surface-muted bg-surface-tint">
-  <div
-    class="mx-auto flex w-full max-w-wide flex-col gap-8 px-6 py-12 sm:px-8 md:flex-row md:items-end md:justify-between lg:px-12"
-  >
+<footer class="border-t border-surface-muted bg-surface-tint">
+  <Container class="flex flex-col gap-8 py-12 md:flex-row md:items-end md:justify-between">
     <div class="space-y-2">
       <p class="font-display text-xl font-bold text-ink">
         {SITE.name}<span class="text-signal">.</span>
       </p>
       <p class="max-w-narrow text-sm text-ink-muted">
-        Digital Project Manager &amp; Web Developer — South Africa
+        Digital Project Manager &amp; Web Developer &mdash; {SITE.location}
       </p>
     </div>
 
@@ -35,11 +34,11 @@ const year = new Date().getFullYear();
         }
       </ul>
     </nav>
-  </div>
+  </Container>
 
   <div class="border-t border-surface-muted">
-    <div class="mx-auto w-full max-w-wide px-6 py-5 sm:px-8 lg:px-12">
-      <p class="font-mono text-xs text-ink-muted">© {year} {SITE.name}</p>
-    </div>
+    <Container class="py-5">
+      <p class="font-mono text-xs text-ink-muted">&copy; {year} {SITE.name}</p>
+    </Container>
   </div>
 </footer>
