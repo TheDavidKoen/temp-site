@@ -96,8 +96,6 @@ function buildLetters(): Member[] {
     }
   }
 
-  // Connectors tie the two glyph planes together at stroke endpoints, so the
-  // letters read as a built structure rather than two flat copies.
   const seen = new Set<string>();
   for (const [strokes, ox] of letters) {
     for (const [ax, ay, bx, by] of strokes) {
@@ -204,11 +202,18 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     camera.lookAt(0, 0, 0);
   };
 
-  const progressOf = (): number => {
-    const travel = section.offsetHeight - window.innerHeight;
-    if (travel <= 0) return 0;
-    return MathUtils.clamp(-section.getBoundingClientRect().top / travel, 0, 1);
+  let pinTop = 0;
+  let travel = 0;
+
+  /* Measured on resize only. Reading getBoundingClientRect inside the render
+     loop forces a synchronous layout every frame. */
+  const measure = (): void => {
+    pinTop = section.getBoundingClientRect().top + window.scrollY;
+    travel = section.offsetHeight - window.innerHeight;
   };
+
+  const progressOf = (): number =>
+    travel <= 0 ? 0 : MathUtils.clamp((window.scrollY - pinTop) / travel, 0, 1);
 
   const resize = (): void => {
     const { clientWidth: w, clientHeight: h } = canvas;
@@ -216,6 +221,7 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    measure();
   };
 
   let frame = 0;

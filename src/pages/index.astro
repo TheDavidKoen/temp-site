@@ -5,7 +5,7 @@ import Marquee from '@/components/Marquee.astro';
 import PinnedText from '@/components/PinnedText.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Section from '@/components/Section.astro';
-import { CONTACT_EMAIL, EXPERIENCE_NARRATIVE, MARQUEE_PHRASES, SKILL_GROUPS } from '@/consts';
+import { CONTACT_MAILTO, EXPERIENCE_NARRATIVE, MARQUEE_PHRASES, SKILL_GROUPS } from '@/consts';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
@@ -100,7 +100,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <p class="text-ink-muted">
         I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.
       </p>
-      <Button href={`mailto:${CONTACT_EMAIL}`}>Let's Get In Touch</Button>
+      <Button href={CONTACT_MAILTO}>Let's Get In Touch</Button>
     </div>
   </Section>
 </BaseLayout>

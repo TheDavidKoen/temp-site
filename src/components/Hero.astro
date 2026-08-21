@@ -23,8 +23,6 @@ import Container from '@/components/Container.astro';
   const capable = (nav.deviceMemory ?? 8) >= 4 && (nav.hardwareConcurrency ?? 8) >= 4;
 
   if (section && canvas && wanted && capable) {
-    // Three.js is only fetched once the hero is near the viewport, so the
-    // bundle never sits on the critical path.
     const observer = new IntersectionObserver(
       (entries) => {
         if (!entries.some((entry) => entry.isIntersecting)) return;
@@ -58,7 +56,8 @@ import Container from '@/components/Container.astro';
     display: grid;
     grid-template: 1fr / 1fr;
     height: 100dvh;
-    overflow: hidden;
+    overflow: clip;
+    contain: paint;
   }
 
   .hero__canvas {
@@ -96,8 +95,6 @@ import Container from '@/components/Container.astro';
     background: linear-gradient(to bottom, var(--color-ink-muted), transparent);
   }
 
-  /* Short viewports cannot fit the copy block and a centred cue without them
-     colliding, so the cue drops out rather than overlapping. */
   @media (height < 44rem) {
     .hero__cue {
       display: none;

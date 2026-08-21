@@ -1,7 +1,7 @@
 ---
 import { INTRO_FIELD, SITE } from '@/consts';
 
-const NAME = `${SITE.name}.`;
+const NAME = SITE.name;
 ---
 
 <div class="intro" aria-hidden="true">
@@ -10,8 +10,10 @@ const NAME = `${SITE.name}.`;
   </div>
 
   <p class="intro__name">
-    <span class="intro__name-sizer">{NAME}</span>
-    <span class="intro__name-text">{NAME}</span>
+    <span class="intro__name-slot">
+      <span class="intro__name-sizer">{NAME}</span>
+      <span class="intro__name-text">{NAME}</span>
+    </span><span class="intro__dot">.</span>
   </p>
 </div>
 
@@ -173,10 +175,19 @@ const NAME = `${SITE.name}.`;
     color: var(--color-surface);
   }
 
+  .intro__name-slot {
+    position: relative;
+    display: inline-block;
+  }
+
   /* Reserves the settled width so the proportional display face cannot shift
      the centred name while its characters are still cycling. */
   .intro__name-sizer {
     visibility: hidden;
+  }
+
+  .intro__dot {
+    color: var(--color-signal);
   }
 
   .intro__name-text {
