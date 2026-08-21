@@ -73,6 +73,26 @@ exports consumed as props. Adding a skill is a data edit.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, commit format and the
 pre-PR checklist.
 
+## Deployment
+
+Cloudflare Pages, built from `main` on every push. Pull requests get their own
+preview URL.
+
+| Setting | Value |
+|---|---|
+| Framework preset | Astro |
+| Build command | `pnpm build` |
+| Output directory | `dist` |
+| Node version | `.node-version` (22.14.0) |
+
+The Node version is pinned in `.node-version` because Astro 7 requires
+`>=22.12.0` and Cloudflare's default build image ships an older release. The
+package manager is detected from `pnpm-lock.yaml`.
+
+Cloudflare Pages was chosen over Workers Static Assets specifically because the
+domain is a free `is-a.dev` subdomain — a zone this account does not own, which
+Workers cannot serve. See [ADR 0002](docs/adr/0002-cloudflare-pages-over-workers.md).
+
 ## Known issues
 
 **The dev server reports a false failure.** Astro 7 forks the dev server as a
