@@ -17,7 +17,6 @@ const SEG = 0.45;
 const GAP = 0.12;
 const DEPTH = 0.45;
 const GLYPH_H = 4.5;
-const EXTENT_X = 3.6;
 
 const INK = new Color(0x101a1c);
 const MUTED = new Color(0x3d5457);
@@ -58,14 +57,24 @@ const K_STROKES: Stroke[] = [
   [0, 2.15, 2.5, 0],
 ];
 
-const K_OFFSET = 4;
-const CENTRE_X = -3.25;
-const CENTRE_Y = -GLYPH_H / 2;
+type Placement = [strokes: Stroke[], ox: number, oy: number];
 
-function addStroke(stroke: Stroke, ox: number, z: number, out: Member[]): void {
+/* Side by side reads badly on a portrait screen: fitting the width of a wide,
+   short monogram leaves the vertical space empty. Portrait stacks instead. */
+const LANDSCAPE: Placement[] = [
+  [D_STROKES, -3.25, -GLYPH_H / 2],
+  [K_STROKES, 0.75, -GLYPH_H / 2],
+];
+
+const PORTRAIT: Placement[] = [
+  [D_STROKES, -1.45, 0.9],
+  [K_STROKES, -1.25, -GLYPH_H - 0.9],
+];
+
+function addStroke(stroke: Stroke, ox: number, oy: number, z: number, out: Member[]): void {
   const [ax, ay, bx, by] = stroke;
-  const x1 = ax + ox + CENTRE_X;
-  const y1 = ay + CENTRE_Y;
+  const x1 = ax + ox;
+  const y1 = ay + oy;
   const dx = bx - ax;
   const dy = by - ay;
   const span = Math.hypot(dx, dy);
@@ -83,21 +92,18 @@ function addStroke(stroke: Stroke, ox: number, z: number, out: Member[]): void {
   }
 }
 
-function buildLetters(): Member[] {
+function buildLetters(portrait: boolean): Member[] {
   const members: Member[] = [];
-  const letters: Array<[Stroke[], number]> = [
-    [D_STROKES, 0],
-    [K_STROKES, K_OFFSET],
-  ];
+  const letters = portrait ? PORTRAIT : LANDSCAPE;
 
   for (const z of [-DEPTH, DEPTH]) {
-    for (const [strokes, ox] of letters) {
-      for (const stroke of strokes) addStroke(stroke, ox, z, members);
+    for (const [strokes, ox, oy] of letters) {
+      for (const stroke of strokes) addStroke(stroke, ox, oy, z, members);
     }
   }
 
   const seen = new Set<string>();
-  for (const [strokes, ox] of letters) {
+  for (const [strokes, ox, oy] of letters) {
     for (const [ax, ay, bx, by] of strokes) {
       for (const [x, y] of [
         [ax, ay],
@@ -107,7 +113,7 @@ function buildLetters(): Member[] {
         if (seen.has(key)) continue;
         seen.add(key);
         members.push({
-          pos: [x + ox + CENTRE_X, y + CENTRE_Y, 0],
+          pos: [x + ox, y + oy, 0],
           rot: [0, Math.PI / 2, 0],
           length: DEPTH * 2,
           accent: false,
@@ -120,8 +126,19 @@ function buildLetters(): Member[] {
 }
 
 export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): void {
-  const members = buildLetters().sort((a, b) => a.pos[0] - b.pos[0]);
+  const portrait = canvas.clientHeight > canvas.clientWidth;
+  const members = buildLetters(portrait).sort((a, b) =>
+    portrait ? b.pos[1] - a.pos[1] : a.pos[0] - b.pos[0],
+  );
   const count = members.length;
+
+  let extentX = 0;
+  let extentY = 0;
+  for (const member of members) {
+    const reach = member.length / 2;
+    extentX = Math.max(extentX, Math.abs(member.pos[0]) + reach);
+    extentY = Math.max(extentY, Math.abs(member.pos[1]) + reach);
+  }
 
   const instances: Instance[] = members.map((member, i) => {
     const begin = (i / count) * 0.78;
@@ -188,9 +205,9 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     const aspect = camera.aspect || 1;
     const half = Math.tan(MathUtils.degToRad(camera.fov) / 2);
     const distance = MathUtils.clamp(
-      Math.max((EXTENT_X + 0.8) / (half * aspect), (GLYPH_H / 2 + 0.8) / half),
-      6,
-      32,
+      Math.max((extentX + 0.5) / (half * aspect), (extentY + 0.5) / half),
+      5,
+      40,
     );
     const yaw = MathUtils.lerp(-0.55, 0.06, progress);
 
