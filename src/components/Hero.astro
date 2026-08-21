@@ -74,6 +74,15 @@ import Container from '@/components/Container.astro';
     padding-top: 7rem;
   }
 
+  /* Below 40rem the stage shows the scene alone. This hides the slotted h1
+     from mobile rendering, which is what Google indexes — see the note in
+     docs before removing the copy from the DOM as well. */
+  @media (width < 40rem) {
+    .hero__content {
+      display: none;
+    }
+  }
+
   .hero__cue {
     grid-area: 1 / 1;
     z-index: 1;
