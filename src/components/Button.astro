@@ -1,0 +1,26 @@
+---
+interface Props {
+  href: string;
+  variant?: 'solid' | 'outline';
+  external?: boolean;
+}
+
+const { href, variant = 'solid', external = false } = Astro.props;
+
+const VARIANTS = {
+  solid: 'bg-ink text-surface hover:bg-signal-text',
+  outline: 'border border-ink-muted text-ink hover:border-signal hover:text-signal-text',
+} as const;
+---
+
+<a
+  href={href}
+  rel={external ? 'noopener noreferrer' : undefined}
+  target={external ? '_blank' : undefined}
+  class:list={[
+    'inline-block px-6 py-3 font-mono text-xs uppercase tracking-label transition-colors',
+    VARIANTS[variant],
+  ]}
+>
+  <slot />
+</a>
