@@ -18,13 +18,13 @@ Measured on the production build. Update these figures when they move.
 | Asset | Raw | Gzip |
 |---|---|---|
 | HTML | 144 KB | **17.0 KB** |
-| CSS | 19 KB | **5.0 KB** |
+| CSS | 25 KB | **5.6 KB** |
 | Hero loader JS | 2 KB | **1.0 KB** |
 | `hero-scene` (Three.js) | 512 KB | **126.9 KB** |
 | Fonts | 5 × woff2 | self-hosted |
 | Total `dist/` | 892 KB | |
 
-**Critical path: ~23 KB gzip** (HTML + CSS + loader). Within the 50 KB budget
+**Critical path: ~24 KB gzip** (HTML + CSS + loader). Within the 50 KB budget
 with room to spare.
 
 **Deferred WebGL: 126.9 KB gzip** against a 180 KB budget. That figure depends

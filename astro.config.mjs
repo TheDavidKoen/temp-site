@@ -36,5 +36,10 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    /* Lightning CSS folds animation-timeline into the animation shorthand,
+       which per spec resets it to auto — silently killing every scroll-driven
+       animation in production while dev (unminified) looks fine. Costs 0.6KB
+       gzip. See docs/adr/0009-disable-css-minification.md before removing. */
+    build: { cssMinify: false },
   },
 });

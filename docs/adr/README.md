@@ -12,7 +12,8 @@ what was decided, and what it costs.
 | [0005](0005-colour-system.md) | Light palette with a single signal colour |
 | [0006](0006-pin-typescript-6.md) | Pin TypeScript to 6.x |
 | [0007](0007-css-scroll-animations-over-gsap.md) | Native CSS scroll animations over GSAP |
-| [0008](0008-hide-hero-copy-on-mobile.md) | Hero copy hidden on mobile |
+| [0008](0008-hide-hero-copy-on-mobile.md) | Hero copy moved out of the pinned stage |
+| [0009](0009-disable-css-minification.md) | Disable CSS minification |
 
 Superseded records stay in place with their status changed, rather than being
 deleted.
