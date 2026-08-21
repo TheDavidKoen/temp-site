@@ -6,9 +6,11 @@ import Container from '@/components/Container.astro';
   <div class="hero__stage">
     <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
 
-    <Container class="hero__content">
-      <slot />
-    </Container>
+    <div class="hero__content">
+      <Container>
+        <slot />
+      </Container>
+    </div>
 
     <span class="hero__cue" aria-hidden="true">Scroll down</span>
   </div>
