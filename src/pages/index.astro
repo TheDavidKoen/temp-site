@@ -1,8 +1,9 @@
 ---
 import Button from '@/components/Button.astro';
 import Hero from '@/components/Hero.astro';
+import Marquee from '@/components/Marquee.astro';
 import Section from '@/components/Section.astro';
-import { CONTACT_EMAIL, EXPERIENCE, SKILL_GROUPS } from '@/consts';
+import { CONTACT_EMAIL, EXPERIENCE, MARQUEE_PHRASES, SKILL_GROUPS } from '@/consts';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
@@ -32,20 +33,16 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     <div class="grid gap-10 lg:grid-cols-[2fr_1fr] lg:gap-16">
       <div class="space-y-6">
         <p class="max-w-prose text-xl text-ink">
-          Most projects don&rsquo;t fail on code. They fail on the handoffs &mdash; the brief that
+          Most projects don&rsquo;t fail on code. They fail on the handoffs, the brief that
           lost a requirement, the estimate nobody stress-tested, the dependency nobody flagged
           until it blocked three people.
         </p>
         <p class="max-w-prose text-ink-muted">
-          I&rsquo;ve spent six years on the building side of those handoffs: agency client work,
+          I&rsquo;ve spent years on the building side of those handoffs: agency client work,
           in-house maintenance cycles, internal frameworks, and a year teaching developers how to
           structure work they hadn&rsquo;t met yet. That background means I can read an
           engineering estimate, ask the question that surfaces the hidden dependency, and explain
           the answer to a marketing stakeholder without either side losing the thread.
-        </p>
-        <p class="max-w-prose text-ink-muted">
-          This site is built the way I&rsquo;d run a project &mdash; scoped deliberately, tracked
-          in the open, documented as it goes.
         </p>
       </div>
 
@@ -59,12 +56,14 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
           <dd class="mt-1 font-display text-lg text-ink">Web Developer Lead</dd>
         </div>
         <div>
-          <dt class="font-mono text-xs uppercase tracking-label text-ink-muted">In web since</dt>
+          <dt class="font-mono text-xs uppercase tracking-label text-ink-muted">Professionally in web since</dt>
           <dd class="mt-1 font-display text-lg text-ink">2017</dd>
         </div>
       </dl>
     </div>
   </Section>
+
+  <Marquee phrases={MARQUEE_PHRASES} />
 
   <Section id="skills" label="Skills">
     <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
@@ -108,7 +107,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
         Looking for someone who can hold both sides of the brief<span class="text-signal">?</span>
       </p>
       <p class="text-ink-muted">
-        I&rsquo;m open to Digital Project Manager roles. The fastest way to reach me is email.
+        I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.
       </p>
       <Button href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Button>
     </div>

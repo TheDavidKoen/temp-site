@@ -1,0 +1,83 @@
+---
+interface Props {
+  phrases: readonly string[];
+}
+
+const { phrases }: Props = Astro.props;
+
+/* One group must be wider than the viewport or a gap opens as it scrolls off.
+   Four passes clears ultrawide. REPEATS and the CSS duration are coupled:
+   raising one without the other changes the scroll speed. */
+const REPEATS = 4;
+const cycle = Array.from({ length: REPEATS }, () => phrases).flat();
+---
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track">
+    {
+      [0, 1].map(() => (
+        <div class="marquee__group">
+          {cycle.map((phrase) => (
+            <span class="marquee__item">
+              {phrase}
+              <span class="marquee__dot">.</span>
+            </span>
+          ))}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<p class="sr-only">{phrases.map((phrase) => `${phrase}.`).join(' ')}</p>
+
+<style>
+  .marquee {
+    overflow: hidden;
+    border-block: 1px solid var(--color-surface-muted);
+    background-color: var(--color-surface-tint);
+    padding-block: 1.5rem;
+  }
+
+  /* Two identical groups travelling exactly one group width, so the reset is
+     invisible. Changing the group count breaks the seam. */
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll 150s linear infinite;
+  }
+
+  .marquee__group {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    padding-right: 3rem;
+  }
+
+  .marquee__item {
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    color: var(--color-ink);
+  }
+
+  .marquee__dot {
+    color: var(--color-signal);
+  }
+
+  @keyframes marquee-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* The global reduced-motion rule only shortens durations, which would leave
+     the track parked mid-loop. Removing the animation resets it to the start. */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__track {
+      animation: none;
+    }
+  }
+</style>
