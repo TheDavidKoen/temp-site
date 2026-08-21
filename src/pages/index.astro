@@ -1,0 +1,56 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout>
+  <section class="mx-auto w-full max-w-wide px-6 pt-20 pb-16 sm:px-8 sm:pt-28 lg:px-12 lg:pt-36">
+    <p class="mb-6 font-mono text-xs uppercase tracking-label text-signal-text">
+      Digital Project Manager
+    </p>
+
+    <h1 class="max-w-[14ch] font-display text-display font-bold text-ink">
+      Building the bridge<span class="text-signal">.</span>
+    </h1>
+
+    <p class="mt-8 max-w-prose text-lg text-ink-muted">
+      I&rsquo;m David &mdash; a web professional since 2017 who leads delivery without losing the
+      technical thread. I translate between marketing, design and engineering, and I plan work in
+      stages across a project&rsquo;s full scope.
+    </p>
+
+    <div class="mt-10 flex flex-wrap gap-4">
+      <a
+        href="/work"
+        class="bg-ink px-6 py-3 font-mono text-xs uppercase tracking-label text-surface transition-colors hover:bg-signal-text"
+      >
+        View work
+      </a>
+      <a
+        href="/contact"
+        class="border border-ink-muted px-6 py-3 font-mono text-xs uppercase tracking-label text-ink transition-colors hover:border-signal hover:text-signal-text"
+      >
+        Get in touch
+      </a>
+    </div>
+  </section>
+
+  <section class="mx-auto w-full max-w-wide px-6 sm:px-8 lg:px-12">
+    <div class="border-t border-surface-muted pt-12">
+      <h2 class="font-mono text-xs uppercase tracking-label text-ink-muted">Currently</h2>
+      <dl class="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div>
+          <dt class="font-display text-2xl font-medium text-ink">Web Developer Lead</dt>
+          <dd class="mt-2 text-sm text-ink-muted">Lyons Presentation Group &mdash; Remote</dd>
+        </div>
+        <div>
+          <dt class="font-display text-2xl font-medium text-ink">Frontend architecture</dt>
+          <dd class="mt-2 text-sm text-ink-muted">SPA and SSR, design systems, performance</dd>
+        </div>
+        <div>
+          <dt class="font-display text-2xl font-medium text-ink">Delivery ownership</dt>
+          <dd class="mt-2 text-sm text-ink-muted">Sprint planning, scope, estimation, roadmap</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #f5f5f5;
+  --color-surface-raised: #ffffff;
+  --color-surface-tint: #dff1f1;
+  --color-surface-muted: #bbd5da;
+
+  --color-ink: #101a1c;
+  --color-ink-muted: #3d5457;
+
+  /* --color-signal is 3.67:1 on --color-surface: large text (>=24px / >=18.7px
+     bold), icons and borders only. Use --color-signal-text below 24px. */
+  --color-signal: #ff0000;
+  --color-signal-text: #dc0000;
+
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* The rem intercept is load-bearing: replacing these with pure-vw values
+     breaks browser zoom (WCAG 1.4.4). */
+  --text-xs: clamp(0.75rem, 0.736rem + 0.064vw, 0.8125rem);
+  --text-sm: clamp(0.875rem, 0.861rem + 0.064vw, 0.9375rem);
+  --text-base: clamp(1rem, 0.971rem + 0.128vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1.067rem + 0.256vw, 1.375rem);
+  --text-xl: clamp(1.25rem, 1.164rem + 0.385vw, 1.625rem);
+  --text-2xl: clamp(1.5rem, 1.385rem + 0.513vw, 2rem);
+  --text-3xl: clamp(1.75rem, 1.577rem + 0.769vw, 2.5rem);
+  --text-4xl: clamp(2rem, 1.712rem + 1.282vw, 3.25rem);
+  --text-5xl: clamp(2.5rem, 2.038rem + 2.051vw, 4.5rem);
+  --text-display: clamp(3rem, 2.077rem + 4.103vw, 7rem);
+
+  --text-display--line-height: 0.92;
+  --text-display--letter-spacing: -0.035em;
+  --text-5xl--line-height: 0.98;
+  --text-5xl--letter-spacing: -0.03em;
+  --text-4xl--line-height: 1.05;
+  --text-4xl--letter-spacing: -0.025em;
+  --text-3xl--line-height: 1.12;
+  --text-3xl--letter-spacing: -0.02em;
+  --text-base--line-height: 1.65;
+  --text-lg--line-height: 1.6;
+
+  --tracking-label: 0.18em;
+
+  --breakpoint-3xl: 120rem;
+
+  --container-prose: 68ch;
+  --container-narrow: 34rem;
+  --container-wide: 84rem;
+
+  /* Shared with GSAP tweens and Three.js camera easing — changing a curve
+     here changes it in all three systems. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-signal-text);
+    color: var(--color-surface-raised);
+  }
+
+  /* Global kill switch for the motion layer. Three.js checks this same query
+     before initialising rather than rendering and hiding. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

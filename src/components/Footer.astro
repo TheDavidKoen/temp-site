@@ -1,0 +1,45 @@
+---
+import { SITE, SOCIAL_LINKS } from '@/consts';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-24 border-t border-surface-muted bg-surface-tint">
+  <div
+    class="mx-auto flex w-full max-w-wide flex-col gap-8 px-6 py-12 sm:px-8 md:flex-row md:items-end md:justify-between lg:px-12"
+  >
+    <div class="space-y-2">
+      <p class="font-display text-xl font-bold text-ink">
+        {SITE.name}<span class="text-signal">.</span>
+      </p>
+      <p class="max-w-narrow text-sm text-ink-muted">
+        Digital Project Manager &amp; Web Developer — South Africa
+      </p>
+    </div>
+
+    <nav aria-label="Social">
+      <ul class="flex flex-wrap gap-x-6 gap-y-2">
+        {
+          SOCIAL_LINKS.map(({ href, label }) => (
+            <li>
+              <a
+                href={href}
+                rel="noopener noreferrer"
+                target="_blank"
+                class="font-mono text-xs uppercase tracking-label text-ink-muted transition-colors hover:text-signal-text"
+              >
+                {label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+
+  <div class="border-t border-surface-muted">
+    <div class="mx-auto w-full max-w-wide px-6 py-5 sm:px-8 lg:px-12">
+      <p class="font-mono text-xs text-ink-muted">© {year} {SITE.name}</p>
+    </div>
+  </div>
+</footer>
