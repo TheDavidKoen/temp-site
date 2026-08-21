@@ -1,0 +1,64 @@
+---
+import { SITE } from '@/consts';
+---
+
+<div class="intro" aria-hidden="true">
+  <span class="intro__mask">
+    <span class="intro__word">{SITE.name}<span class="intro__dot">.</span></span>
+  </span>
+</div>
+
+<style>
+  /* The skip flag is set on <html> by the inline script in BaseLayout before
+     first paint; without that ordering a returning visitor sees a flash. */
+  :global(html[data-intro='skip']) .intro {
+    display: none;
+  }
+
+  .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    background-color: var(--color-ink);
+    will-change: transform;
+    animation: intro-exit 0.55s var(--ease-out-expo) 0.95s forwards;
+  }
+
+  .intro__mask {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.15em;
+  }
+
+  .intro__word {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--text-4xl);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--color-surface);
+    animation: intro-rise 0.75s var(--ease-out-expo) both;
+  }
+
+  .intro__dot {
+    color: var(--color-signal);
+  }
+
+  @keyframes intro-rise {
+    from {
+      transform: translateY(110%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes intro-exit {
+    to {
+      transform: translateY(-100%);
+      visibility: hidden;
+    }
+  }
+</style>
