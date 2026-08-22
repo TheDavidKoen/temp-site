@@ -2,7 +2,10 @@
 
 Personal site for **David Koen** — Digital Project Manager and Web Developer.
 
-Live: [davidkoen.is-a.dev](https://davidkoen.is-a.dev) *(not yet deployed)*
+Live: [temp-site-2cf.pages.dev](https://temp-site-2cf.pages.dev)
+
+A custom subdomain, `davidkoen.is-a.dev`, is pending review at
+[is-a-dev/register#48370](https://github.com/is-a-dev/register/pull/48370).
 
 A hand-built static site, deliberately not a CMS. The repository is part of the
 deliverable: the branch history, pull requests and decision records are meant to
@@ -110,19 +113,11 @@ Workers cannot serve. See [ADR 0002](docs/adr/0002-cloudflare-pages-over-workers
 
 ## Known issues
 
-**The dev server reports a false failure.** Astro 7 forks the dev server as a
-detached daemon, then probes `127.0.0.1` to confirm it started. The server binds
-`[::1]` only, so the probe times out and the CLI prints:
+**The dev server binds IPv6 only.** It listens on `[::1]:4321`; requests to
+`127.0.0.1:4321` are refused. Use `localhost`.
 
-```
-Dev server process exited before becoming ready.
-[ELIFECYCLE] Command failed with exit code 1.
-```
-
-The server is running regardless. Confirm with `pnpm exec astro dev status`, and
-open `localhost:4321` rather than `127.0.0.1:4321`.
-
-Because the server is detached, `Ctrl+C` does not stop it:
+**The dev server is detached.** Astro 7 forks it as a background process, so the
+terminal returns immediately and `Ctrl+C` does not stop it:
 
 ```sh
 pnpm exec astro dev status

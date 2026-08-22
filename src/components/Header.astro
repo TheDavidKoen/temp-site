@@ -1,15 +1,16 @@
 ---
 import Container from '@/components/Container.astro';
-import { NAV_LINKS, SITE } from '@/consts';
+import Wordmark from '@/components/Wordmark.astro';
+import { NAV_LINKS } from '@/consts';
 ---
 
 <header class="header">
   <Container class="flex items-center justify-between gap-6 py-4">
     <a
       href="/"
-      class="font-display text-lg font-bold tracking-tight text-ink transition-colors hover:text-signal-text"
+      class="link-slide font-display text-lg font-bold tracking-tight text-ink"
     >
-      {SITE.name}<span class="text-signal">.</span>
+      <Wordmark />
     </a>
 
     <nav aria-label="Primary">
@@ -31,7 +32,7 @@ import { NAV_LINKS, SITE } from '@/consts';
             <li>
               <a
                 href={href}
-                class="font-mono text-xs uppercase tracking-label text-ink-muted transition-colors hover:text-signal-text"
+                class="link-slide label"
               >
                 {label}
               </a>
