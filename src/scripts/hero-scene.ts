@@ -1,229 +1,163 @@
 import {
-  BoxGeometry,
+  BufferAttribute,
+  BufferGeometry,
+  CatmullRomCurve3,
+  CircleGeometry,
   Color,
-  DirectionalLight,
-  HemisphereLight,
+  DynamicDrawUsage,
+  Group,
   InstancedMesh,
+  LineBasicMaterial,
+  LineSegments,
   MathUtils,
-  MeshLambertMaterial,
+  Mesh,
+  MeshBasicMaterial,
   Object3D,
-  PerspectiveCamera,
+  OrthographicCamera,
   Scene,
+  Vector3,
   WebGLRenderer,
 } from 'three';
 
-const BEAM = 0.12;
-const SEG = 0.45;
-const GAP = 0.12;
-const DEPTH = 0.45;
-const GLYPH_H = 4.5;
+const RADIUS = 0.85;
+const DEPTH = 0.5;
+const ARC_STEPS = 40;
+const RIB_EVERY = 6;
+const LOOP_PTS = ARC_STEPS + 2;
+const RIBS = Math.floor(LOOP_PTS / RIB_EVERY) + 1;
+const SEGMENTS = LOOP_PTS * 2 + RIBS;
+
+const DOTS = 74;
+const DOT_R = 0.055;
+const BALL_R = 0.17;
+
+/* Chase occupies the first stretch; the rest of the scroll drives the burst. */
+const CHASE_END = 0.82;
+const GAP = 2.3;
+const TRAIL_GAP = 0.028;
+const MARGIN = 1.4;
 
 const INK = new Color(0x101a1c);
-const MUTED = new Color(0x3d5457);
 const SIGNAL = new Color(0xff0000);
 
-type Vec3 = [number, number, number];
-type Stroke = [number, number, number, number];
-
-interface Member {
-  pos: Vec3;
-  rot: Vec3;
-  length: number;
-  accent: boolean;
-}
-
-interface Instance extends Member {
-  from: Vec3;
-  spin: Vec3;
-  begin: number;
-  end: number;
-}
-
-/* Letterforms as straight strokes in local space, origin bottom-left. Each
-   stroke is subdivided into fixed-length pins at build time, so changing SEG
-   changes pin density without touching these coordinates. */
-const D_STROKES: Stroke[] = [
-  [0, 0, 0, GLYPH_H],
-  [0, GLYPH_H, 1.9, GLYPH_H],
-  [1.9, GLYPH_H, 2.9, GLYPH_H - 1],
-  [2.9, GLYPH_H - 1, 2.9, 1],
-  [2.9, 1, 1.9, 0],
-  [1.9, 0, 0, 0],
+const ROUTE_POINTS = [
+  new Vector3(-5.2, 3.1, 0),
+  new Vector3(-1.6, 2.3, 0),
+  new Vector3(3.9, 0.9, 0),
+  new Vector3(0.4, -0.6, 0),
+  new Vector3(-3.1, -1.9, 0),
+  new Vector3(0, -3.1, 0),
 ];
 
-const K_STROKES: Stroke[] = [
-  [0, 0, 0, GLYPH_H],
-  [0, 2.15, 2.5, GLYPH_H],
-  [0, 2.15, 2.5, 0],
-];
+const ROUTE = new CatmullRomCurve3(ROUTE_POINTS);
+const LEAD_T = GAP / ROUTE.getLength();
 
-type Placement = [strokes: Stroke[], ox: number, oy: number];
-
-/* Side by side reads badly on a portrait screen: fitting the width of a wide,
-   short monogram leaves the vertical space empty. Portrait stacks instead. */
-const LANDSCAPE: Placement[] = [
-  [D_STROKES, -3.25, -GLYPH_H / 2],
-  [K_STROKES, 0.75, -GLYPH_H / 2],
-];
-
-const PORTRAIT: Placement[] = [
-  [D_STROKES, -1.45, 0.9],
-  [K_STROKES, -1.25, -GLYPH_H - 0.9],
-];
-
-function addStroke(stroke: Stroke, ox: number, oy: number, z: number, out: Member[]): void {
-  const [ax, ay, bx, by] = stroke;
-  const x1 = ax + ox;
-  const y1 = ay + oy;
-  const dx = bx - ax;
-  const dy = by - ay;
-  const span = Math.hypot(dx, dy);
-  const steps = Math.max(1, Math.round(span / SEG));
-  const angle = Math.atan2(dy, dx);
-
-  for (let i = 0; i < steps; i++) {
-    const t = (i + 0.5) / steps;
-    out.push({
-      pos: [x1 + dx * t, y1 + dy * t, z],
-      rot: [0, 0, angle],
-      length: span / steps - GAP,
-      accent: false,
-    });
-  }
-}
-
-function buildLetters(portrait: boolean): Member[] {
-  const members: Member[] = [];
-  const letters = portrait ? PORTRAIT : LANDSCAPE;
-
-  for (const z of [-DEPTH, DEPTH]) {
-    for (const [strokes, ox, oy] of letters) {
-      for (const stroke of strokes) addStroke(stroke, ox, oy, z, members);
-    }
-  }
-
-  const seen = new Set<string>();
-  for (const [strokes, ox, oy] of letters) {
-    for (const [ax, ay, bx, by] of strokes) {
-      for (const [x, y] of [
-        [ax, ay],
-        [bx, by],
-      ]) {
-        const key = `${x}:${y}:${ox}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        members.push({
-          pos: [x + ox, y + oy, 0],
-          rot: [0, Math.PI / 2, 0],
-          length: DEPTH * 2,
-          accent: false,
-        });
-      }
-    }
-  }
-
-  return members.map((member, i) => ({ ...member, accent: i % 7 === 3 }));
-}
+/* Deterministic so a reload produces the same burst. */
+const jitter = (i: number, seed: number): number => {
+  const n = Math.sin(i * 12.9898 + seed * 78.233) * 43758.5453;
+  return n - Math.floor(n);
+};
 
 export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): void {
-  const portrait = canvas.clientHeight > canvas.clientWidth;
-  const members = buildLetters(portrait).sort((a, b) =>
-    portrait ? b.pos[1] - a.pos[1] : a.pos[0] - b.pos[0],
-  );
-  const count = members.length;
-
-  let extentX = 0;
-  let extentY = 0;
-  for (const member of members) {
-    const reach = member.length / 2;
-    extentX = Math.max(extentX, Math.abs(member.pos[0]) + reach);
-    extentY = Math.max(extentY, Math.abs(member.pos[1]) + reach);
-  }
-
-  const instances: Instance[] = members.map((member, i) => {
-    const begin = (i / count) * 0.78;
-    return {
-      ...member,
-      from: [(Math.random() - 0.5) * 13, (Math.random() - 0.5) * 9, (Math.random() - 0.5) * 11],
-      spin: [Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2],
-      begin,
-      end: begin + 0.22,
-    };
-  });
-
-  const renderer = new WebGLRenderer({
-    canvas,
-    alpha: true,
-    antialias: true,
-    powerPreference: 'low-power',
-  });
+  const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(35, 1, 0.1, 100);
+  const camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+  camera.position.z = 10;
 
-  scene.add(new HemisphereLight(0xffffff, 0xbbd5da, 2.2));
-  const key = new DirectionalLight(0xffffff, 1.8);
-  key.position.set(5, 7, 6);
-  scene.add(key);
+  const bounds = { x: 0, y: 0 };
+  for (const point of ROUTE.getPoints(120)) {
+    bounds.x = Math.max(bounds.x, Math.abs(point.x));
+    bounds.y = Math.max(bounds.y, Math.abs(point.y));
+  }
 
-  const mesh = new InstancedMesh(new BoxGeometry(1, BEAM, BEAM), new MeshLambertMaterial(), count);
-  scene.add(mesh);
+  /* BufferAttribute keeps the array by reference; Float32BufferAttribute
+     copies it, so in-place writes would never reach the GPU. */
+  const wedge = new Float32Array(SEGMENTS * 2 * 3);
+  const wedgeAttribute = new BufferAttribute(wedge, 3);
+  wedgeAttribute.setUsage(DynamicDrawUsage);
+  const wedgeGeometry = new BufferGeometry();
+  wedgeGeometry.setAttribute('position', wedgeAttribute);
 
-  instances.forEach((member, i) => {
-    mesh.setColorAt(i, member.accent ? SIGNAL : i % 3 === 0 ? MUTED : INK);
-  });
-  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  const wedgeMaterial = new LineBasicMaterial({ color: INK, transparent: true });
+
+  /* Outer group carries the travel angle, inner group a fixed tilt so the
+     front and back loops separate instead of overlapping under an
+     axis-aligned orthographic camera. */
+  const chaser = new Group();
+  const tilt = new Group();
+  tilt.rotation.set(-0.3, 0.42, 0);
+  tilt.add(new LineSegments(wedgeGeometry, wedgeMaterial));
+  chaser.add(tilt);
+  scene.add(chaser);
+
+  const ballMaterial = new MeshBasicMaterial({ color: SIGNAL, transparent: true });
+  const ball = new Mesh(new CircleGeometry(BALL_R, 28), ballMaterial);
+  scene.add(ball);
+
+  const dots = new InstancedMesh(
+    new CircleGeometry(DOT_R, 10),
+    new MeshBasicMaterial({ color: SIGNAL }),
+    DOTS,
+  );
+  scene.add(dots);
 
   const dummy = new Object3D();
+  const dotAt = Array.from({ length: DOTS }, (_, i) => ROUTE.getPointAt(i / (DOTS - 1)));
 
-  const layout = (progress: number): void => {
-    for (let i = 0; i < count; i++) {
-      const m = instances[i];
-      const t = MathUtils.smoothstep(progress, m.begin, m.end);
-
-      dummy.position.set(
-        MathUtils.lerp(m.from[0], m.pos[0], t),
-        MathUtils.lerp(m.from[1], m.pos[1], t),
-        MathUtils.lerp(m.from[2], m.pos[2], t),
-      );
-      dummy.rotation.set(
-        MathUtils.lerp(m.spin[0], m.rot[0], t),
-        MathUtils.lerp(m.spin[1], m.rot[1], t),
-        MathUtils.lerp(m.spin[2], m.rot[2], t),
-      );
-      const scale = MathUtils.lerp(0.15, 1, t);
-      dummy.scale.set(m.length * scale, scale, scale);
-
+  const writeDots = (reached: number): void => {
+    for (let i = 0; i < DOTS; i++) {
+      const t = i / (DOTS - 1);
+      const shown = t <= reached - TRAIL_GAP;
+      dummy.position.copy(dotAt[i]);
+      dummy.scale.setScalar(shown ? 1 : 0);
       dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
+      dots.setMatrixAt(i, dummy.matrix);
     }
-    mesh.instanceMatrix.needsUpdate = true;
+    dots.instanceMatrix.needsUpdate = true;
   };
 
-  const frameCamera = (progress: number): void => {
-    const aspect = camera.aspect || 1;
-    const half = Math.tan(MathUtils.degToRad(camera.fov) / 2);
-    const distance = MathUtils.clamp(
-      Math.max((extentX + 0.5) / (half * aspect), (extentY + 0.5) / half),
-      5,
-      40,
-    );
-    const yaw = MathUtils.lerp(-0.55, 0.06, progress);
+  const writeWedge = (mouth: number, burst: number): void => {
+    const span = Math.PI * 2 - mouth * 2;
+    const blast = burst * 5.5;
 
-    camera.position.set(
-      Math.sin(yaw) * distance,
-      MathUtils.lerp(3.2, 0.2, progress),
-      Math.cos(yaw) * distance,
-    );
-    camera.lookAt(0, 0, 0);
+    const at = (i: number): [number, number] => {
+      if (i === 0) return [0, 0];
+      const angle = mouth + (span * (i - 1)) / ARC_STEPS;
+      const reach = RADIUS + blast * (0.4 + jitter(i, 1) * 0.6);
+      return [Math.cos(angle) * reach, Math.sin(angle) * reach];
+    };
+
+    let o = 0;
+    const put = (x: number, y: number, z: number): void => {
+      wedge[o++] = x;
+      wedge[o++] = y;
+      wedge[o++] = z;
+    };
+
+    for (const face of [1, -1]) {
+      const z = (DEPTH / 2) * face * (1 + blast);
+      for (let i = 0; i < LOOP_PTS; i++) {
+        const [ax, ay] = at(i);
+        const [bx, by] = at((i + 1) % LOOP_PTS);
+        put(ax, ay, z);
+        put(bx, by, z);
+      }
+    }
+
+    for (let i = 0; i < LOOP_PTS; i += RIB_EVERY) {
+      const [ax, ay] = at(i);
+      put(ax, ay, (DEPTH / 2) * (1 + blast));
+      put(ax, ay, (-DEPTH / 2) * (1 + blast));
+    }
+
+    wedgeAttribute.needsUpdate = true;
   };
 
   let pinTop = 0;
   let travel = 0;
 
-  /* Measured on resize only. Reading getBoundingClientRect inside the render
-     loop forces a synchronous layout every frame. */
   const measure = (): void => {
     pinTop = section.getBoundingClientRect().top + window.scrollY;
     travel = section.offsetHeight - window.innerHeight;
@@ -236,7 +170,13 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     const { clientWidth: w, clientHeight: h } = canvas;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
-    camera.aspect = w / h;
+
+    const aspect = w / h;
+    const half = Math.max((bounds.x + MARGIN) / aspect, bounds.y + MARGIN);
+    camera.top = half;
+    camera.bottom = -half;
+    camera.left = -half * aspect;
+    camera.right = half * aspect;
     camera.updateProjectionMatrix();
     measure();
   };
@@ -244,18 +184,37 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
   let frame = 0;
   let running = false;
 
-  const tick = (): void => {
+  const tick = (now: number): void => {
     frame = requestAnimationFrame(tick);
     const progress = progressOf();
-    layout(progress);
-    frameCamera(progress);
+
+    const chase = Math.min(progress, CHASE_END) / CHASE_END;
+    const burst = progress <= CHASE_END ? 0 : (progress - CHASE_END) / (1 - CHASE_END);
+
+    const here = ROUTE.getPointAt(chase);
+    // Gap holds steady, then closes over the final stretch so the two meet.
+    const closing = 1 - MathUtils.smoothstep(chase, 0.86, 1);
+    const target = Math.min(1, chase + LEAD_T * closing);
+    const ahead = ROUTE.getPointAt(target);
+
+    chaser.position.set(here.x, here.y, 0);
+    chaser.rotation.z = Math.atan2(ahead.y - here.y, ahead.x - here.x) || 0;
+
+    ball.position.set(ahead.x, ahead.y, 0);
+    ball.scale.setScalar(Math.max(0, 1 - burst * 1.6));
+    ballMaterial.opacity = Math.max(0, 1 - burst * 1.8);
+
+    wedgeMaterial.opacity = Math.max(0, 1 - burst * 1.25);
+    writeWedge(0.06 + Math.abs(Math.sin(now / 130)) * (1 - burst) * 0.5, burst);
+    writeDots(chase);
+
     renderer.render(scene, camera);
   };
 
   const start = (): void => {
     if (running) return;
     running = true;
-    tick();
+    frame = requestAnimationFrame(tick);
   };
 
   const stop = (): void => {
@@ -267,8 +226,6 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
   resize();
   new ResizeObserver(resize).observe(canvas);
 
-  // The loop only runs while the hero is on screen and the tab is focused —
-  // scrolling past it or switching tabs stops GPU work entirely.
   new IntersectionObserver((entries) => {
     if (entries.some((entry) => entry.isIntersecting)) start();
     else stop();

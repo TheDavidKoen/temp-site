@@ -1,5 +1,18 @@
+---
+const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
+const FIELD = 1400;
+
+/* Seeded rather than random so the first paint is identical on every build. */
+const seed = (i: number): string =>
+  GLYPHS[Math.floor(Math.abs(Math.sin(i * 91.7)) * GLYPHS.length)];
+---
+
 <section class="hero" data-hero>
   <div class="hero__stage">
+    <div class="hero__glyphs" aria-hidden="true">
+      {Array.from({ length: FIELD }, (_, i) => <span class="hero__glyph">{seed(i)}</span>)}
+    </div>
+
     <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
 
     <span class="hero__cue" aria-hidden="true">Scroll down</span>
@@ -17,6 +30,28 @@
     !matchMedia('(prefers-reduced-motion: reduce)').matches &&
     !matchMedia('(width < 40rem)').matches;
   const capable = (nav.deviceMemory ?? 8) >= 4 && (nav.hardwareConcurrency ?? 8) >= 4;
+
+  const glyphs = [...document.querySelectorAll<HTMLElement>('.hero__glyph')];
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
+
+  if (glyphs.length && wanted) {
+    let lastY = window.scrollY;
+
+    // Driven by scroll distance rather than a timer, so the field is still
+    // when the page is, and churns while you move.
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (Math.abs(window.scrollY - lastY) < 8) return;
+        lastY = window.scrollY;
+        for (let n = 0; n < 220; n++) {
+          const glyph = glyphs[(Math.random() * glyphs.length) | 0];
+          glyph.textContent = CHARS[(Math.random() * CHARS.length) | 0];
+        }
+      },
+      { passive: true },
+    );
+  }
 
   if (section && canvas && wanted && capable) {
     const observer = new IntersectionObserver(
@@ -56,8 +91,26 @@
     contain: paint;
   }
 
+  /* Tiles edge to edge rather than clustering: auto-fill columns with more
+     cells than any viewport needs, and the overflow clipped. */
+  .hero__glyphs {
+    grid-area: 1 / 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr));
+    align-content: start;
+    justify-items: center;
+    row-gap: 1.6rem;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1;
+    color: color-mix(in srgb, var(--color-ink-muted) 30%, transparent);
+    user-select: none;
+  }
+
   .hero__canvas {
     grid-area: 1 / 1;
+    z-index: 1;
     display: block;
     width: 100%;
     height: 100%;
