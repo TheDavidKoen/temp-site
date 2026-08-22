@@ -68,7 +68,7 @@
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-label);
     text-transform: uppercase;
-    color: var(--color-ink-muted);
+    color: var(--color-signal-text);
   }
 
   /* Underline grows from the leading edge on hover and focus. Applied to
