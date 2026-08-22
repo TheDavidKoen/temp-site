@@ -2,6 +2,7 @@
   "name": "temp-site",
   "type": "module",
   "version": "0.0.1",
+  "packageManager": "pnpm@11.22.0",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -13,7 +14,8 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "verify": "pnpm run check && pnpm run lint",
-    "astro": "astro"
+    "astro": "astro",
+    "budget": "node scripts/check-budget.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
@@ -25,6 +27,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@biomejs/biome": "^2.5.9",
+    "@lhci/cli": "^0.15.1",
     "@types/three": "^0.185.4",
     "typescript": "^6.0.3"
   }
