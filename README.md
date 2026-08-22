@@ -2,10 +2,7 @@
 
 Personal site for **David Koen** — Digital Project Manager and Web Developer.
 
-Live: [temp-site-2cf.pages.dev](https://temp-site-2cf.pages.dev)
-
-A custom subdomain, `davidkoen.is-a.dev`, is pending review at
-[is-a-dev/register#48370](https://github.com/is-a-dev/register/pull/48370).
+Live: **[davidkoen.is-a.dev](https://davidkoen.is-a.dev)**
 
 A hand-built static site, deliberately not a CMS. The repository is part of the
 deliverable: the branch history, pull requests and decision records are meant to
@@ -107,9 +104,24 @@ The Node version is pinned in `.node-version` because Astro 7 requires
 `>=22.12.0` and Cloudflare's default build image ships an older release. The
 package manager is detected from `pnpm-lock.yaml`.
 
-Cloudflare Pages was chosen over Workers Static Assets specifically because the
-domain is a free `is-a.dev` subdomain — a zone this account does not own, which
-Workers cannot serve. See [ADR 0002](docs/adr/0002-cloudflare-pages-over-workers.md).
+The domain is a free `is-a.dev` subdomain, registered by pull request against
+[is-a-dev/register](https://github.com/is-a-dev/register). Cloudflare Pages was
+chosen over Workers Static Assets because Workers cannot serve a custom domain on
+a zone this account does not own. See
+[ADR 0002](docs/adr/0002-cloudflare-pages-over-workers.md).
+
+**Attaching that domain cannot be done from the Cloudflare dashboard.** `is-a.dev`
+is on the [Public Suffix List](https://publicsuffix.org/), so the dashboard treats
+the subdomain as a registrable domain in its own right and demands a zone transfer
+that is impossible — the zone belongs to is-a.dev. It has to be added through the
+Pages API instead:
+
+```sh
+curl -X POST "https://api.cloudflare.com/client/v4/accounts/<account-id>/pages/projects/<project>/domains"   -H "Authorization: Bearer <token>"   -H "Content-Type: application/json"   -d '{"name":"davidkoen.is-a.dev"}'
+```
+
+The token needs only **Account → Cloudflare Pages → Edit**. is-a.dev also provide
+a form at [cf-pages.is-a.dev](https://cf-pages.is-a.dev) that wraps the same call.
 
 ## Known issues
 
