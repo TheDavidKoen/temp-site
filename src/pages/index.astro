@@ -1,6 +1,7 @@
 ---
 import Button from '@/components/Button.astro';
 import Container from '@/components/Container.astro';
+import GhostScene from '@/components/GhostScene.astro';
 import Hero from '@/components/Hero.astro';
 import Marquee from '@/components/Marquee.astro';
 import PinnedText from '@/components/PinnedText.astro';
@@ -101,14 +102,18 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   </PinnedText>
 
   <Section id="contact" label="Contact">
-    <div class="max-w-prose space-y-8">
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-16">
+      <div class="max-w-prose space-y-8">
       <p class="font-display text-3xl font-medium text-ink">
         Looking for someone who can hold both sides of the brief<span class="text-signal">?</span>
       </p>
       <p class="text-ink-muted">
         I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.
       </p>
-      <Button href={CONTACT_MAILTO}>Let's Get In Touch</Button>
+        <Button href={CONTACT_MAILTO}>Let's Get In Touch</Button>
+      </div>
+
+      <GhostScene />
     </div>
   </Section>
 </BaseLayout>
