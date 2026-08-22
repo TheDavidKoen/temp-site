@@ -93,23 +93,6 @@
   .link-slide:focus-visible::after {
     transform: scaleX(1);
   }
-
-  /* Duplicates the glyph in the signal colour and clips to its lower portion,
-     so only the stop under the question mark picks up the accent. The inset is
-     tuned to the display face — changing the font means retuning it. */
-  .query {
-    position: relative;
-    display: inline-block;
-    line-height: 1;
-  }
-
-  .query::after {
-    content: "?";
-    position: absolute;
-    inset: 0;
-    color: var(--color-signal);
-    clip-path: inset(72% 0 0 0);
-  }
 }
 
 @layer base {

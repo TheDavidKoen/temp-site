@@ -5,6 +5,7 @@ import GhostScene from '@/components/GhostScene.astro';
 import Hero from '@/components/Hero.astro';
 import Marquee from '@/components/Marquee.astro';
 import PinnedText from '@/components/PinnedText.astro';
+import QueryMark from '@/components/QueryMark.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Section from '@/components/Section.astro';
 import { CONTACT_MAILTO, EXPERIENCE_NARRATIVE, MARQUEE_PHRASES, SKILL_GROUPS } from '@/consts';
@@ -105,7 +106,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-16">
       <div class="max-w-prose space-y-8">
       <p class="font-display text-3xl font-medium text-ink">
-        Looking for someone who can hold both sides of the brief<span class="query">?</span>
+        Looking for someone who can hold both sides of the brief<QueryMark />
       </p>
       <p class="text-ink-muted">
         I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.
