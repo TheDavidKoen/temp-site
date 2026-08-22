@@ -1,5 +1,6 @@
 ---
 import Container from '@/components/Container.astro';
+import Wordmark from '@/components/Wordmark.astro';
 import { SITE, SOCIAL_LINKS } from '@/consts';
 
 const year = new Date().getFullYear();
@@ -9,7 +10,7 @@ const year = new Date().getFullYear();
   <Container class="flex flex-col gap-8 py-12 md:flex-row md:items-end md:justify-between">
     <div class="space-y-2">
       <p class="font-display text-xl font-bold text-ink">
-        {SITE.name}<span class="text-signal">.</span>
+        <Wordmark />
       </p>
       <p class="max-w-narrow text-sm text-ink-muted">
         Tech Enthusiast - {SITE.location}
@@ -25,7 +26,7 @@ const year = new Date().getFullYear();
                 href={href}
                 rel="noopener noreferrer"
                 target="_blank"
-                class="font-mono text-xs uppercase tracking-label text-ink-muted transition-colors hover:text-signal-text"
+                class="link-slide label text-ink-muted"
               >
                 {label}
               </a>
