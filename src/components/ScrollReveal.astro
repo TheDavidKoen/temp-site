@@ -3,9 +3,10 @@ interface Props {
   text: string;
   index: number;
   count: number;
+  animate?: boolean;
 }
 
-const { text, index, count }: Props = Astro.props;
+const { text, index, count, animate = true }: Props = Astro.props;
 
 /* Deterministic jitter so a rebuild produces identical markup — Math.random
    here would churn the output on every build. */
@@ -32,21 +33,26 @@ const words = text.split(' ').map((word) =>
 ---
 
 <div class="reveal">
-  <p class="reveal__line" aria-hidden="true">
-    {
-      words.map((chars) => (
-        <span class="reveal__word">
-          {chars.map(({ char, d, x, y, r }) => (
-            <span class="reveal__char" style={`--d:${d};--x:${x}vw;--y:${y}vh;--r:${r}deg`}>
-              {char}
+  {
+    animate ? (
+      <Fragment>
+        <p class="reveal__line" aria-hidden="true">
+          {words.map((chars) => (
+            <span class="reveal__word">
+              {chars.map(({ char, d, x, y, r }) => (
+                <span class="reveal__char" style={`--d:${d};--x:${x}vw;--y:${y}vh;--r:${r}deg`}>
+                  {char}
+                </span>
+              ))}
             </span>
           ))}
-        </span>
-      ))
-    }
-  </p>
-
-  <span class="sr-only">{text}</span>
+        </p>
+        <span class="sr-only">{text}</span>
+      </Fragment>
+    ) : (
+      <p class="reveal__line">{text}</p>
+    )
+  }
 </div>
 
 <style>

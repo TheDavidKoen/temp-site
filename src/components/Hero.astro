@@ -11,7 +11,11 @@
   const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
   const nav = navigator as Navigator & { deviceMemory?: number };
 
-  const wanted = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* Matches the media query that hides .hero below 40rem — without this the
+     127KB scene would still download for a section nobody can see. */
+  const wanted =
+    !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+    !matchMedia('(width < 40rem)').matches;
   const capable = (nav.deviceMemory ?? 8) >= 4 && (nav.hardwareConcurrency ?? 8) >= 4;
 
   if (section && canvas && wanted && capable) {
@@ -38,7 +42,7 @@
 
   @media (width < 40rem) {
     .hero {
-      height: 220vh;
+      display: none;
     }
   }
 

@@ -71,7 +71,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   <Marquee phrases={MARQUEE_PHRASES} />
 
   <Section id="skills" label="Skills">
-    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-6 sm:gap-10 lg:grid-cols-4">
       {
         SKILL_GROUPS.map(({ title, items }) => (
           <div class="border-l-2 border-signal pl-5">
@@ -90,7 +90,12 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   <PinnedText id="experience" label="Experience">
     {
       EXPERIENCE_NARRATIVE.map((paragraph, i) => (
-        <ScrollReveal text={paragraph} index={i} count={EXPERIENCE_NARRATIVE.length} />
+        <ScrollReveal
+          text={paragraph}
+          index={i - 1}
+          count={EXPERIENCE_NARRATIVE.length - 1}
+          animate={i > 0}
+        />
       ))
     }
   </PinnedText>
