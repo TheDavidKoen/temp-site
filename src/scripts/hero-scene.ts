@@ -2,14 +2,17 @@ import {
   BufferAttribute,
   BufferGeometry,
   CatmullRomCurve3,
+  CircleGeometry,
   Color,
   DynamicDrawUsage,
-  Float32BufferAttribute,
   Group,
-  Line,
+  InstancedMesh,
   LineBasicMaterial,
   LineSegments,
   MathUtils,
+  Mesh,
+  MeshBasicMaterial,
+  Object3D,
   OrthographicCamera,
   Scene,
   Vector3,
@@ -24,15 +27,19 @@ const LOOP_PTS = ARC_STEPS + 2;
 const RIBS = Math.floor(LOOP_PTS / RIB_EVERY) + 1;
 const SEGMENTS = LOOP_PTS * 2 + RIBS;
 
-const TRAIL_PTS = 90;
-const TRAIL_SPAN = 0.22;
-const LEAD = 0.075;
+const DOTS = 74;
+const DOT_R = 0.055;
+const BALL_R = 0.17;
+
+/* Chase occupies the first stretch; the rest of the scroll drives the burst. */
+const CHASE_END = 0.82;
+const LEAD = 0.09;
+const TRAIL_GAP = 0.028;
 const MARGIN = 1.4;
 
 const INK = new Color(0x101a1c);
 const SIGNAL = new Color(0xff0000);
 
-/* Top-left to bottom-centre, wandering wide enough to use the full stage. */
 const ROUTE = new CatmullRomCurve3([
   new Vector3(-5.2, 3.1, 0),
   new Vector3(-1.6, 2.3, 0),
@@ -42,18 +49,11 @@ const ROUTE = new CatmullRomCurve3([
   new Vector3(0, -3.1, 0),
 ]);
 
-function ring(radius: number, steps = 30): BufferGeometry {
-  const positions: number[] = [];
-  for (let i = 0; i < steps; i++) {
-    const a = (i / steps) * Math.PI * 2;
-    const b = ((i + 1) / steps) * Math.PI * 2;
-    positions.push(Math.cos(a) * radius, Math.sin(a) * radius, 0);
-    positions.push(Math.cos(b) * radius, Math.sin(b) * radius, 0);
-  }
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  return geometry;
-}
+/* Deterministic so a reload produces the same burst. */
+const jitter = (i: number, seed: number): number => {
+  const n = Math.sin(i * 12.9898 + seed * 78.233) * 43758.5453;
+  return n - Math.floor(n);
+};
 
 export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): void {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
@@ -69,8 +69,6 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     bounds.y = Math.max(bounds.y, Math.abs(point.y));
   }
 
-  /* Rebuilt in place each frame so the mouth can open and close without
-     allocating a new buffer sixty times a second. */
   /* BufferAttribute keeps the array by reference; Float32BufferAttribute
      copies it, so in-place writes would never reach the GPU. */
   const wedge = new Float32Array(SEGMENTS * 2 * 3);
@@ -79,29 +77,53 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
   const wedgeGeometry = new BufferGeometry();
   wedgeGeometry.setAttribute('position', wedgeAttribute);
 
+  const wedgeMaterial = new LineBasicMaterial({ color: INK, transparent: true });
+
+  /* Outer group carries the travel angle, inner group a fixed tilt so the
+     front and back loops separate instead of overlapping under an
+     axis-aligned orthographic camera. */
   const chaser = new Group();
-  chaser.add(new LineSegments(wedgeGeometry, new LineBasicMaterial({ color: INK })));
+  const tilt = new Group();
+  tilt.rotation.set(-0.3, 0.42, 0);
+  tilt.add(new LineSegments(wedgeGeometry, wedgeMaterial));
+  chaser.add(tilt);
   scene.add(chaser);
 
-  const target = new LineSegments(ring(0.2, 20), new LineBasicMaterial({ color: SIGNAL }));
-  scene.add(target);
+  const ballMaterial = new MeshBasicMaterial({ color: SIGNAL, transparent: true });
+  const ball = new Mesh(new CircleGeometry(BALL_R, 28), ballMaterial);
+  scene.add(ball);
 
-  const trail = new Float32Array(TRAIL_PTS * 3);
-  const trailAttribute = new BufferAttribute(trail, 3);
-  trailAttribute.setUsage(DynamicDrawUsage);
-  const trailGeometry = new BufferGeometry();
-  trailGeometry.setAttribute('position', trailAttribute);
-  scene.add(new Line(trailGeometry, new LineBasicMaterial({ color: SIGNAL })));
+  const dots = new InstancedMesh(
+    new CircleGeometry(DOT_R, 10),
+    new MeshBasicMaterial({ color: SIGNAL }),
+    DOTS,
+  );
+  scene.add(dots);
 
-  const writeWedge = (mouth: number): void => {
+  const dummy = new Object3D();
+  const dotAt = Array.from({ length: DOTS }, (_, i) => ROUTE.getPointAt(i / (DOTS - 1)));
+
+  const writeDots = (reached: number): void => {
+    for (let i = 0; i < DOTS; i++) {
+      const t = i / (DOTS - 1);
+      const shown = t <= reached - TRAIL_GAP;
+      dummy.position.copy(dotAt[i]);
+      dummy.scale.setScalar(shown ? 1 : 0);
+      dummy.updateMatrix();
+      dots.setMatrixAt(i, dummy.matrix);
+    }
+    dots.instanceMatrix.needsUpdate = true;
+  };
+
+  const writeWedge = (mouth: number, burst: number): void => {
     const span = Math.PI * 2 - mouth * 2;
-    const front = DEPTH / 2;
-    const back = -DEPTH / 2;
+    const blast = burst * 5.5;
 
     const at = (i: number): [number, number] => {
       if (i === 0) return [0, 0];
       const angle = mouth + (span * (i - 1)) / ARC_STEPS;
-      return [Math.cos(angle) * RADIUS, Math.sin(angle) * RADIUS];
+      const reach = RADIUS + blast * (0.4 + jitter(i, 1) * 0.6);
+      return [Math.cos(angle) * reach, Math.sin(angle) * reach];
     };
 
     let o = 0;
@@ -111,7 +133,8 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
       wedge[o++] = z;
     };
 
-    for (const z of [front, back]) {
+    for (const face of [1, -1]) {
+      const z = (DEPTH / 2) * face * (1 + blast);
       for (let i = 0; i < LOOP_PTS; i++) {
         const [ax, ay] = at(i);
         const [bx, by] = at((i + 1) % LOOP_PTS);
@@ -122,23 +145,11 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
 
     for (let i = 0; i < LOOP_PTS; i += RIB_EVERY) {
       const [ax, ay] = at(i);
-      put(ax, ay, front);
-      put(ax, ay, back);
+      put(ax, ay, (DEPTH / 2) * (1 + blast));
+      put(ax, ay, (-DEPTH / 2) * (1 + blast));
     }
 
     wedgeAttribute.needsUpdate = true;
-  };
-
-  const writeTrail = (progress: number): void => {
-    const start = Math.max(0, progress - TRAIL_SPAN);
-    for (let i = 0; i < TRAIL_PTS; i++) {
-      const t = MathUtils.lerp(start, progress, i / (TRAIL_PTS - 1));
-      const point = ROUTE.getPointAt(MathUtils.clamp(t, 0, 1));
-      trail[i * 3] = point.x;
-      trail[i * 3 + 1] = point.y;
-      trail[i * 3 + 2] = 0;
-    }
-    trailAttribute.needsUpdate = true;
   };
 
   let pinTop = 0;
@@ -174,15 +185,24 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     frame = requestAnimationFrame(tick);
     const progress = progressOf();
 
-    const here = ROUTE.getPointAt(progress);
-    const ahead = ROUTE.getPointAt(Math.min(1, progress + LEAD));
+    const chase = Math.min(progress, CHASE_END) / CHASE_END;
+    const burst = progress <= CHASE_END ? 0 : (progress - CHASE_END) / (1 - CHASE_END);
+
+    const here = ROUTE.getPointAt(chase);
+    // Lead closes to nothing by the end of the chase, so the two actually meet.
+    const target = Math.min(1, chase + LEAD * (1 - chase));
+    const ahead = ROUTE.getPointAt(target);
 
     chaser.position.set(here.x, here.y, 0);
-    chaser.rotation.z = Math.atan2(ahead.y - here.y, ahead.x - here.x);
-    target.position.set(ahead.x, ahead.y, 0);
+    chaser.rotation.z = Math.atan2(ahead.y - here.y, ahead.x - here.x) || 0;
 
-    writeWedge(0.06 + Math.abs(Math.sin(now / 130)) * 0.5);
-    writeTrail(progress);
+    ball.position.set(ahead.x, ahead.y, 0);
+    ball.scale.setScalar(Math.max(0, 1 - burst * 1.6));
+    ballMaterial.opacity = Math.max(0, 1 - burst * 1.8);
+
+    wedgeMaterial.opacity = Math.max(0, 1 - burst * 1.25);
+    writeWedge(0.06 + Math.abs(Math.sin(now / 130)) * (1 - burst) * 0.5, burst);
+    writeDots(chase);
 
     renderer.render(scene, camera);
   };

@@ -35,13 +35,22 @@ const seed = (i: number): string =>
   const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
 
   if (glyphs.length && wanted) {
-    // A handful per tick rather than the whole field, so the cost stays trivial.
-    setInterval(() => {
-      for (let n = 0; n < 20; n++) {
-        const glyph = glyphs[(Math.random() * glyphs.length) | 0];
-        glyph.textContent = CHARS[(Math.random() * CHARS.length) | 0];
-      }
-    }, 90);
+    let lastY = window.scrollY;
+
+    // Driven by scroll distance rather than a timer, so the field is still
+    // when the page is, and churns while you move.
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (Math.abs(window.scrollY - lastY) < 14) return;
+        lastY = window.scrollY;
+        for (let n = 0; n < 18; n++) {
+          const glyph = glyphs[(Math.random() * glyphs.length) | 0];
+          glyph.textContent = CHARS[(Math.random() * CHARS.length) | 0];
+        }
+      },
+      { passive: true },
+    );
   }
 
   if (section && canvas && wanted && capable) {
