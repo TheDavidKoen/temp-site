@@ -33,21 +33,24 @@ const BALL_R = 0.17;
 
 /* Chase occupies the first stretch; the rest of the scroll drives the burst. */
 const CHASE_END = 0.82;
-const LEAD = 0.09;
+const GAP = 2.3;
 const TRAIL_GAP = 0.028;
 const MARGIN = 1.4;
 
 const INK = new Color(0x101a1c);
 const SIGNAL = new Color(0xff0000);
 
-const ROUTE = new CatmullRomCurve3([
+const ROUTE_POINTS = [
   new Vector3(-5.2, 3.1, 0),
   new Vector3(-1.6, 2.3, 0),
   new Vector3(3.9, 0.9, 0),
   new Vector3(0.4, -0.6, 0),
   new Vector3(-3.1, -1.9, 0),
   new Vector3(0, -3.1, 0),
-]);
+];
+
+const ROUTE = new CatmullRomCurve3(ROUTE_POINTS);
+const LEAD_T = GAP / ROUTE.getLength();
 
 /* Deterministic so a reload produces the same burst. */
 const jitter = (i: number, seed: number): number => {
@@ -189,8 +192,9 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     const burst = progress <= CHASE_END ? 0 : (progress - CHASE_END) / (1 - CHASE_END);
 
     const here = ROUTE.getPointAt(chase);
-    // Lead closes to nothing by the end of the chase, so the two actually meet.
-    const target = Math.min(1, chase + LEAD * (1 - chase));
+    // Gap holds steady, then closes over the final stretch so the two meet.
+    const closing = 1 - MathUtils.smoothstep(chase, 0.86, 1);
+    const target = Math.min(1, chase + LEAD_T * closing);
     const ahead = ROUTE.getPointAt(target);
 
     chaser.position.set(here.x, here.y, 0);

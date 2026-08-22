@@ -42,9 +42,9 @@ const seed = (i: number): string =>
     window.addEventListener(
       'scroll',
       () => {
-        if (Math.abs(window.scrollY - lastY) < 14) return;
+        if (Math.abs(window.scrollY - lastY) < 8) return;
         lastY = window.scrollY;
-        for (let n = 0; n < 18; n++) {
+        for (let n = 0; n < 220; n++) {
           const glyph = glyphs[(Math.random() * glyphs.length) | 0];
           glyph.textContent = CHARS[(Math.random() * CHARS.length) | 0];
         }
@@ -104,7 +104,7 @@ const seed = (i: number): string =>
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     line-height: 1;
-    color: color-mix(in srgb, var(--color-ink-muted) 22%, transparent);
+    color: color-mix(in srgb, var(--color-ink-muted) 30%, transparent);
     user-select: none;
   }
 
