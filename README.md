@@ -47,6 +47,7 @@ The dev server runs at **http://localhost:4321**.
 | `pnpm lint` | Biome lint + format check |
 | `pnpm lint:fix` | Apply Biome's safe fixes |
 | `pnpm verify` | `check` then `lint` — run before opening a PR |
+| `pnpm budget` | Assert the performance budget against `dist/` |
 
 ## Project structure
 
@@ -72,6 +73,20 @@ exports consumed as props. Adding a skill is a data edit.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, commit format and the
 pre-PR checklist.
+
+## Continuous integration
+
+Every pull request into `main` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+
+| Job | Does |
+|---|---|
+| `verify` | `astro check`, Biome, production build, performance budget |
+| `lighthouse` | Audits the built output, three runs, desktop preset |
+
+The budget step enforces [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) and
+guards a regression that is otherwise invisible — a minifier folding
+`animation-timeline` into the `animation` shorthand disables every
+scroll-driven animation while the page still builds and renders.
 
 ## Deployment
 

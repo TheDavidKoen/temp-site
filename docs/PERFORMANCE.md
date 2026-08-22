@@ -56,7 +56,22 @@ raw size and its suggested remedy — dynamic import — is already in place. Th
 chunk is separate *because* it is dynamically imported. Safe to ignore, or
 silence with `build.chunkSizeWarningLimit`.
 
-## Not yet measured
+## Enforcement
 
-Lighthouse has not been run against a deployed build. Nothing is deployed, and
-local `preview` scores are not representative. This is the gap CI should close.
+Every pull request runs `pnpm run budget`, which fails the build if the
+critical path or the deferred WebGL chunk exceeds the figures above. It also
+asserts that `animation-timeline` survives as a longhand — see
+[ADR 0009](adr/0009-disable-css-minification.md) for why that particular
+regression is invisible without a check.
+
+Lighthouse runs on the production build in the same workflow. SEO,
+accessibility and best-practices are hard failures; performance and LCP are
+warnings, because scores on CI hardware are noisier than the thresholds they
+would gate.
+
+Run either locally:
+
+```sh
+pnpm build && pnpm run budget
+pnpm exec lhci autorun
+```

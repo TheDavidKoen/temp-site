@@ -44,11 +44,15 @@ pnpm verify
 ```
 
 That runs `astro check` then Biome. Both must be clean. Also run a production
-build, since some failures only surface there:
+build and the budget check, since some failures only surface there:
 
 ```sh
 pnpm build
+pnpm run budget
 ```
+
+CI runs all of this plus Lighthouse on every pull request, so a red check means
+one of these failed. Reproduce it locally rather than pushing again to see.
 
 Then check, by eye:
 
