@@ -1,5 +1,18 @@
+---
+const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
+const FIELD = 220;
+
+/* Seeded rather than random so the first paint is identical on every build. */
+const seed = (i: number): string =>
+  GLYPHS[Math.floor(Math.abs(Math.sin(i * 91.7)) * GLYPHS.length)];
+---
+
 <section class="hero" data-hero>
   <div class="hero__stage">
+    <div class="hero__glyphs" aria-hidden="true">
+      {Array.from({ length: FIELD }, (_, i) => <span class="hero__glyph">{seed(i)}</span>)}
+    </div>
+
     <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
 
     <span class="hero__cue" aria-hidden="true">Scroll down</span>
@@ -17,6 +30,19 @@
     !matchMedia('(prefers-reduced-motion: reduce)').matches &&
     !matchMedia('(width < 40rem)').matches;
   const capable = (nav.deviceMemory ?? 8) >= 4 && (nav.hardwareConcurrency ?? 8) >= 4;
+
+  const glyphs = [...document.querySelectorAll<HTMLElement>('.hero__glyph')];
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
+
+  if (glyphs.length && wanted) {
+    // A handful per tick rather than the whole field, so the cost stays trivial.
+    setInterval(() => {
+      for (let n = 0; n < 8; n++) {
+        const glyph = glyphs[(Math.random() * glyphs.length) | 0];
+        glyph.textContent = CHARS[(Math.random() * CHARS.length) | 0];
+      }
+    }, 90);
+  }
 
   if (section && canvas && wanted && capable) {
     const observer = new IntersectionObserver(
@@ -56,8 +82,25 @@
     contain: paint;
   }
 
+  .hero__glyphs {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: 0.55rem 1.1rem;
+    padding: 3rem;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1;
+    color: color-mix(in srgb, var(--color-ink-muted) 22%, transparent);
+    user-select: none;
+  }
+
   .hero__canvas {
     grid-area: 1 / 1;
+    z-index: 1;
     display: block;
     width: 100%;
     height: 100%;
