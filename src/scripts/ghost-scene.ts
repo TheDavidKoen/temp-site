@@ -18,7 +18,18 @@ const DEPTH = 0.6;
 const ARC_STEPS = 44;
 const SKIRT_WAVES = 4;
 const SKIRT_STEPS = 56;
+const SKIRT_AMP = 0.17;
 const RIB_EVERY = 7;
+const BOB = 0.07;
+
+/* Derived from the outline so framing tracks any change to the shape. */
+const TOP = DOME_Y + HALF_W;
+const BOTTOM = SKIRT_Y - SKIRT_AMP;
+const CENTRE_Y = (TOP + BOTTOM) / 2;
+const HALF_H = (TOP - BOTTOM) / 2;
+
+/* Bounding radius, so no rotation can swing an edge out of frame. */
+const REACH = Math.hypot(HALF_W + DEPTH / 2, HALF_H) + BOB + 0.18;
 
 const INK = new Color(0x101a1c);
 const SIGNAL = new Color(0xff0000);
@@ -39,7 +50,10 @@ function outline(): Point[] {
 
   for (let i = 1; i <= SKIRT_STEPS; i++) {
     const t = i / SKIRT_STEPS;
-    points.push([HALF_W - t * HALF_W * 2, SKIRT_Y + Math.sin(t * Math.PI * SKIRT_WAVES) * 0.17]);
+    points.push([
+      HALF_W - t * HALF_W * 2,
+      SKIRT_Y + Math.sin(t * Math.PI * SKIRT_WAVES) * SKIRT_AMP,
+    ]);
   }
 
   return points;
@@ -86,16 +100,21 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(38, 1, 0.1, 100);
-  camera.position.set(0, 0, 4.6);
 
   const ghost = new Group();
   scene.add(ghost);
 
-  ghost.add(new LineSegments(bodyGeometry(), new LineBasicMaterial({ color: INK })));
+  /* Recentres the outline on the origin so the ghost rotates about its middle
+     rather than pivoting around its base. */
+  const shape = new Group();
+  shape.position.y = -CENTRE_Y;
+  ghost.add(shape);
+
+  shape.add(new LineSegments(bodyGeometry(), new LineBasicMaterial({ color: INK })));
 
   const eyes = new Group();
   eyes.position.z = DEPTH / 2 + 0.02;
-  ghost.add(eyes);
+  shape.add(eyes);
 
   for (const side of [-1, 1]) {
     const socket = new LineSegments(ringGeometry(0.24), new LineBasicMaterial({ color: INK }));
@@ -117,6 +136,8 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
+    const halfFov = Math.tan(MathUtils.degToRad(camera.fov) / 2);
+    camera.position.z = REACH / Math.min(halfFov, halfFov * camera.aspect);
     camera.updateProjectionMatrix();
     rect = canvas.getBoundingClientRect();
   };
@@ -134,7 +155,7 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
     frame = requestAnimationFrame(tick);
     clock = now / 1000;
 
-    ghost.position.y = Math.sin(clock * 1.4) * 0.07;
+    ghost.position.y = Math.sin(clock * 1.4) * BOB;
     ghost.rotation.y = MathUtils.lerp(ghost.rotation.y, pointer.x * 0.55, 0.06);
     ghost.rotation.x = MathUtils.lerp(ghost.rotation.x, pointer.y * 0.32, 0.06);
     ghost.rotation.z = Math.sin(clock * 0.9) * 0.04;
