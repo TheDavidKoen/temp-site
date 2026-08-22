@@ -1,7 +1,9 @@
 import {
+  BufferAttribute,
   BufferGeometry,
   CatmullRomCurve3,
   Color,
+  DynamicDrawUsage,
   Float32BufferAttribute,
   Group,
   Line,
@@ -69,9 +71,13 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
 
   /* Rebuilt in place each frame so the mouth can open and close without
      allocating a new buffer sixty times a second. */
+  /* BufferAttribute keeps the array by reference; Float32BufferAttribute
+     copies it, so in-place writes would never reach the GPU. */
   const wedge = new Float32Array(SEGMENTS * 2 * 3);
+  const wedgeAttribute = new BufferAttribute(wedge, 3);
+  wedgeAttribute.setUsage(DynamicDrawUsage);
   const wedgeGeometry = new BufferGeometry();
-  wedgeGeometry.setAttribute('position', new Float32BufferAttribute(wedge, 3));
+  wedgeGeometry.setAttribute('position', wedgeAttribute);
 
   const chaser = new Group();
   chaser.add(new LineSegments(wedgeGeometry, new LineBasicMaterial({ color: INK })));
@@ -81,8 +87,10 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
   scene.add(target);
 
   const trail = new Float32Array(TRAIL_PTS * 3);
+  const trailAttribute = new BufferAttribute(trail, 3);
+  trailAttribute.setUsage(DynamicDrawUsage);
   const trailGeometry = new BufferGeometry();
-  trailGeometry.setAttribute('position', new Float32BufferAttribute(trail, 3));
+  trailGeometry.setAttribute('position', trailAttribute);
   scene.add(new Line(trailGeometry, new LineBasicMaterial({ color: SIGNAL })));
 
   const writeWedge = (mouth: number): void => {
@@ -118,7 +126,7 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
       put(ax, ay, back);
     }
 
-    wedgeGeometry.attributes.position.needsUpdate = true;
+    wedgeAttribute.needsUpdate = true;
   };
 
   const writeTrail = (progress: number): void => {
@@ -130,7 +138,7 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
       trail[i * 3 + 1] = point.y;
       trail[i * 3 + 2] = 0;
     }
-    trailGeometry.attributes.position.needsUpdate = true;
+    trailAttribute.needsUpdate = true;
   };
 
   let pinTop = 0;

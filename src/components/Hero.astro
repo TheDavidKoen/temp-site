@@ -1,6 +1,6 @@
 ---
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
-const FIELD = 220;
+const FIELD = 1400;
 
 /* Seeded rather than random so the first paint is identical on every build. */
 const seed = (i: number): string =>
@@ -37,7 +37,7 @@ const seed = (i: number): string =>
   if (glyphs.length && wanted) {
     // A handful per tick rather than the whole field, so the cost stays trivial.
     setInterval(() => {
-      for (let n = 0; n < 8; n++) {
+      for (let n = 0; n < 20; n++) {
         const glyph = glyphs[(Math.random() * glyphs.length) | 0];
         glyph.textContent = CHARS[(Math.random() * CHARS.length) | 0];
       }
@@ -82,14 +82,15 @@ const seed = (i: number): string =>
     contain: paint;
   }
 
+  /* Tiles edge to edge rather than clustering: auto-fill columns with more
+     cells than any viewport needs, and the overflow clipped. */
   .hero__glyphs {
     grid-area: 1 / 1;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: center;
-    justify-content: center;
-    gap: 0.55rem 1.1rem;
-    padding: 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr));
+    align-content: start;
+    justify-items: center;
+    row-gap: 1.6rem;
     overflow: hidden;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
