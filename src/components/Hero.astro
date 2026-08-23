@@ -13,6 +13,8 @@ const seed = (i: number): string =>
       {Array.from({ length: FIELD }, (_, i) => <span class="hero__glyph">{seed(i)}</span>)}
     </div>
 
+    <span class="hero__welcome" aria-hidden="true">Welcome</span>
+
     <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
 
     <span class="hero__cue" aria-hidden="true">Scroll down</span>
@@ -73,6 +75,10 @@ const seed = (i: number): string =>
      when the stage unpins. Changing this height changes the pacing. */
   .hero {
     height: 300vh;
+
+    /* Declared here, not in the media block below: the welcome drift consumes
+       --hero from a rule that only applies on desktop. */
+    view-timeline: --hero block;
   }
 
   @media (width < 40rem) {
@@ -106,6 +112,38 @@ const seed = (i: number): string =>
     line-height: 1;
     color: color-mix(in srgb, var(--color-ink-muted) 30%, transparent);
     user-select: none;
+  }
+
+  .hero__welcome {
+    grid-area: 1 / 1;
+    place-self: center;
+    font-family: var(--font-display);
+    font-size: clamp(5rem, 20vw, 18rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--color-ink) 7%, transparent);
+    user-select: none;
+  }
+
+  /* Drifts against the hero's own view timeline, so it tracks the same scroll
+     that drives the chase rather than the document. */
+  @supports (animation-timeline: view()) {
+    .hero__welcome {
+      animation: welcome-drift linear both;
+      animation-timeline: --hero;
+      animation-range: contain 0% contain 100%;
+    }
+  }
+
+  @keyframes welcome-drift {
+    from {
+      transform: translateX(28%);
+    }
+    to {
+      transform: translateX(-28%);
+    }
   }
 
   .hero__canvas {
