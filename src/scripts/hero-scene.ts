@@ -183,6 +183,7 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
 
   let frame = 0;
   let running = false;
+  let mouthHold = 0.06;
 
   const tick = (now: number): void => {
     frame = requestAnimationFrame(tick);
@@ -205,7 +206,10 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     ballMaterial.opacity = Math.max(0, 1 - burst * 1.8);
 
     wedgeMaterial.opacity = Math.max(0, 1 - burst * 1.25);
-    writeWedge(0.06 + Math.abs(Math.sin(now / 130)) * (1 - burst) * 0.5, burst);
+    // Frozen at whatever it was when the burst began, so it stops mid-chomp
+    // rather than easing shut as the pieces fly apart.
+    if (burst === 0) mouthHold = 0.06 + Math.abs(Math.sin(now / 130)) * 0.5;
+    writeWedge(mouthHold, burst);
     writeDots(chase);
 
     renderer.render(scene, camera);
