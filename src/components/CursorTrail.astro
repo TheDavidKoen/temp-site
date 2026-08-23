@@ -1,0 +1,136 @@
+---
+const DOTS = 12;
+
+/* Each dot is smaller and fainter than the one ahead of it, so the tail reads
+   as a trail rather than a row. */
+const dots = Array.from({ length: DOTS }, (_, i) => ({
+  size: (9 - i * 0.55).toFixed(2),
+  fade: (1 - (i / DOTS) * 0.72).toFixed(2),
+}));
+---
+
+<div class="trail" aria-hidden="true">
+  {dots.map(({ size, fade }) => <span class="trail__dot" style={`--size:${size}px;--fade:${fade}`} />)}
+</div>
+
+<script>
+  const trail = document.querySelector<HTMLElement>('.trail');
+  const dots = [...document.querySelectorAll<HTMLElement>('.trail__dot')];
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+
+  const wanted =
+    !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+    matchMedia('(width >= 64rem)').matches &&
+    matchMedia('(pointer: fine)').matches;
+
+  if (trail && dots.length && wanted) {
+    const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const positions = dots.map(() => ({ ...pointer }));
+
+    let frame = 0;
+    let running = false;
+
+    const tick = (): void => {
+      let leadX = pointer.x;
+      let leadY = pointer.y;
+      let drift = 0;
+
+      // Every dot chases the one in front of it, which is what spaces them out.
+      for (let i = 0; i < positions.length; i++) {
+        const position = positions[i];
+        const dx = leadX - position.x;
+        const dy = leadY - position.y;
+
+        position.x += dx * 0.34;
+        position.y += dy * 0.34;
+        drift = Math.max(drift, Math.abs(dx), Math.abs(dy));
+
+        dots[i].style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
+        leadX = position.x;
+        leadY = position.y;
+      }
+
+      /* Stop scheduling once the tail has caught up. Without this the loop
+         writes twelve transforms every frame forever, which is what made the
+         experience section stutter — its own scroll animations were already
+         saturating the frame. Movement restarts it. */
+      if (drift < 0.2) {
+        running = false;
+        return;
+      }
+
+      frame = requestAnimationFrame(tick);
+    };
+
+    const start = (): void => {
+      if (running) return;
+      running = true;
+      frame = requestAnimationFrame(tick);
+    };
+
+    const stop = (): void => {
+      running = false;
+      cancelAnimationFrame(frame);
+    };
+
+    window.addEventListener(
+      'pointermove',
+      (event) => {
+        pointer.x = event.clientX;
+        pointer.y = event.clientY;
+
+        /* Keyed to where the cursor is, not to the section scrolling away. The
+           hero is 300vh, so waiting for it to leave the viewport held the trail
+           back long after the cursor had left the stage. */
+        const inside = hero !== null && event.target instanceof Node && hero.contains(event.target);
+        trail.dataset.active = String(!inside);
+        if (inside) stop();
+        else start();
+      },
+      { passive: true },
+    );
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+    });
+  }
+</script>
+
+<style>
+  .trail {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: none;
+    pointer-events: none;
+  }
+
+  .trail[data-active='true'] {
+    display: block;
+  }
+
+  .trail__dot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--size);
+    height: var(--size);
+    margin: calc(var(--size) / -2);
+    border-radius: 50%;
+    background-color: var(--color-signal);
+    opacity: var(--fade);
+    will-change: transform;
+  }
+
+  @media (width < 64rem) {
+    .trail {
+      display: none;
+    }
+  }
+
+  @media (pointer: coarse) {
+    .trail {
+      display: none;
+    }
+  }
+</style>
