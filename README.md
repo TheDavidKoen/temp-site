@@ -97,9 +97,13 @@ qualitative hint.
 | Abuse | 30 requests per 10s per IP, in-isolate ([ADR 0012](docs/adr/0012-in-isolate-rate-limiting.md)) |
 | Server state | None. The endpoint keeps nothing between requests |
 
-`GAME_SECRET` must be set as a secret on the Pages project, on both Production
-and Preview. Locally it comes from `.dev.vars`, which is gitignored. Without it
-the game returns 500 and says so; the CV commands are unaffected.
+`GAME_SECRET` must be set as a secret on the Pages project, on **both**
+Production and Preview — preview deployments do not inherit production secrets.
+Locally it comes from `.dev.vars`, which is gitignored.
+
+Only the game needs it, because it signs the session. Without it the case
+returns 503 and says so, while the CV commands carry on — they read from
+`consts.ts` and need no key.
 
 `pnpm dev` does not serve `/api/cli` — Astro knows nothing about Pages
 Functions. Use `wrangler pages dev dist` for anything touching the endpoint.

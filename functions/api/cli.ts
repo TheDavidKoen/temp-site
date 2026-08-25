@@ -94,24 +94,27 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     input = url.searchParams.get('cmd')?.slice(0, MAX_INPUT) ?? '';
   }
 
-  if (!secret) {
-    const message = 'Server misconfigured: GAME_SECRET is not set.\n';
-    return wantsJson
-      ? new Response(JSON.stringify({ ok: false, text: message, playing: false }), {
-          status: 500,
-          headers: { ...BASE_HEADERS, 'content-type': 'application/json; charset=utf-8' },
-        })
-      : new Response(message, {
-          status: 500,
-          headers: { ...BASE_HEADERS, 'content-type': 'text/plain; charset=utf-8' },
-        });
+  /* Only the game needs the secret — it signs the session. CV commands read
+     from consts.ts and need nothing, so a deployment missing the secret loses
+     the case rather than the whole endpoint.
+     An unverifiable cookie is discarded rather than trusted, so a tampered
+     token drops the caller back to a fresh terminal, not a forged game. */
+  const state = secret ? await decode(readCookie(request.headers.get('cookie')), secret) : null;
+
+  let result = run(input, state);
+  let status = result.ok ? 200 : 404;
+
+  if (!secret && result.state !== null) {
+    result = {
+      command: result.command,
+      ok: false,
+      blocks: [{ kind: 'text', value: 'The case is unavailable: this deployment has no key.' }],
+      state: null,
+    };
+    status = 503;
   }
 
-  /* An unverifiable cookie is discarded rather than trusted, so a tampered
-     token drops the caller back to a fresh terminal, not a forged game. */
-  const state = await decode(readCookie(request.headers.get('cookie')), secret);
-  const result = run(input, state);
-  const token = result.state === null ? null : await encode(result.state, secret);
+  const token = secret && result.state !== null ? await encode(result.state, secret) : null;
 
   const headers: Record<string, string> = {
     ...BASE_HEADERS,
@@ -121,7 +124,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (wantsJson) {
     return new Response(
       JSON.stringify({ ok: result.ok, text: toText(result, false), playing: token !== null }),
-      { status: 200, headers: { ...headers, 'content-type': 'application/json; charset=utf-8' } },
+      { status, headers: { ...headers, 'content-type': 'application/json; charset=utf-8' } },
     );
   }
 
@@ -131,11 +134,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
   return wantsText
     ? new Response(toText(result, true), {
-        status: result.ok ? 200 : 404,
+        status,
         headers: { ...headers, 'content-type': 'text/plain; charset=utf-8' },
       })
     : new Response(JSON.stringify(toJson(result), null, 2), {
-        status: result.ok ? 200 : 404,
+        status,
         headers: { ...headers, 'content-type': 'application/json; charset=utf-8' },
       });
 };
