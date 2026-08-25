@@ -71,6 +71,33 @@ other.
   animation leaves it parked mid-cycle rather than stopping it.
 - The intro is skipped entirely under reduced motion — the bundle never runs.
 
+## The API
+
+`functions/api/cli.ts` deploys as a Worker alongside the static output. It is
+the only route where code executes; everything else is files off the CDN.
+
+The handler is a pure function of its inputs. It reads a command and a signed
+session cookie, resolves the command against a fixed map, and returns rendered
+text plus a freshly signed cookie. Between requests it holds nothing.
+
+```
+browser / curl ──▶ cli.ts ──▶ commands.ts ──▶ consts.ts   (CV)
+                        │                └──▶ game.ts     (deduction)
+                        ├──▶ _session.ts   sign / verify
+                        └──▶ render.ts     text or JSON
+```
+
+`shared/` is imported by both the Astro build and the Worker, which is what lets
+the page and the API render from the same data. `functions/` compiles under its
+own tsconfig with Workers types and no DOM lib, and `astro check` skips it — so
+CI runs `check:functions` separately. Without that step a broken endpoint passes
+every other gate and fails only at the edge.
+
+Game state lives in the client because the server keeps none. That is safe only
+because the token is signed; see [ADR 0011](adr/0011-signed-session-tokens.md).
+The solution itself is derived from a seed on each request by code that exists
+only in `functions/`, so it is never in the token to begin with.
+
 ## Known trade-offs
 
 - The hero copy block, including the page's only `h1`, is hidden below 40rem.
