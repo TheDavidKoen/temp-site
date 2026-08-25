@@ -1,0 +1,457 @@
+---
+import { run } from '../../shared/commands';
+import { toText } from '../../shared/render';
+
+/* Rendered at build time so the panel is populated before any script runs. */
+const opening = toText(run('help'), false);
+---
+
+<button
+  class="launcher"
+  data-terminal-open
+  aria-label="Open terminal"
+  aria-haspopup="dialog"
+  aria-describedby="terminal-tip"
+>
+  <span class="launcher__mark" aria-hidden="true"></span>
+  <span class="launcher__tip" id="terminal-tip" role="tooltip">Solve a murder. Or read my CV.</span>
+</button>
+
+<dialog class="terminal" data-terminal-dialog aria-label="Terminal">
+  <div class="terminal__bar">
+    <span class="terminal__title">david@koen — cli</span>
+    <button class="terminal__close" data-terminal-close aria-label="Close terminal">&times;</button>
+  </div>
+
+  <div class="terminal__body">
+    <pre class="terminal__out" data-terminal-out aria-live="polite">{opening}</pre>
+
+    <aside class="terminal__legend" aria-label="Command reference">
+      <dl data-legend="cv">
+        <dt>About me</dt>
+        <dd>whoami</dd>
+        <dd>skills</dd>
+        <dd>experience</dd>
+        <dd>contact</dd>
+        <dd>links</dd>
+
+        <dt>Case</dt>
+        <dd>start</dd>
+
+        <dt>Session</dt>
+        <dd>help · clear</dd>
+      </dl>
+
+      <dl data-legend="game" hidden>
+        <dt>Move</dt>
+        <dd>n · s · e · w</dd>
+
+        <dt>Look</dt>
+        <dd>look (l)</dd>
+        <dd>x &lt;weapon&gt;</dd>
+
+        <dt>Question</dt>
+        <dd>ask &lt;who&gt;</dd>
+        <dd>ask &lt;who&gt; about &lt;thing&gt;</dd>
+
+        <dt>Track</dt>
+        <dd>notes</dd>
+        <dd>note &lt;text&gt;</dd>
+
+        <dt>Solve</dt>
+        <dd>accuse &lt;who&gt; &lt;weapon&gt; &lt;room&gt;</dd>
+
+        <dt>Session</dt>
+        <dd>exit · restart</dd>
+        <dd>help · clear</dd>
+      </dl>
+    </aside>
+  </div>
+
+  <form class="terminal__form" data-terminal-form>
+    <label class="sr-only" for="terminal-input">Enter a command</label>
+    <span class="terminal__prompt" aria-hidden="true">~ $</span>
+    <input
+      id="terminal-input"
+      class="terminal__input"
+      data-terminal-input
+      type="text"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      placeholder="help"
+    />
+  </form>
+
+  <p class="terminal__hint">
+    Or play it in your own terminal:
+    <code>curl -c jar -b jar davidkoen.is-a.dev/api/cli?cmd=start</code>
+    <span class="terminal__note">A session cookie is set while a case is open.</span>
+  </p>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-terminal-dialog]');
+  const open = document.querySelector<HTMLButtonElement>('[data-terminal-open]');
+  const close = document.querySelector<HTMLButtonElement>('[data-terminal-close]');
+  const out = document.querySelector<HTMLElement>('[data-terminal-out]');
+  const form = document.querySelector<HTMLFormElement>('[data-terminal-form]');
+  const input = document.querySelector<HTMLInputElement>('[data-terminal-input]');
+
+  if (dialog && open && close && out && form && input) {
+    const history: string[] = [];
+    let cursor = 0;
+    let viaPointer = false;
+
+    /* The session lives in an HttpOnly cookie the server sets, so this side
+       cannot read it at all. The server reports whether a case is open. */
+    let playing = false;
+
+    const legends = {
+      cv: document.querySelector<HTMLElement>('[data-legend="cv"]'),
+      game: document.querySelector<HTMLElement>('[data-legend="game"]'),
+    };
+
+    // Show only the commands that apply to whatever the terminal is doing.
+    const setLegend = (): void => {
+      if (legends.cv) legends.cv.hidden = playing;
+      if (legends.game) legends.game.hidden = !playing;
+    };
+
+    const echo = (text: string): void => {
+      out.append(`${text}\n`);
+      out.scrollTop = out.scrollHeight;
+    };
+
+    // showModal gives focus trapping, Escape-to-close and an inert background.
+    open.addEventListener('click', () => {
+      dialog.showModal();
+      input.focus();
+    });
+
+    close.addEventListener('click', () => dialog.close());
+
+    open.addEventListener('pointerdown', () => {
+      viaPointer = true;
+    });
+
+    open.addEventListener('keydown', () => {
+      viaPointer = false;
+    });
+
+    /* dialog restores focus to the launcher on close, and the browser counts
+       that restoration as keyboard-driven — so a mouse user gets a focus ring
+       they never asked for. Keyboard users keep theirs. */
+    dialog.addEventListener('close', () => {
+      if (viaPointer) open.blur();
+    });
+
+    // Clicking the backdrop lands on the dialog itself, never a child.
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const command = input.value.trim();
+      if (!command) return;
+
+      echo(`\n~ $ ${command}`);
+      input.value = '';
+      history.push(command);
+      cursor = history.length;
+
+      if (command.toLowerCase() === 'clear') {
+        out.textContent = '';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/cli', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ command }),
+        });
+        const payload = (await response.json()) as { text: string; playing: boolean };
+        playing = payload.playing;
+        setLegend();
+        echo(payload.text);
+      } catch {
+        echo('network error — try again');
+      }
+    });
+
+    input.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+      event.preventDefault();
+      cursor = Math.min(history.length, Math.max(0, cursor + (event.key === 'ArrowUp' ? -1 : 1)));
+      input.value = history[cursor] ?? '';
+    });
+  }
+</script>
+
+<style>
+  .launcher {
+    position: fixed;
+    top: 5.5rem;
+    right: 1.5rem;
+    z-index: 55;
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    padding: 0;
+    color: var(--color-surface);
+    background-color: var(--color-ink);
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition:
+      transform 0.28s var(--ease-out-quint),
+      box-shadow 0.28s var(--ease-out-quint);
+  }
+
+  .launcher:hover,
+  .launcher:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--color-ink) 28%, transparent);
+  }
+
+  /* Masked rather than embedded, so the file in public/ stays the single source
+     of the shape and the colour is controlled here. An <img> could not be
+     recoloured, since page CSS does not reach inside it. */
+  .launcher__mark {
+    width: 1.7rem;
+    height: 1.7rem;
+    background-color: var(--color-signal);
+    mask-image: url('/ghostty.svg');
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+  }
+
+  .launcher__tip {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 0.85rem);
+    padding: 0.45rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+    color: var(--color-surface);
+    background-color: var(--color-ink);
+    border-radius: 0.4rem;
+    opacity: 0;
+    transform: translateY(-50%) translateX(0.4rem);
+    pointer-events: none;
+    transition:
+      opacity 0.2s linear,
+      transform 0.26s var(--ease-out-quint);
+  }
+
+  .launcher__tip::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-left-color: var(--color-ink);
+    transform: translateY(-50%);
+  }
+
+  .launcher:hover .launcher__tip,
+  .launcher:focus-visible .launcher__tip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+
+  /* display and overlay need allow-discrete or the dialog snaps in and out
+     with no transition; @starting-style supplies the frame to animate from. */
+  /* inset plus auto margins is what actually centres a modal dialog; the UA
+     default only centres horizontally once a max-height is set. */
+  .terminal {
+    inset: 0;
+    margin: auto;
+    width: min(64rem, 92vw);
+    max-height: 80vh;
+    padding: 0;
+    color: var(--color-surface);
+    background-color: var(--color-ink);
+    border: 0;
+    opacity: 0;
+    transform: scale(0.92);
+
+    /* Closing is quick and linear so dismissing feels immediate. */
+    transition:
+      opacity 0.16s ease-in,
+      transform 0.18s ease-in,
+      display 0.18s allow-discrete,
+      overlay 0.18s allow-discrete;
+  }
+
+  /* Opening is slower with overshoot. The asymmetry is what reads as native. */
+  .terminal[open] {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity 0.2s linear,
+      transform 0.36s var(--ease-spring),
+      display 0.36s allow-discrete,
+      overlay 0.36s allow-discrete;
+  }
+
+  @starting-style {
+    .terminal[open] {
+      opacity: 0;
+      transform: translateY(1.25rem) scale(0.985);
+    }
+  }
+
+  .terminal::backdrop {
+    background-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition:
+      opacity 0.3s linear,
+      display 0.3s allow-discrete,
+      overlay 0.3s allow-discrete;
+  }
+
+  .terminal[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .terminal[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  .terminal__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-surface) 18%, transparent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  }
+
+  .terminal__close {
+    font-size: 1.35rem;
+    line-height: 1;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color 0.2s linear;
+  }
+
+  .terminal__close:hover,
+  .terminal__close:focus-visible {
+    color: var(--color-signal);
+  }
+
+  /* Legend beside the output where there is room, beneath it where there is
+     not — so the command reference is always on screen rather than behind a
+     command the player has to already know. */
+  .terminal__body {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  @media (width >= 56rem) {
+    .terminal__body {
+      grid-template-columns: 1fr 15rem;
+    }
+  }
+
+  .terminal__legend {
+    padding: 1.25rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 18%, transparent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.6;
+  }
+
+  @media (width >= 56rem) {
+    .terminal__legend {
+      border-top: 0;
+      border-left: 1px solid color-mix(in srgb, var(--color-surface) 18%, transparent);
+    }
+  }
+
+  .terminal__legend dt {
+    margin-top: 0.9rem;
+    color: var(--color-signal);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .terminal__legend dt:first-child {
+    margin-top: 0;
+  }
+
+  .terminal__legend dd {
+    margin: 0;
+    color: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  }
+
+  .terminal__out {
+    max-height: 46vh;
+    margin: 0;
+    padding: 1.25rem;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .terminal__form {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-surface) 18%, transparent);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  .terminal__prompt {
+    color: var(--color-signal);
+  }
+
+  .terminal__input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    color: var(--color-surface);
+    background: none;
+    border: 0;
+    outline: none;
+  }
+
+  .terminal__input::placeholder {
+    color: color-mix(in srgb, var(--color-surface) 35%, transparent);
+  }
+
+  .terminal__hint {
+    padding: 0 1.25rem 1.25rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: color-mix(in srgb, var(--color-surface) 55%, transparent);
+  }
+
+  .terminal__note {
+    display: block;
+    margin-top: 0.4rem;
+    color: color-mix(in srgb, var(--color-surface) 38%, transparent);
+  }
+</style>
