@@ -25,3 +25,9 @@ pnpm-debug.log*
 
 # lighthouse ci reports
 .lighthouseci/
+
+# wrangler local state
+.wrangler/
+
+# local worker secrets — never commit
+.dev.vars

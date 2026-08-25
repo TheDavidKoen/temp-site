@@ -32,6 +32,9 @@ jobs:
       - name: Type and template diagnostics
         run: pnpm run check
 
+      - name: Worker types
+        run: pnpm run check:functions
+
       - name: Lint and format
         run: pnpm run lint
 

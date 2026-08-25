@@ -4,9 +4,8 @@ Personal site for **David Koen** — Digital Project Manager and Web Developer.
 
 Live: **[davidkoen.is-a.dev](https://davidkoen.is-a.dev)**
 
-A hand-built static site, deliberately not a CMS. The repository is part of the
-deliverable: the branch history, pull requests and decision records are meant to
-be read alongside the rendered page.
+The repository is part of the deliverable: the branch history, pull requests and
+decision records are meant to be read alongside the rendered page.
 
 ## Stack
 
@@ -16,6 +15,7 @@ be read alongside the rendered page.
 | Styling | Tailwind CSS v4 via `@tailwindcss/vite` |
 | Language | TypeScript, `strict` |
 | 3D | Three.js, lazy-loaded island |
+| API | Cloudflare Pages Functions (Workers runtime) |
 | Motion | Native CSS scroll-driven animations |
 | Lint + format | Biome |
 | Fonts | Astro Fonts API, self-hosted |
@@ -68,6 +68,45 @@ docs/
 **Content lives in `src/consts.ts`, not in components.** Skills, marquee
 phrases, the intro word field and the experience narrative are all typed
 exports consumed as props. Adding a skill is a data edit.
+
+## The terminal
+
+A launcher in the top corner opens a terminal backed by `/api/cli`, a Cloudflare
+Pages Function. It answers two kinds of request from one handler:
+
+```sh
+curl davidkoen.is-a.dev/api/cli?cmd=whoami      # ANSI text
+curl -H 'Accept: application/json' \
+     davidkoen.is-a.dev/api/cli?cmd=skills      # JSON
+curl -c jar -b jar \
+     davidkoen.is-a.dev/api/cli?cmd=start       # plays the game
+```
+
+CV content comes from `src/consts.ts`, so the page, the API and the terminal all
+render from one source. Commands are a fixed map of handlers — nothing supplied
+by a caller is ever evaluated ([ADR 0010](docs/adr/0010-terminal-command-allowlist.md)).
+
+There is also a deduction game. Accusations are scored out of three, in the
+manner of Mastermind, so every guess narrows the field rather than returning a
+qualitative hint.
+
+| Concern | Approach |
+|---|---|
+| Session | Signed token in an HttpOnly cookie ([ADR 0011](docs/adr/0011-signed-session-tokens.md)) |
+| Solution secrecy | Derived from a seed server-side; never sent to the client |
+| Abuse | 30 requests per 10s per IP, in-isolate ([ADR 0012](docs/adr/0012-in-isolate-rate-limiting.md)) |
+| Server state | None. The endpoint keeps nothing between requests |
+
+`GAME_SECRET` must be set as a secret on the Pages project, on **both**
+Production and Preview — preview deployments do not inherit production secrets.
+Locally it comes from `.dev.vars`, which is gitignored.
+
+Only the game needs it, because it signs the session. Without it the case
+returns 503 and says so, while the CV commands carry on — they read from
+`consts.ts` and need no key.
+
+`pnpm dev` does not serve `/api/cli` — Astro knows nothing about Pages
+Functions. Use `wrangler pages dev dist` for anything touching the endpoint.
 
 ## Contributing
 
