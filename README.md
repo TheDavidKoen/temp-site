@@ -99,7 +99,14 @@ qualitative hint.
 
 `GAME_SECRET` must be set as a secret on the Pages project, on **both**
 Production and Preview — preview deployments do not inherit production secrets.
+Use a **different** value for each: preview URLs are public, and a shared key
+would make a token minted on a preview deployment valid against production.
 Locally it comes from `.dev.vars`, which is gitignored.
+
+Set it from the dashboard, under Settings → Variables and Secrets, switching the
+environment selector to Preview. `wrangler pages secret put` writes to
+production only — it takes no environment flag. Pages reads the value at deploy
+time, so an existing deployment needs a retry before it picks the secret up.
 
 Only the game needs it, because it signs the session. Without it the case
 returns 503 and says so, while the CV commands carry on — they read from
