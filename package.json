@@ -13,9 +13,10 @@
     "check": "astro check",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "verify": "pnpm run check && pnpm run lint",
+    "verify": "pnpm run check && pnpm run check:functions && pnpm run lint",
     "astro": "astro",
-    "budget": "node scripts/check-budget.mjs"
+    "budget": "node scripts/check-budget.mjs",
+    "check:functions": "tsc -p functions/tsconfig.json --noEmit"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
@@ -27,8 +28,10 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@biomejs/biome": "^2.5.9",
+    "@cloudflare/workers-types": "^5.20260823.1",
     "@lhci/cli": "^0.15.1",
     "@types/three": "^0.185.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "wrangler": "^4.125.0"
   }
 }

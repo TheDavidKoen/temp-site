@@ -14,6 +14,9 @@ what was decided, and what it costs.
 | [0007](0007-css-scroll-animations-over-gsap.md) | Native CSS scroll animations over GSAP |
 | [0008](0008-hide-hero-copy-on-mobile.md) | Hero copy moved out of the pinned stage |
 | [0009](0009-disable-css-minification.md) | Disable CSS minification |
+| [0010](0010-terminal-command-allowlist.md) | Terminal commands are a fixed allowlist |
+| [0011](0011-signed-session-tokens.md) | Signed session tokens |
+| [0012](0012-in-isolate-rate-limiting.md) | In-isolate rate limiting |
 
 Superseded records stay in place with their status changed, rather than being
 deleted.
