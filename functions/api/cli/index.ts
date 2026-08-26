@@ -1,6 +1,3 @@
-/* cli/index.ts, not cli.ts: in Pages Functions the file path is the public URL.
-   Both spellings serve /api/cli, but the directory form keeps the filename free
-   to change without moving an endpoint that is published on a CV. */
 import { run } from '../../../shared/commands';
 import { toJson, toText } from '../../../shared/render';
 import { decode, encode } from '../../_session';
