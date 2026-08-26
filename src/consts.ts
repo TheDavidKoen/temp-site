@@ -34,7 +34,7 @@ export const MARQUEE_PHRASES = [
 ] as const;
 
 /* Rendered in DOM order into a wrapped flex row, which reads top-left to
-   bottom-right — the intro's index-based stagger relies on that to produce its
+   bottom-right, the intro's index-based stagger relies on that to produce its
    reading-order sweep. Reordering this array reorders the sweep. */
 export const INTRO_FIELD = [
   'AGILE',
@@ -147,3 +147,78 @@ export const EXPERIENCE_NARRATIVE = [
   'Through this experience, I have developed a solid understanding of what it takes to build functional digital products and services, along with the ability to translate that technical knowledge for non-technical stakeholders and to lead productive discussions with cross-functional teams.',
   'As AI-driven tools continue to reshape how consumers and professionals work, I’ve embraced this shift while remaining committed to continuous skill development, so that I stay among those directing this technological transformation rather than merely riding its wave.',
 ] as const;
+
+/* adr is optional: not every choice needed a decision record, and the ones
+   that did cite it so the popup and docs/adr cannot drift apart.
+   why is written in the first person about this site specifically, with no
+   comparisons to other frameworks. The ADR carries the engineering argument. */
+export interface StackEntry {
+  readonly layer: string;
+  readonly choice: string;
+  readonly logo: string;
+  readonly why: string;
+  readonly adr?: string;
+}
+
+export const STACK: readonly StackEntry[] = [
+  {
+    layer: 'Framework',
+    choice: 'Astro',
+    logo: '/astro.svg',
+    why: 'Every page here is built ahead of time and served as finished HTML, with almost no JavaScript attached. That is why it opens fast, even on a weak connection.',
+    adr: '0001-astro-over-nextjs',
+  },
+  {
+    layer: 'Styling',
+    choice: 'Tailwind CSS',
+    logo: '/tailwindcss.svg',
+    why: 'The styling framework I build with. Popular, well documented, and flexible enough to cover everything on this site: the type scale, the colour system, the fold-out menu on mobile.',
+    adr: '0004-tailwind-v4-without-sass',
+  },
+  {
+    layer: 'Motion',
+    choice: 'CSS animation',
+    logo: '/css.svg',
+    why: 'The scroll effects are written in CSS rather than pulled in from an animation library. Nothing extra to download, and the browser drives the movement itself, so scrolling stays smooth.',
+    adr: '0007-css-scroll-animations-over-gsap',
+  },
+  {
+    layer: '3D',
+    choice: 'Three.js',
+    logo: '/threedotjs.svg',
+    why: 'Draws the moving artwork in the hero and the ghost further down the page. It holds off loading until you scroll near it, and sits out altogether on lower-powered phones or when your device asks for reduced motion.',
+  },
+  {
+    layer: 'Terminal',
+    choice: 'Ghostty',
+    logo: '/ghostty.svg',
+    why: 'The other button up there opens a working terminal, styled after Ghostty, the terminal app I use day to day. Type help in it to read this CV, or start to open a murder case.',
+  },
+  {
+    layer: 'API',
+    choice: 'Cloudflare Functions',
+    logo: '/cloudflarepages.svg',
+    why: 'That terminal needs code answering it somewhere. This runs the code on demand, close to whoever is visiting, with no server for me to keep alive. It answers your own terminal too: curl davidkoen.is-a.dev/api/cli?cmd=whoami reads this same CV.',
+    adr: '0011-signed-session-tokens',
+  },
+  {
+    layer: 'Hosting',
+    choice: 'Cloudflare Pages',
+    logo: '/cloudflarepages.svg',
+    why: 'Where the site lives. Free, on a network with machines worldwide, so it loads quickly wherever you open it, and it supports the free is-a.dev address in the URL bar.',
+    adr: '0002-cloudflare-pages-over-workers',
+  },
+  {
+    layer: 'Language',
+    choice: 'TypeScript',
+    logo: '/typescript.svg',
+    why: 'Everything here is written in TypeScript. It checks my work as I type, so a whole class of mistakes gets caught at my desk rather than on the live site.',
+    adr: '0006-pin-typescript-6',
+  },
+  {
+    layer: 'Quality gates',
+    choice: 'Automated checks',
+    logo: '/lighthouse.svg',
+    why: 'Every change I make runs an automated review before it is allowed to go live: formatting, type errors, a Google Lighthouse speed audit, and a size limit that stops the build if this page ever gets too heavy.',
+  },
+];
