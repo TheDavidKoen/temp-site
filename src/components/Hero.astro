@@ -26,7 +26,7 @@ const seed = (i: number): string =>
   const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
   const nav = navigator as Navigator & { deviceMemory?: number };
 
-  /* Matches the media query that hides .hero below 40rem — without this the
+  /* Matches the media query that hides .hero below 40rem, without this the
      127KB scene would still download for a section nobody can see. */
   const wanted =
     !matchMedia('(prefers-reduced-motion: reduce)').matches &&
@@ -87,11 +87,16 @@ const seed = (i: number): string =>
     }
   }
 
+  /* minmax(0, 1fr), never a bare 1fr: a bare fr track keeps an automatic
+     min-content minimum, so the 1400-glyph field grows the row past 100dvh.
+     The canvas then reports that inflated height to the scene and the route's
+     bottom lands below the fold, and the centred welcome is pushed down with
+     it. Both bugs are this one line. */
   .hero__stage {
     position: sticky;
     top: 0;
     display: grid;
-    grid-template: 1fr / 1fr;
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
     height: 100dvh;
     overflow: clip;
     contain: paint;
