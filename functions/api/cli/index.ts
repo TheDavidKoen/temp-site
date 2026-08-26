@@ -1,6 +1,6 @@
-import { run } from '../../shared/commands';
-import { toJson, toText } from '../../shared/render';
-import { decode, encode } from '../_session';
+import { run } from '../../../shared/commands';
+import { toJson, toText } from '../../../shared/render';
+import { decode, encode } from '../../_session';
 
 interface Env {
   GAME_SECRET?: string;
