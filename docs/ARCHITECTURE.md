@@ -73,15 +73,20 @@ other.
 
 ## The API
 
-`functions/api/cli.ts` deploys as a Worker alongside the static output. It is
-the only route where code executes; everything else is files off the CDN.
+`functions/api/cli/index.ts` deploys as a Worker alongside the static output.
+It is the only route where code executes; everything else is files off the CDN.
+
+In Pages Functions the file path is the public URL, so the handler sits at
+`cli/index.ts` rather than `cli.ts`. Both resolve to `/api/cli`; the directory
+form is used so the endpoint can be renamed on disk without moving the URL,
+which is published on a CV and cannot be changed retroactively.
 
 The handler is a pure function of its inputs. It reads a command and a signed
 session cookie, resolves the command against a fixed map, and returns rendered
 text plus a freshly signed cookie. Between requests it holds nothing.
 
 ```
-browser / curl ──▶ cli.ts ──▶ commands.ts ──▶ consts.ts   (CV)
+browser / curl ──▶ index.ts ──▶ commands.ts ──▶ consts.ts   (CV)
                         │                └──▶ game.ts     (deduction)
                         ├──▶ _session.ts   sign / verify
                         └──▶ render.ts     text or JSON
