@@ -1,0 +1,296 @@
+---
+import { STACK } from '@/consts';
+
+const ADR_BASE = 'https://github.com/TheDavidKoen/temp-site/blob/main/docs/adr';
+---
+
+<button
+  class="launcher"
+  style="--launcher-order: 1; --launcher-mark: url('/astro.svg')"
+  data-stack-open
+  aria-label="Open the tech stack"
+  aria-haspopup="dialog"
+  aria-describedby="stack-tip"
+>
+  <span class="launcher__mark" aria-hidden="true"></span>
+  <span class="launcher__tip" id="stack-tip" role="tooltip">Website's tech stack.</span>
+</button>
+
+<dialog class="sheet" data-stack-dialog aria-labelledby="stack-heading">
+  <header class="sheet__bar">
+    <div>
+      <p class="label">Decisions, not defaults</p>
+      <h2 class="sheet__title" id="stack-heading">What this site runs on</h2>
+    </div>
+    <button class="sheet__close" data-stack-close aria-label="Close">&times;</button>
+  </header>
+
+  <div class="sheet__body">
+    <dl class="stack">
+      {
+        STACK.map((entry) => (
+          <div class="stack__row">
+            <dt class="stack__head">
+              <span class="label stack__layer">{entry.layer}</span>
+              <span class="stack__choice">{entry.choice}</span>
+              {/* Decorative: the name sits right above it, so alt would repeat. */}
+              <img
+                class="stack__logo"
+                src={entry.logo}
+                alt=""
+                width="26"
+                height="26"
+                loading="lazy"
+                decoding="async"
+              />
+            </dt>
+            <dd class="stack__why">
+              {entry.why}
+              {entry.adr && (
+                <a
+                  class="stack__adr link-slide"
+                  href={`${ADR_BASE}/${entry.adr}.md`}
+                  target="_blank"
+                  rel="noopener"
+                >
+                  ADR {entry.adr.slice(0, 4)}
+                </a>
+              )}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-stack-dialog]');
+  const open = document.querySelector<HTMLButtonElement>('[data-stack-open]');
+  const close = document.querySelector<HTMLButtonElement>('[data-stack-close]');
+
+  if (dialog && open && close) {
+    let viaPointer = false;
+
+    // showModal gives focus trapping, Escape-to-close and an inert background.
+    open.addEventListener('click', () => dialog.showModal());
+    close.addEventListener('click', () => dialog.close());
+
+    open.addEventListener('pointerdown', () => {
+      viaPointer = true;
+    });
+
+    open.addEventListener('keydown', () => {
+      viaPointer = false;
+    });
+
+    /* dialog restores focus to the launcher on close, and the browser counts
+       that restoration as keyboard-driven, so a mouse user gets a focus ring
+       they never asked for. Keyboard users keep theirs. */
+    dialog.addEventListener('close', () => {
+      if (viaPointer) open.blur();
+    });
+
+    // Clicking the backdrop lands on the dialog itself, never a child.
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  }
+</script>
+
+<style>
+  /* display and overlay need allow-discrete or the dialog snaps in and out
+     with no transition; @starting-style supplies the frame to animate from. */
+  /* inset plus auto margins is what actually centres a modal dialog; the UA
+     default only centres horizontally once a max-height is set. */
+  .sheet {
+    inset: 0;
+    margin: auto;
+    width: min(46rem, 92vw);
+    max-height: 84vh;
+    padding: 0;
+
+    /* The dialog itself must never scroll. Without this it grows a scrollbar of
+       its own alongside the body's, and the header scrolls away with it. */
+    overflow: hidden;
+    color: var(--color-ink);
+    background-color: var(--color-surface-raised);
+    border: 0;
+    border-radius: 0.75rem;
+    opacity: 0;
+    transform: scale(0.92);
+
+    /* Closing is quick and linear so dismissing feels immediate. */
+    transition:
+      opacity 0.16s ease-in,
+      transform 0.18s ease-in,
+      display 0.18s allow-discrete,
+      overlay 0.18s allow-discrete;
+  }
+
+  /* Opening is slower with overshoot. The asymmetry is what reads as native. */
+  /* flex, not block: it lets the body take the leftover height and scroll on
+     its own, rather than the header and body sharing one scroll container. */
+  .sheet[open] {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity 0.2s linear,
+      transform 0.36s var(--ease-spring),
+      display 0.36s allow-discrete,
+      overlay 0.36s allow-discrete;
+  }
+
+  @starting-style {
+    .sheet[open] {
+      opacity: 0;
+      transform: translateY(1.25rem) scale(0.985);
+    }
+  }
+
+  .sheet::backdrop {
+    background-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition:
+      opacity 0.3s linear,
+      display 0.3s allow-discrete,
+      overlay 0.3s allow-discrete;
+  }
+
+  .sheet[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .sheet[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  /* Outside the scroll container, so the close control is always reachable. */
+  .sheet__bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.75rem 1.1rem;
+    background-color: var(--color-surface-raised);
+    border-bottom: 1px solid var(--color-surface-muted);
+  }
+
+  .sheet__title {
+    margin: 0.35rem 0 0;
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+  }
+
+  .sheet__close {
+    flex-shrink: 0;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--color-ink-muted);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color 0.2s linear;
+  }
+
+  .sheet__close:hover,
+  .sheet__close:focus-visible {
+    color: var(--color-signal-text);
+  }
+
+  /* min-height: 0 is what lets a flex child shrink below its content and
+     scroll; without it the body pushes the dialog past its max-height. */
+  .sheet__body {
+    flex: 1;
+    min-height: 0;
+    padding: 1.4rem 1.75rem 1.75rem;
+    overflow-y: auto;
+  }
+
+  .stack {
+    margin: 0;
+    display: grid;
+    gap: 1.4rem;
+  }
+
+  .stack__row {
+    display: grid;
+    gap: 0.35rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--color-surface-muted);
+  }
+
+  .stack__row:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  @media (width >= 44rem) {
+    .stack__row {
+      grid-template-columns: 13rem 1fr;
+      gap: 0.35rem 1.75rem;
+    }
+  }
+
+  .stack__head {
+    display: grid;
+    gap: 0.15rem;
+    align-content: start;
+  }
+
+  .stack__layer {
+    color: var(--color-ink-muted);
+  }
+
+  .stack__choice {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 700;
+  }
+
+  /* Brand marks keep their own colours, so these are images rather than the
+     masked shapes the launcher bubbles use. */
+  .stack__logo {
+    width: 1.6rem;
+    height: 1.6rem;
+    margin-top: 0.5rem;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  .stack__why {
+    margin: 0;
+    max-width: var(--container-prose);
+    font-size: var(--text-sm);
+    line-height: 1.7;
+    color: var(--color-ink-muted);
+  }
+
+  .stack__adr {
+    display: inline-block;
+    margin-left: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-signal-text);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* Shortening a transition leaves it parked mid-cycle rather than stopping
+     it, so the motion is removed outright rather than sped up. */
+  @media (prefers-reduced-motion: reduce) {
+    .sheet,
+    .sheet[open],
+    .sheet::backdrop,
+    .sheet[open]::backdrop {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>

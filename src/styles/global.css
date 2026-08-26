@@ -52,7 +52,14 @@
   --container-narrow: 34rem;
   --container-wide: 84rem;
 
-  /* Shared with GSAP tweens and Three.js camera easing — changing a curve
+  /* Both floating launchers position themselves from these, so the dock stays
+     one column and one bubble cannot drift onto the other. */
+  --dock-top: 5.5rem;
+  --dock-right: 1.5rem;
+  --dock-size: 3.25rem;
+  --dock-gap: 0.65rem;
+
+  /* Shared with GSAP tweens and Three.js camera easing, changing a curve
      here changes it in all three systems. */
   --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -92,6 +99,86 @@
   .link-slide:hover::after,
   .link-slide:focus-visible::after {
     transform: scaleX(1);
+  }
+
+  /* The floating dock bubbles. Shared because the terminal and the stack sheet
+     are the same affordance twice, only the mark and the tip differ. Each
+     caller sets --launcher-order to claim a slot down the column and
+     --launcher-mark for its icon. */
+  .launcher {
+    position: fixed;
+    top: calc(var(--dock-top) + var(--launcher-order, 0) * (var(--dock-size) + var(--dock-gap)));
+    right: var(--dock-right);
+    z-index: 55;
+    display: grid;
+    place-items: center;
+    width: var(--dock-size);
+    height: var(--dock-size);
+    padding: 0;
+    color: var(--color-surface);
+    background-color: var(--color-ink);
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition:
+      transform 0.28s var(--ease-out-quint),
+      box-shadow 0.28s var(--ease-out-quint);
+  }
+
+  .launcher:hover,
+  .launcher:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--color-ink) 28%, transparent);
+  }
+
+  /* Masked rather than embedded, so the file in public/ stays the single source
+     of the shape and the colour is controlled here. An <img> could not be
+     recoloured, since page CSS does not reach inside it. */
+  .launcher__mark {
+    width: 1.7rem;
+    height: 1.7rem;
+    background-color: var(--color-signal);
+    mask-image: var(--launcher-mark);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+  }
+
+  .launcher__tip {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 0.85rem);
+    padding: 0.45rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+    color: var(--color-surface);
+    background-color: var(--color-ink);
+    border-radius: 0.4rem;
+    opacity: 0;
+    transform: translateY(-50%) translateX(0.4rem);
+    pointer-events: none;
+    transition:
+      opacity 0.2s linear,
+      transform 0.26s var(--ease-out-quint);
+  }
+
+  .launcher__tip::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-left-color: var(--color-ink);
+    transform: translateY(-50%);
+  }
+
+  .launcher:hover .launcher__tip,
+  .launcher:focus-visible .launcher__tip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
   }
 }
 

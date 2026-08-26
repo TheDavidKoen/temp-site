@@ -6,6 +6,7 @@ import Intro from '@/components/Intro.astro';
 import Seo from '@/components/Seo.astro';
 import '@/styles/global.css';
 import CursorTrail from '@/components/CursorTrail.astro';
+import Stack from '@/components/Stack.astro';
 import Terminal from '@/components/Terminal.astro';
 
 interface Props {
@@ -68,5 +69,6 @@ const { title, description } = Astro.props;
     
     <CursorTrail />
     <Terminal />
+    <Stack />
   </body>
 </html>

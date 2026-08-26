@@ -8,6 +8,7 @@ const opening = toText(run('help'), false);
 
 <button
   class="launcher"
+  style="--launcher-order: 0; --launcher-mark: url('/ghostty.svg')"
   data-terminal-open
   aria-label="Open terminal"
   aria-haspopup="dialog"
@@ -19,7 +20,7 @@ const opening = toText(run('help'), false);
 
 <dialog class="terminal" data-terminal-dialog aria-label="Terminal">
   <div class="terminal__bar">
-    <span class="terminal__title">david@koen — cli</span>
+    <span class="terminal__title">david@koen · cli</span>
     <button class="terminal__close" data-terminal-close aria-label="Close terminal">&times;</button>
   </div>
 
@@ -140,7 +141,7 @@ const opening = toText(run('help'), false);
     });
 
     /* dialog restores focus to the launcher on close, and the browser counts
-       that restoration as keyboard-driven — so a mouse user gets a focus ring
+       that restoration as keyboard-driven, so a mouse user gets a focus ring
        they never asked for. Keyboard users keep theirs. */
     dialog.addEventListener('close', () => {
       if (viaPointer) open.blur();
@@ -177,7 +178,7 @@ const opening = toText(run('help'), false);
         setLegend();
         echo(payload.text);
       } catch {
-        echo('network error — try again');
+        echo('network error, try again');
       }
     });
 
@@ -191,82 +192,6 @@ const opening = toText(run('help'), false);
 </script>
 
 <style>
-  .launcher {
-    position: fixed;
-    top: 5.5rem;
-    right: 1.5rem;
-    z-index: 55;
-    display: grid;
-    place-items: center;
-    width: 3.25rem;
-    height: 3.25rem;
-    padding: 0;
-    color: var(--color-surface);
-    background-color: var(--color-ink);
-    border: 0;
-    border-radius: 50%;
-    cursor: pointer;
-    transition:
-      transform 0.28s var(--ease-out-quint),
-      box-shadow 0.28s var(--ease-out-quint);
-  }
-
-  .launcher:hover,
-  .launcher:focus-visible {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px color-mix(in srgb, var(--color-ink) 28%, transparent);
-  }
-
-  /* Masked rather than embedded, so the file in public/ stays the single source
-     of the shape and the colour is controlled here. An <img> could not be
-     recoloured, since page CSS does not reach inside it. */
-  .launcher__mark {
-    width: 1.7rem;
-    height: 1.7rem;
-    background-color: var(--color-signal);
-    mask-image: url('/ghostty.svg');
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: contain;
-  }
-
-  .launcher__tip {
-    position: absolute;
-    top: 50%;
-    right: calc(100% + 0.85rem);
-    padding: 0.45rem 0.75rem;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    white-space: nowrap;
-    color: var(--color-surface);
-    background-color: var(--color-ink);
-    border-radius: 0.4rem;
-    opacity: 0;
-    transform: translateY(-50%) translateX(0.4rem);
-    pointer-events: none;
-    transition:
-      opacity 0.2s linear,
-      transform 0.26s var(--ease-out-quint);
-  }
-
-  .launcher__tip::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 100%;
-    width: 0;
-    height: 0;
-    border: 5px solid transparent;
-    border-left-color: var(--color-ink);
-    transform: translateY(-50%);
-  }
-
-  .launcher:hover .launcher__tip,
-  .launcher:focus-visible .launcher__tip {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
-  }
-
   /* display and overlay need allow-discrete or the dialog snaps in and out
      with no transition; @starting-style supplies the frame to animate from. */
   /* inset plus auto margins is what actually centres a modal dialog; the UA
@@ -358,7 +283,7 @@ const opening = toText(run('help'), false);
   }
 
   /* Legend beside the output where there is room, beneath it where there is
-     not — so the command reference is always on screen rather than behind a
+     not, so the command reference is always on screen rather than behind a
      command the player has to already know. */
   .terminal__body {
     display: grid;
