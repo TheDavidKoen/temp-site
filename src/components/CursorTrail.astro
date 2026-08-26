@@ -52,7 +52,7 @@ const dots = Array.from({ length: DOTS }, (_, i) => ({
 
       /* Stop scheduling once the tail has caught up. Without this the loop
          writes twelve transforms every frame forever, which is what made the
-         experience section stutter — its own scroll animations were already
+         experience section stutter, its own scroll animations were already
          saturating the frame. Movement restarts it. */
       if (drift < 0.2) {
         running = false;
