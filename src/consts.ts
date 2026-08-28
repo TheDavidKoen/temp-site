@@ -189,16 +189,10 @@ export const STACK: readonly StackEntry[] = [
     why: 'Draws the moving artwork in the hero and the ghost further down the page. It holds off loading until you scroll near it, and sits out altogether on lower-powered phones or when your device asks for reduced motion.',
   },
   {
-    layer: 'Terminal',
-    choice: 'Ghostty',
-    logo: '/ghostty.svg',
-    why: 'The terminal app I use day to day, and the reason this site has one of its own. The other button up there opens it: type help to read this CV, or start to open a murder case.',
-  },
-  {
     layer: 'API',
     choice: 'Cloudflare Functions',
     logo: '/cloudflarepages.svg',
-    why: 'Runs the terminal on demand, close to whoever is visiting, with no server for me to keep alive. It answers your own terminal too: curl davidkoen.is-a.dev/api/cli?cmd=whoami reads this same CV.',
+    why: 'Powers the terminal behind the other button up there, on demand and close to whoever is visiting, with no server for me to keep alive. It answers your own terminal too: curl davidkoen.is-a.dev/api/cli?cmd=whoami reads this same CV.',
     adr: '0011-signed-session-tokens',
   },
   {
