@@ -172,7 +172,7 @@ export const STACK: readonly StackEntry[] = [
     layer: 'Styling',
     choice: 'Tailwind CSS',
     logo: '/tailwindcss.svg',
-    why: 'The styling framework I build with. Popular, well documented, and flexible enough to cover everything on this site: the type scale, the colour system, the fold-out menu on mobile.',
+    why: 'The styling framework I build with. Popular, well documented, and flexible.',
     adr: '0004-tailwind-v4-without-sass',
   },
   {
@@ -192,20 +192,20 @@ export const STACK: readonly StackEntry[] = [
     layer: 'Terminal',
     choice: 'Ghostty',
     logo: '/ghostty.svg',
-    why: 'The other button up there opens a working terminal, styled after Ghostty, the terminal app I use day to day. Type help in it to read this CV, or start to open a murder case.',
+    why: 'The terminal app I use day to day, and the reason this site has one of its own. The other button up there opens it: type help to read this CV, or start to open a murder case.',
   },
   {
     layer: 'API',
     choice: 'Cloudflare Functions',
     logo: '/cloudflarepages.svg',
-    why: 'That terminal needs code answering it somewhere. This runs the code on demand, close to whoever is visiting, with no server for me to keep alive. It answers your own terminal too: curl davidkoen.is-a.dev/api/cli?cmd=whoami reads this same CV.',
+    why: 'Runs the terminal on demand, close to whoever is visiting, with no server for me to keep alive. It answers your own terminal too: curl davidkoen.is-a.dev/api/cli?cmd=whoami reads this same CV.',
     adr: '0011-signed-session-tokens',
   },
   {
     layer: 'Hosting',
     choice: 'Cloudflare Pages',
     logo: '/cloudflarepages.svg',
-    why: 'Where the site lives. Free, on a network with machines worldwide, so it loads quickly wherever you open it, and it supports the free is-a.dev address in the URL bar.',
+    why: 'Where the site lives. Free, on a network with machines worldwide, so it loads quickly wherever you open it.',
     adr: '0002-cloudflare-pages-over-workers',
   },
   {
