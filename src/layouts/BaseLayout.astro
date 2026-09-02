@@ -6,6 +6,7 @@ import Intro from '@/components/Intro.astro';
 import Seo from '@/components/Seo.astro';
 import '@/styles/global.css';
 import CursorTrail from '@/components/CursorTrail.astro';
+import MissedMix from '@/components/MissedMix.astro';
 import Stack from '@/components/Stack.astro';
 import Terminal from '@/components/Terminal.astro';
 
@@ -28,6 +29,9 @@ const { title, description } = Astro.props;
     <Font cssVariable="--font-space-grotesk" preload />
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
+    {/* Unpreloaded: two glyphs on one badge do not justify competing with the
+        body text for bandwidth. It swaps in when it arrives. */}
+    <Font cssVariable="--font-figtree" />
 
     <Seo title={title} description={description} />
 
@@ -70,5 +74,6 @@ const { title, description } = Astro.props;
     <CursorTrail />
     <Terminal />
     <Stack />
+    <MissedMix />
   </body>
 </html>
