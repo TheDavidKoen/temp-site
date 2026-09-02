@@ -1,0 +1,29 @@
+---
+const MISSED_MIX = 'https://missed-mix.pages.dev/';
+---
+
+<a
+  class="launcher"
+  style="--launcher-order: 2"
+  href={MISSED_MIX}
+  target="_blank"
+  rel="noopener"
+  aria-describedby="missedmix-tip"
+>
+  <span class="launcher__word" aria-hidden="true">MM</span>
+  <span class="sr-only">Missed Mix, opens in a new tab</span>
+  <span class="launcher__tip" id="missedmix-tip" role="tooltip">Missed Mix. Social, music app.</span>
+</a>
+
+<style>
+  /* Set in Missed Mix's own family so the badge reads as that product rather
+     than as this site's type. */
+  .launcher__word {
+    font-family: var(--font-figtree);
+    font-size: 0.98rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--color-signal);
+  }
+</style>
