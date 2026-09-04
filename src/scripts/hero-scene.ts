@@ -52,9 +52,12 @@ const MIN_RUN = 2.2;
 const START = new Vector3(-5.2, 3.1, 0);
 
 /* Rebuilt per load so the chase is never the same shape twice, always from the
-   same corner. Runs are axis aligned and alternate sides, so every turn is a
-   right angle and the descent stays monotonic. */
+   same corner. Runs are axis aligned, so every turn is a right angle.
+   The drop is uniform on purpose: an uneven one produces verticals shorter than
+   GAP, and the dot then cuts the corner of a narrow turn straight into the
+   mouth. Keeping every segment long makes the plain arc length lead safe. */
 function buildRoute(): CurvePath<Vector3> {
+  const drop = (Y_TOP - Y_BOTTOM) / LEGS;
   const corners = [START.clone()];
   let x = START.x;
   let y = START.y;
@@ -64,7 +67,7 @@ function buildRoute(): CurvePath<Vector3> {
     x = side * (MIN_RUN + Math.random() * (X_MAX - MIN_RUN));
     corners.push(new Vector3(x, y, 0));
 
-    y = leg === LEGS - 1 ? Y_BOTTOM : y - (Y_TOP - Y_BOTTOM) / LEGS + (Math.random() - 0.5) * 0.5;
+    y -= drop;
     corners.push(new Vector3(x, y, 0));
   }
 
@@ -89,38 +92,7 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
   camera.position.z = 10;
 
   const ROUTE = buildRoute();
-  /* Maps each point to the point GAP away in a straight line, not GAP along the
-     route. Around a corner the two differ, and an arc length lead would put the
-     dot visually inside the mouth well before the end. */
-  const leadTable = (() => {
-    const samples = 400;
-    const points = Array.from({ length: samples + 1 }, (_, i) => ROUTE.getPointAt(i / samples));
-    const table = new Float32Array(samples + 1);
-
-    const lookahead = Math.ceil((samples * 3 * GAP) / ROUTE.getLength());
-
-    for (let i = 0; i <= samples; i++) {
-      let best = Math.min(samples, i + 1);
-      let furthest = 0;
-
-      for (let j = i + 1; j <= Math.min(samples, i + lookahead); j++) {
-        const reach = points[j].distanceTo(points[i]);
-        if (reach >= GAP) {
-          best = j;
-          break;
-        }
-        if (reach > furthest) {
-          furthest = reach;
-          best = j;
-        }
-      }
-      table[i] = best / samples;
-    }
-    return table;
-  })();
-
-  const leadAt = (t: number): number =>
-    leadTable[Math.round(MathUtils.clamp(t, 0, 1) * (leadTable.length - 1))];
+  const LEAD_T = GAP / ROUTE.getLength();
 
   const bounds = { x: 0, y: 0 };
   for (const point of ROUTE.getPoints(120)) {
@@ -245,7 +217,7 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
 
     const here = ROUTE.getPointAt(chase);
     const closing = 1 - MathUtils.smoothstep(chase, 0.86, 1);
-    const ahead = ROUTE.getPointAt(MathUtils.lerp(chase, leadAt(chase), closing));
+    const ahead = ROUTE.getPointAt(Math.min(1, chase + LEAD_T * closing));
 
     chaser.position.set(here.x, here.y, 0);
     const tangent = ROUTE.getTangentAt(chase);
