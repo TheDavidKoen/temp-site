@@ -1,3 +1,7 @@
+/**
+ * The /api/cli endpoint. Answers one route in three representations: ANSI text
+ * for terminals, JSON for everything else, and JSON over POST for the page.
+ */
 import { run } from '../../../shared/commands';
 import { toJson, toText } from '../../../shared/render';
 import { decode, encode } from '../../_session';
@@ -13,20 +17,14 @@ const COOKIE_TTL = 6 * 60 * 60;
 const WINDOW_MS = 10_000;
 const MAX_HITS = 30;
 
-/* Held in the isolate rather than a binding: Pages Functions cannot bind
-   Cloudflare's rate limiter, and WAF rules are zone level — the is-a.dev zone
-   is not ours. See ADR 0012.
-   This is a speed bump, not a wall. Isolates are per-datacentre and recycled,
-   so it stops one client hammering one colo and nothing more. Proportionate:
-   the endpoint writes nothing, and exhausting the free tier only pauses this
-   route while the static site keeps serving. */
+/* Held in the isolate because Pages Functions cannot bind a rate limiter and
+   WAF rules are zone level. Best effort by design: see ADR 0012. */
 const hits = new Map<string, { count: number; resets: number }>();
 
 function overLimit(caller: string, now: number): boolean {
   const seen = hits.get(caller);
 
   if (!seen || now > seen.resets) {
-    // Sweep on write so an idle isolate cannot accumulate stale keys.
     if (hits.size > 5_000) {
       for (const [key, value] of hits) if (now > value.resets) hits.delete(key);
     }
@@ -38,9 +36,7 @@ function overLimit(caller: string, now: number): boolean {
   return seen.count > MAX_HITS;
 }
 
-/* Terminal clients get ANSI text; everything else gets JSON. Kept to a short
-   allowlist rather than sniffing broadly, so a browser never receives escape
-   codes it will render as literal garbage. */
+// Terminal clients get ANSI text; a browser would render the codes literally.
 const TEXT_CLIENTS = /^(curl|wget|httpie|powershell)/i;
 
 const BASE_HEADERS = {
@@ -57,9 +53,6 @@ function readCookie(header: string | null): string | null {
   return null;
 }
 
-/* HttpOnly so page scripts cannot read it, and scoped to this path so it is
-   never sent with a request for the site itself. Carrying the session in a
-   cookie is also what makes the game playable over curl -c jar -b jar. */
 const setCookie = (token: string | null): string =>
   token === null
     ? `${COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/api/cli; Max-Age=0`
@@ -94,11 +87,6 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     input = url.searchParams.get('cmd')?.slice(0, MAX_INPUT) ?? '';
   }
 
-  /* Only the game needs the secret — it signs the session. CV commands read
-     from consts.ts and need nothing, so a deployment missing the secret loses
-     the case rather than the whole endpoint.
-     An unverifiable cookie is discarded rather than trusted, so a tampered
-     token drops the caller back to a fresh terminal, not a forged game. */
   const state = secret ? await decode(readCookie(request.headers.get('cookie')), secret) : null;
 
   let result = run(input, state);

@@ -1,3 +1,7 @@
+/**
+ * The deduction game engine. Pure functions over GameState, imported by the
+ * Worker only, so the solution is never derivable from anything the page ships.
+ */
 import type { Block } from './commands';
 
 export interface GameState {
@@ -15,7 +19,6 @@ const SUSPECTS = ['gandalf', 'aragorn', 'legolas', 'gimli', 'boromir', 'galadrie
 const WEAPONS = ['dagger', 'goblet', 'staff', 'bow', 'rope', 'bust'] as const;
 const ROOMS = ['hall', 'library', 'study', 'cellar', 'kitchen', 'garden'] as const;
 
-/* A closed loop, so every room is reachable and no direction is a dead end. */
 const EXITS: Record<string, Record<string, string>> = {
   hall: { west: 'library', east: 'study', south: 'kitchen' },
   library: { east: 'hall', south: 'cellar' },
@@ -81,8 +84,6 @@ const DIRECTIONS: Record<string, string> = {
   west: 'west',
 };
 
-/* The solution is derived from the seed server-side on every request, so it
-   never travels to the client. All the browser holds is the seed and progress. */
 function rng(seed: string): () => number {
   let h = 2166136261;
   for (let i = 0; i < seed.length; i++) {
@@ -131,8 +132,6 @@ function buildCase(seed: string): Case {
     ...ROOMS.filter((r) => r !== scene),
   ];
 
-  /* Every card that is not part of the solution sits with exactly one guest.
-     Asking the right guest about the right card is the whole deduction. */
   const holder: Record<string, string> = {};
   shuffle(spare, next).forEach((card, i) => {
     holder[card] = SUSPECTS[i % SUSPECTS.length];
@@ -180,7 +179,7 @@ export function opening(): Block[] {
     {
       kind: 'pair',
       label: 'accuse',
-      value: 'scored out of 3 — which three are right is for you to work out',
+      value: 'scored out of 3. Which three are right is for you to work out',
     },
     { kind: 'pair', label: 'ask', value: 'a guest rules one thing out for certain' },
     {
@@ -213,7 +212,6 @@ function describe(state: GameState, file: Case): Block[] {
       ? { kind: 'list', title: 'Here with you', items: people.map((p) => NAMES[p]) }
       : { kind: 'text', value: 'Nobody here.' },
   );
-  /* Keyword first, description second, so what to type is never in doubt. */
   if (things.length) {
     blocks.push({ kind: 'text', value: 'You can see' });
     for (const weapon of things) {
@@ -230,19 +228,17 @@ function describe(state: GameState, file: Case): Block[] {
 function remaining(state: GameState): Block[] {
   const left = (items: readonly string[]) => items.filter((i) => !state.cleared.includes(i));
   return [
-    { kind: 'list', title: 'Still possible — who', items: left(SUSPECTS).map((s) => NAMES[s]) },
+    { kind: 'list', title: 'Still possible: who', items: left(SUSPECTS).map((s) => NAMES[s]) },
     {
       kind: 'list',
-      title: 'Still possible — what',
+      title: 'Still possible: what',
       items: left(WEAPONS).map((w) => WEAPON_NAMES[w]),
     },
     {
       kind: 'list',
-      title: 'Still possible — where',
+      title: 'Still possible: where',
       items: left(ROOMS).map((r) => ROOM_NAMES[r]),
     },
-    /* The board. Past probes and their scores are the raw material for the
-       deduction, so they have to stay visible rather than scroll away. */
     ...(state.probes.length
       ? ([{ kind: 'list', title: 'Accusations so far', items: state.probes }] as Block[])
       : []),
@@ -252,8 +248,6 @@ function remaining(state: GameState): Block[] {
   ];
 }
 
-/* Players type what they are shown — "x an iron goblet", not "x goblet". Scan
-   the whole phrase for a known keyword rather than demanding an exact token. */
 function findIn(words: readonly string[], pool: readonly string[]): string | null {
   return words.find((word) => pool.includes(word)) ?? null;
 }
@@ -303,8 +297,6 @@ export function play(state: GameState, input: string): { blocks: Block[]; state:
     }
 
     case 'ask': {
-      /* Split on "about" so the name and the topic are searched separately,
-         which keeps ASK GIMLI ABOUT GANDALF unambiguous. */
       const at = words.indexOf('about');
       const before = at > -1 ? words.slice(1, at) : words.slice(1);
       const after = at > -1 ? words.slice(at + 1) : [];
@@ -320,9 +312,6 @@ export function play(state: GameState, input: string): { blocks: Block[]; state:
         return { state, blocks: [{ kind: 'text', value: `${NAMES[who]} is not in this room.` }] };
       }
 
-      /* ASK <who> with no topic is the main loop: they volunteer the next card
-         they hold, so a question is never wasted. Naming a topic is the
-         targeted version, for confirming a hunch. */
       if (after.length === 0) {
         const hand = Object.keys(file.holder).filter((card) => file.holder[card] === who);
         const seen = state.asked[who] ?? 0;
@@ -348,14 +337,12 @@ export function play(state: GameState, input: string): { blocks: Block[]; state:
             { kind: 'text', value: `${NAMES[who]} thinks, then answers.` },
             {
               kind: 'text',
-              // A guest can hold their own card, and referring to themselves in
-              // the third person reads as a bug rather than a clue.
               value: `"I can account for ${card === who ? 'myself' : label(card)}. Rule it out."`,
             },
             {
               kind: 'text',
               value:
-                seen + 1 < hand.length ? '(noted — they know more)' : '(noted — that is all of it)',
+                seen + 1 < hand.length ? '(noted, they know more)' : '(noted, that is all of it)',
             },
           ],
         };
@@ -423,15 +410,12 @@ export function play(state: GameState, input: string): { blocks: Block[]; state:
 
       const attempts = state.attempts + 1;
 
-      /* Quantitative feedback, as in Mastermind: every accusation returns an
-         exact count, so no probe is ever wasted and progress is measurable.
-         Which of the three is right stays hidden — that is the deduction. */
       const hits =
         (who === file.culprit ? 1 : 0) +
         (weapon === file.weapon ? 1 : 0) +
         (room === file.scene ? 1 : 0);
 
-      const record = `${who} · ${weapon} · ${room} — ${hits}/3`;
+      const record = `${who} · ${weapon} · ${room} · ${hits}/3`;
       const probes = [...state.probes, record].slice(-24);
 
       if (hits < 3) {

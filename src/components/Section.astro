@@ -10,9 +10,7 @@ interface Props {
 const { id, label, class: className } = Astro.props;
 ---
 
-<!-- scroll-mt-24 clears the sticky header in Header.astro; changing that
-     header's height means changing this offset too. -->
-<section id={id} class:list={['scroll-mt-24 border-t border-surface-muted py-[var(--section-space)]', className]}>
+<section id={id} class:list={['border-t border-surface-muted py-[var(--section-space)]', className]}>
   <Container>
     <h2 class="label">{label}</h2>
     <div class="mt-10">

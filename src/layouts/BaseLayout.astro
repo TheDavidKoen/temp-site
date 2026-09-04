@@ -6,6 +6,7 @@ import Intro from '@/components/Intro.astro';
 import Seo from '@/components/Seo.astro';
 import '@/styles/global.css';
 import CursorTrail from '@/components/CursorTrail.astro';
+import Dock from '@/components/Dock.astro';
 import MissedMix from '@/components/MissedMix.astro';
 import Stack from '@/components/Stack.astro';
 import Terminal from '@/components/Terminal.astro';
@@ -29,17 +30,15 @@ const { title, description } = Astro.props;
     <Font cssVariable="--font-space-grotesk" preload />
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
-    {/* Unpreloaded: two glyphs on one badge do not justify competing with the
-        body text for bandwidth. It swaps in when it arrives. */}
     <Font cssVariable="--font-figtree" />
 
     <Seo title={title} description={description} />
 
-    <!-- Must stay inline and in <head>: it flags the intro as already-seen
-         before first paint. Deferring it makes returning visitors flash the
-         overlay. Paired with the skip rule in Intro.astro. -->
+    <!-- Must stay inline and in <head>: both flags are read before first paint. -->
     <script is:inline>
       (() => {
+        document.documentElement.dataset.dock = 'closed';
+
         try {
           const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
           if (reduced || sessionStorage.getItem('intro') === 'seen') {
@@ -75,5 +74,6 @@ const { title, description } = Astro.props;
     <Terminal />
     <Stack />
     <MissedMix />
+    <Dock />
   </body>
 </html>

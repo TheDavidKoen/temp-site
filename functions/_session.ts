@@ -1,11 +1,8 @@
+/**
+ * Signs and verifies the terminal game session. The token carries the whole
+ * game state, so the server keeps nothing between requests.
+ */
 import type { GameState } from '../shared/game';
-
-/* The browser holds the session because the server keeps nothing — that is what
-   makes the endpoint stateless and free to scale. The cost is that anything the
-   browser holds can be edited, so the token is signed: payload.signature, with
-   the signature over the payload using a server-only secret. Alter a byte of
-   either and verification fails.
-   Underscore prefix keeps this out of the route table. */
 
 const TTL_MS = 6 * 60 * 60 * 1000;
 const encoder = new TextEncoder();
@@ -50,8 +47,6 @@ export async function decode(token: unknown, secret: string): Promise<GameState 
   const payload = token.slice(0, split);
   const signature = token.slice(split + 1);
 
-  /* crypto.subtle.verify rather than comparing strings: it is constant time,
-     so a forged token cannot be refined by measuring how long rejection took. */
   let valid = false;
   try {
     valid = await crypto.subtle.verify(

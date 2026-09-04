@@ -9,8 +9,6 @@
   --color-ink: #101a1c;
   --color-ink-muted: #3d5457;
 
-  /* --color-signal is 3.67:1 on --color-surface: large text (>=24px / >=18.7px
-     bold), icons and borders only. Use --color-signal-text below 24px. */
   --color-signal: #ff0000;
   --color-signal-text: #dc0000;
 
@@ -18,8 +16,6 @@
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
 
-  /* The rem intercept is load-bearing: replacing these with pure-vw values
-     breaks browser zoom (WCAG 1.4.4). */
   --text-xs: clamp(0.75rem, 0.736rem + 0.064vw, 0.8125rem);
   --text-sm: clamp(0.875rem, 0.861rem + 0.064vw, 0.9375rem);
   --text-base: clamp(1rem, 0.971rem + 0.128vw, 1.125rem);
@@ -52,15 +48,11 @@
   --container-narrow: 34rem;
   --container-wide: 84rem;
 
-  /* Both floating launchers position themselves from these, so the dock stays
-     one column and one bubble cannot drift onto the other. */
   --dock-top: 5.5rem;
   --dock-right: 1.5rem;
   --dock-size: 3.25rem;
   --dock-gap: 0.65rem;
 
-  /* Shared with GSAP tweens and Three.js camera easing, changing a curve
-     here changes it in all three systems. */
   --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
@@ -68,8 +60,6 @@
 }
 
 @layer components {
-  /* The small-caps eyebrow used for section labels, definition terms and
-     navigation. Was five utilities repeated across seven call sites. */
   .label {
     font-family: var(--font-mono);
     font-size: var(--text-xs);
@@ -78,8 +68,6 @@
     color: var(--color-signal-text);
   }
 
-  /* Underline grows from the leading edge on hover and focus. Applied to
-     navigation and footer links in place of a colour change. */
   .link-slide {
     position: relative;
   }
@@ -101,10 +89,6 @@
     transform: scaleX(1);
   }
 
-  /* The floating dock bubbles. Shared because the terminal and the stack sheet
-     are the same affordance twice, only the mark and the tip differ. Each
-     caller sets --launcher-order to claim a slot down the column and
-     --launcher-mark for its icon. */
   .launcher {
     position: fixed;
     top: calc(var(--dock-top) + var(--launcher-order, 0) * (var(--dock-size) + var(--dock-gap)));
@@ -131,9 +115,6 @@
     box-shadow: 0 10px 24px color-mix(in srgb, var(--color-ink) 28%, transparent);
   }
 
-  /* Masked rather than embedded, so the file in public/ stays the single source
-     of the shape and the colour is controlled here. An <img> could not be
-     recoloured, since page CSS does not reach inside it. */
   .launcher__mark {
     width: 1.7rem;
     height: 1.7rem;
@@ -180,6 +161,98 @@
     opacity: 1;
     transform: translateY(-50%) translateX(0);
   }
+
+  .launcher__word {
+    font-family: var(--font-figtree);
+    font-size: 0.98rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--color-signal);
+  }
+
+  .overlay {
+    inset: 0;
+    margin: auto;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    transform: scale(0.92);
+    transition:
+      opacity 0.16s ease-in,
+      transform 0.18s ease-in,
+      display 0.18s allow-discrete,
+      overlay 0.18s allow-discrete;
+  }
+
+  .overlay[open] {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity 0.2s linear,
+      transform 0.36s var(--ease-spring),
+      display 0.36s allow-discrete,
+      overlay 0.36s allow-discrete;
+  }
+
+  @starting-style {
+    .overlay[open] {
+      opacity: 0;
+      transform: translateY(1.25rem) scale(0.985);
+    }
+  }
+
+  .overlay::backdrop {
+    background-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition:
+      opacity 0.3s linear,
+      display 0.3s allow-discrete,
+      overlay 0.3s allow-discrete;
+  }
+
+  .overlay[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .overlay[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .overlay,
+    .overlay[open],
+    .overlay::backdrop,
+    .overlay[open]::backdrop {
+      transition: none;
+      transform: none;
+    }
+  }
+
+  .launcher--stowable {
+    transition:
+      transform 0.46s var(--ease-spring) calc((var(--launcher-order) - 1) * 0.07s),
+      opacity 0.24s linear calc((var(--launcher-order) - 1) * 0.07s),
+      box-shadow 0.28s var(--ease-out-quint);
+  }
+
+  .launcher--stowable:hover {
+    transition:
+      transform 0.28s var(--ease-out-quint),
+      box-shadow 0.28s var(--ease-out-quint);
+  }
+
+  html[data-dock="closed"] .launcher--stowable {
+    transform: translateY(calc(var(--launcher-order) * (var(--dock-size) + var(--dock-gap)) * -1))
+      scale(0.2);
+    opacity: 0;
+    transition:
+      transform 0.3s var(--ease-in-expo) calc((3 - var(--launcher-order)) * 0.05s),
+      opacity 0.2s linear calc((3 - var(--launcher-order)) * 0.05s);
+  }
 }
 
 @layer base {
@@ -204,8 +277,10 @@
     timeline-scope: --hero;
   }
 
+  /* One offset for every anchor target, so a jump clears the fixed header.
+     Changing the header height means changing this. */
   main [id] {
-    scroll-margin-top: 5rem;
+    scroll-margin-top: 6rem;
   }
 
   h1,
@@ -230,8 +305,6 @@
     color: var(--color-surface-raised);
   }
 
-  /* Global kill switch for the motion layer. Three.js checks this same query
-     before initialising rather than rendering and hiding. */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

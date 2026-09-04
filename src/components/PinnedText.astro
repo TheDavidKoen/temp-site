@@ -25,9 +25,6 @@ const { id, label }: Props = Astro.props;
 </section>
 
 <style>
-  /* Scroll distance is the reveal's timeline, and --exp is the named view
-     timeline ScrollReveal animates against. Renaming it here breaks every
-     character in the slot. */
   .pin {
     position: relative;
     height: 380vh;
@@ -41,8 +38,6 @@ const { id, label }: Props = Astro.props;
     }
   }
 
-  /* Clip lives on the sticky element itself, never an ancestor, overflow on
-     an ancestor would cancel the stickiness. */
   .pin__stage {
     position: sticky;
     top: 0;
@@ -54,9 +49,6 @@ const { id, label }: Props = Astro.props;
     padding-block: var(--section-space);
   }
 
-  /* Holds the section id so jumping to it lands at the end of the pinned
-     window on settled text, not the empty start. The 100% is the pin height,
-     so this tracks any change to it without a second number to maintain. */
   .pin__anchor {
     position: absolute;
     top: calc(100% - 102vh);

@@ -1,13 +1,18 @@
+/**
+ * The chase animation in the hero. Scroll position drives it; nothing is on a
+ * timer, so it holds still when the page does.
+ */
 import {
   BufferAttribute,
   BufferGeometry,
-  CatmullRomCurve3,
   CircleGeometry,
   Color,
+  CurvePath,
   DynamicDrawUsage,
   Group,
   InstancedMesh,
   LineBasicMaterial,
+  LineCurve3,
   LineSegments,
   MathUtils,
   Mesh,
@@ -31,7 +36,6 @@ const DOTS = 74;
 const DOT_R = 0.055;
 const BALL_R = 0.17;
 
-/* Chase occupies the first stretch; the rest of the scroll drives the burst. */
 const CHASE_END = 0.82;
 const GAP = 2.3;
 const TRAIL_GAP = 0.028;
@@ -40,19 +44,37 @@ const MARGIN = 1.4;
 const INK = new Color(0x101a1c);
 const SIGNAL = new Color(0xff0000);
 
-const ROUTE_POINTS = [
-  new Vector3(-5.2, 3.1, 0),
-  new Vector3(-1.6, 2.3, 0),
-  new Vector3(3.9, 0.9, 0),
-  new Vector3(0.4, -0.6, 0),
-  new Vector3(-3.1, -1.9, 0),
-  new Vector3(0, -3.1, 0),
-];
+const LEGS = 5;
+const Y_TOP = 3.1;
+const Y_BOTTOM = -3.1;
+const X_MAX = 5.2;
+const MIN_RUN = 2.2;
+const START = new Vector3(-5.2, 3.1, 0);
 
-const ROUTE = new CatmullRomCurve3(ROUTE_POINTS);
-const LEAD_T = GAP / ROUTE.getLength();
+/* Rebuilt per load so the chase is never the same shape twice, always from the
+   same corner. Runs are axis aligned and alternate sides, so every turn is a
+   right angle and the descent stays monotonic. */
+function buildRoute(): CurvePath<Vector3> {
+  const corners = [START.clone()];
+  let x = START.x;
+  let y = START.y;
 
-/* Deterministic so a reload produces the same burst. */
+  for (let leg = 0; leg < LEGS; leg++) {
+    const side = x <= 0 ? 1 : -1;
+    x = side * (MIN_RUN + Math.random() * (X_MAX - MIN_RUN));
+    corners.push(new Vector3(x, y, 0));
+
+    y = leg === LEGS - 1 ? Y_BOTTOM : y - (Y_TOP - Y_BOTTOM) / LEGS + (Math.random() - 0.5) * 0.5;
+    corners.push(new Vector3(x, y, 0));
+  }
+
+  const route = new CurvePath<Vector3>();
+  for (let i = 1; i < corners.length; i++) {
+    route.add(new LineCurve3(corners[i - 1], corners[i]));
+  }
+  return route;
+}
+
 const jitter = (i: number, seed: number): number => {
   const n = Math.sin(i * 12.9898 + seed * 78.233) * 43758.5453;
   return n - Math.floor(n);
@@ -66,14 +88,46 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
   const camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
   camera.position.z = 10;
 
+  const ROUTE = buildRoute();
+  /* Maps each point to the point GAP away in a straight line, not GAP along the
+     route. Around a corner the two differ, and an arc length lead would put the
+     dot visually inside the mouth well before the end. */
+  const leadTable = (() => {
+    const samples = 400;
+    const points = Array.from({ length: samples + 1 }, (_, i) => ROUTE.getPointAt(i / samples));
+    const table = new Float32Array(samples + 1);
+
+    const lookahead = Math.ceil((samples * 3 * GAP) / ROUTE.getLength());
+
+    for (let i = 0; i <= samples; i++) {
+      let best = Math.min(samples, i + 1);
+      let furthest = 0;
+
+      for (let j = i + 1; j <= Math.min(samples, i + lookahead); j++) {
+        const reach = points[j].distanceTo(points[i]);
+        if (reach >= GAP) {
+          best = j;
+          break;
+        }
+        if (reach > furthest) {
+          furthest = reach;
+          best = j;
+        }
+      }
+      table[i] = best / samples;
+    }
+    return table;
+  })();
+
+  const leadAt = (t: number): number =>
+    leadTable[Math.round(MathUtils.clamp(t, 0, 1) * (leadTable.length - 1))];
+
   const bounds = { x: 0, y: 0 };
   for (const point of ROUTE.getPoints(120)) {
     bounds.x = Math.max(bounds.x, Math.abs(point.x));
     bounds.y = Math.max(bounds.y, Math.abs(point.y));
   }
 
-  /* BufferAttribute keeps the array by reference; Float32BufferAttribute
-     copies it, so in-place writes would never reach the GPU. */
   const wedge = new Float32Array(SEGMENTS * 2 * 3);
   const wedgeAttribute = new BufferAttribute(wedge, 3);
   wedgeAttribute.setUsage(DynamicDrawUsage);
@@ -82,9 +136,6 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
 
   const wedgeMaterial = new LineBasicMaterial({ color: INK, transparent: true });
 
-  /* Outer group carries the travel angle, inner group a fixed tilt so the
-     front and back loops separate instead of overlapping under an
-     axis-aligned orthographic camera. */
   const chaser = new Group();
   const tilt = new Group();
   tilt.rotation.set(-0.3, 0.42, 0);
@@ -193,21 +244,18 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     const burst = progress <= CHASE_END ? 0 : (progress - CHASE_END) / (1 - CHASE_END);
 
     const here = ROUTE.getPointAt(chase);
-    // Gap holds steady, then closes over the final stretch so the two meet.
     const closing = 1 - MathUtils.smoothstep(chase, 0.86, 1);
-    const target = Math.min(1, chase + LEAD_T * closing);
-    const ahead = ROUTE.getPointAt(target);
+    const ahead = ROUTE.getPointAt(MathUtils.lerp(chase, leadAt(chase), closing));
 
     chaser.position.set(here.x, here.y, 0);
-    chaser.rotation.z = Math.atan2(ahead.y - here.y, ahead.x - here.x) || 0;
+    const tangent = ROUTE.getTangentAt(chase);
+    chaser.rotation.z = Math.atan2(tangent.y, tangent.x);
 
     ball.position.set(ahead.x, ahead.y, 0);
     ball.scale.setScalar(Math.max(0, 1 - burst * 1.6));
     ballMaterial.opacity = Math.max(0, 1 - burst * 1.8);
 
     wedgeMaterial.opacity = Math.max(0, 1 - burst * 1.25);
-    // Frozen at whatever it was when the burst began, so it stops mid-chomp
-    // rather than easing shut as the pieces fly apart.
     if (burst === 0) mouthHold = 0.06 + Math.abs(Math.sin(now / 130)) * 0.5;
     writeWedge(mouthHold, burst);
     writeDots(chase);

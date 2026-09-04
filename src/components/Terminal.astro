@@ -2,13 +2,12 @@
 import { run } from '../../shared/commands';
 import { toText } from '../../shared/render';
 
-/* Rendered at build time so the panel is populated before any script runs. */
 const opening = toText(run('help'), false);
 ---
 
 <button
-  class="launcher"
-  style="--launcher-order: 0; --launcher-mark: url('/terminal.svg')"
+  class="launcher launcher--stowable"
+  style="--launcher-order: 1; --launcher-mark: url('/terminal.svg')"
   data-terminal-open
   aria-label="Open terminal"
   aria-haspopup="dialog"
@@ -18,7 +17,7 @@ const opening = toText(run('help'), false);
   <span class="launcher__tip" id="terminal-tip" role="tooltip">Solve a murder. Or read my CV.</span>
 </button>
 
-<dialog class="terminal" data-terminal-dialog aria-label="Terminal">
+<dialog class="terminal overlay" data-terminal-dialog aria-label="Terminal">
   <div class="terminal__bar">
     <span class="terminal__title">david@koen · cli</span>
     <button class="terminal__close" data-terminal-close aria-label="Close terminal">&times;</button>
@@ -85,13 +84,17 @@ const opening = toText(run('help'), false);
   </form>
 
   <p class="terminal__hint">
-    Or play it in your own terminal:
-    <code>curl -c jar -b jar davidkoen.is-a.dev/api/cli?cmd=start</code>
-    <span class="terminal__note">A session cookie is set while a case is open.</span>
+    Same commands over HTTP:
+    <code>https://davidkoen.is-a.dev/api/cli?cmd=whoami</code>
+    <span class="terminal__note">
+      ANSI text to a terminal, JSON to anything else. A session cookie holds the case open.
+    </span>
   </p>
 </dialog>
 
 <script>
+  import { initDialog } from '@/scripts/dialog';
+
   const dialog = document.querySelector<HTMLDialogElement>('[data-terminal-dialog]');
   const open = document.querySelector<HTMLButtonElement>('[data-terminal-open]');
   const close = document.querySelector<HTMLButtonElement>('[data-terminal-close]');
@@ -102,10 +105,7 @@ const opening = toText(run('help'), false);
   if (dialog && open && close && out && form && input) {
     const history: string[] = [];
     let cursor = 0;
-    let viaPointer = false;
 
-    /* The session lives in an HttpOnly cookie the server sets, so this side
-       cannot read it at all. The server reports whether a case is open. */
     let playing = false;
 
     const legends = {
@@ -113,7 +113,6 @@ const opening = toText(run('help'), false);
       game: document.querySelector<HTMLElement>('[data-legend="game"]'),
     };
 
-    // Show only the commands that apply to whatever the terminal is doing.
     const setLegend = (): void => {
       if (legends.cv) legends.cv.hidden = playing;
       if (legends.game) legends.game.hidden = !playing;
@@ -124,33 +123,7 @@ const opening = toText(run('help'), false);
       out.scrollTop = out.scrollHeight;
     };
 
-    // showModal gives focus trapping, Escape-to-close and an inert background.
-    open.addEventListener('click', () => {
-      dialog.showModal();
-      input.focus();
-    });
-
-    close.addEventListener('click', () => dialog.close());
-
-    open.addEventListener('pointerdown', () => {
-      viaPointer = true;
-    });
-
-    open.addEventListener('keydown', () => {
-      viaPointer = false;
-    });
-
-    /* dialog restores focus to the launcher on close, and the browser counts
-       that restoration as keyboard-driven, so a mouse user gets a focus ring
-       they never asked for. Keyboard users keep theirs. */
-    dialog.addEventListener('close', () => {
-      if (viaPointer) open.blur();
-    });
-
-    // Clicking the backdrop lands on the dialog itself, never a child.
-    dialog.addEventListener('click', (event) => {
-      if (event.target === dialog) dialog.close();
-    });
+    initDialog(dialog, open, close, () => input.focus());
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -192,66 +165,11 @@ const opening = toText(run('help'), false);
 </script>
 
 <style>
-  /* display and overlay need allow-discrete or the dialog snaps in and out
-     with no transition; @starting-style supplies the frame to animate from. */
-  /* inset plus auto margins is what actually centres a modal dialog; the UA
-     default only centres horizontally once a max-height is set. */
   .terminal {
-    inset: 0;
-    margin: auto;
     width: min(64rem, 92vw);
     max-height: 80vh;
-    padding: 0;
     color: var(--color-surface);
     background-color: var(--color-ink);
-    border: 0;
-    opacity: 0;
-    transform: scale(0.92);
-
-    /* Closing is quick and linear so dismissing feels immediate. */
-    transition:
-      opacity 0.16s ease-in,
-      transform 0.18s ease-in,
-      display 0.18s allow-discrete,
-      overlay 0.18s allow-discrete;
-  }
-
-  /* Opening is slower with overshoot. The asymmetry is what reads as native. */
-  .terminal[open] {
-    opacity: 1;
-    transform: scale(1);
-    transition:
-      opacity 0.2s linear,
-      transform 0.36s var(--ease-spring),
-      display 0.36s allow-discrete,
-      overlay 0.36s allow-discrete;
-  }
-
-  @starting-style {
-    .terminal[open] {
-      opacity: 0;
-      transform: translateY(1.25rem) scale(0.985);
-    }
-  }
-
-  .terminal::backdrop {
-    background-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
-    backdrop-filter: blur(3px);
-    opacity: 0;
-    transition:
-      opacity 0.3s linear,
-      display 0.3s allow-discrete,
-      overlay 0.3s allow-discrete;
-  }
-
-  .terminal[open]::backdrop {
-    opacity: 1;
-  }
-
-  @starting-style {
-    .terminal[open]::backdrop {
-      opacity: 0;
-    }
   }
 
   .terminal__bar {
@@ -282,9 +200,6 @@ const opening = toText(run('help'), false);
     color: var(--color-signal);
   }
 
-  /* Legend beside the output where there is room, beneath it where there is
-     not, so the command reference is always on screen rather than behind a
-     command the player has to already know. */
   .terminal__body {
     display: grid;
     grid-template-columns: 1fr;

@@ -5,9 +5,6 @@ interface Props {
 
 const { phrases }: Props = Astro.props;
 
-/* One group must be wider than the viewport or a gap opens as it scrolls off.
-   Four passes clears ultrawide. REPEATS and the CSS duration are coupled:
-   raising one without the other changes the scroll speed. */
 const REPEATS = 4;
 const cycle = Array.from({ length: REPEATS }, () => phrases).flat();
 ---
@@ -39,8 +36,6 @@ const cycle = Array.from({ length: REPEATS }, () => phrases).flat();
     padding-block: 1.5rem;
   }
 
-  /* Two identical groups travelling exactly one group width, so the reset is
-     invisible. Changing the group count breaks the seam. */
   .marquee__track {
     display: flex;
     width: max-content;
@@ -73,8 +68,6 @@ const cycle = Array.from({ length: REPEATS }, () => phrases).flat();
     }
   }
 
-  /* The global reduced-motion rule only shortens durations, which would leave
-     the track parked mid-loop. Removing the animation resets it to the start. */
   @media (prefers-reduced-motion: reduce) {
     .marquee__track {
       animation: none;

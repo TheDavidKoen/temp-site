@@ -1,0 +1,52 @@
+<button
+  class="launcher launcher--toggle"
+  style="--launcher-order: 0; --launcher-mark: url('/plus.svg')"
+  data-dock-toggle
+  type="button"
+  aria-expanded="false"
+  aria-label="Explore more"
+  aria-describedby="dock-tip"
+>
+  <span class="launcher__mark" aria-hidden="true"></span>
+  <span class="launcher__tip" id="dock-tip" role="tooltip">Explore more.</span>
+</button>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-dock-toggle]');
+  const stowable = [...document.querySelectorAll<HTMLElement>('.launcher--stowable')];
+
+  if (toggle && stowable.length) {
+    /* inert, not just pointer-events: a stowed bubble is still in the document,
+       so without it the three stay reachable by keyboard while invisible. */
+    const setOpen = (open: boolean): void => {
+      document.documentElement.dataset.dock = open ? 'open' : 'closed';
+      toggle.setAttribute('aria-expanded', String(open));
+      for (const bubble of stowable) bubble.inert = !open;
+    };
+
+    setOpen(false);
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .launcher--toggle .launcher__mark {
+    transition: transform 0.4s var(--ease-spring);
+  }
+
+  /* 135 rather than 45, so the plus unwinds anticlockwise into a cross and the
+     open and close spins do not retrace each other. */
+  .launcher--toggle[aria-expanded='true'] .launcher__mark {
+    transform: rotate(135deg);
+  }
+</style>
