@@ -1,3 +1,7 @@
+/**
+ * Routes terminal input to either a CV handler or a game verb. Imported by both
+ * the Astro build and the Worker, which is what keeps the page and the API in step.
+ */
 import {
   CONTACT_EMAIL,
   EXPERIENCE_NARRATIVE,
@@ -70,7 +74,7 @@ const HANDLERS = {
     })),
 } satisfies Record<string, () => Block[]>;
 
-export const COMMANDS = Object.keys(HANDLERS);
+const COMMANDS = Object.keys(HANDLERS);
 
 const isGameVerb = (verb: string): boolean => (GAME_VERBS as readonly string[]).includes(verb);
 
@@ -86,8 +90,6 @@ export function run(input: string, state: GameState | null = null): CommandResul
     return { command: verb, ok: true, blocks: opening(), state: newGame() };
   }
 
-  /* Dropping the state is what ends the case — the seed goes with it, so
-     leaving and starting again gives a genuinely different answer. */
   if (verb === 'exit' || verb === 'quit') {
     return {
       command: verb,
@@ -117,9 +119,6 @@ export function run(input: string, state: GameState | null = null): CommandResul
     return { command: verb, ok: true, blocks: result.blocks, state: result.state };
   }
 
-  /* Object.hasOwn, not `in`: `in` walks the prototype chain, so constructor
-     and toString would resolve as commands and call something unintended.
-     Input is never evaluated — it only ever selects a named handler. */
   if (!Object.hasOwn(HANDLERS, verb)) {
     return {
       command: verb,

@@ -58,7 +58,6 @@ import { NAV_LINKS } from '@/consts';
       setOpen(burger.getAttribute('aria-expanded') !== 'true');
     });
 
-    // Anchors do not navigate away, so the panel has to be closed explicitly.
     list.addEventListener('click', (event) => {
       if ((event.target as HTMLElement).closest('a')) setOpen(false);
     });
@@ -149,8 +148,6 @@ import { NAV_LINKS } from '@/consts';
       transform: translateY(-7px) rotate(-45deg);
     }
 
-        /* display cannot be transitioned, so the panel folds on grid-template-rows
-         instead, 0fr to 1fr animates to content height without measuring it. */
       .nav__panel {
         position: absolute;
         inset: 100% 0 auto 0;
@@ -165,16 +162,12 @@ import { NAV_LINKS } from '@/consts';
         border-bottom: 1px solid var(--color-surface-muted);
       }
 
-      /* Hidden rather than merely clipped: a collapsed panel would otherwise
-         keep its links in the tab order. Held until the fold finishes. */
       .nav__list {
         flex-direction: column;
         align-items: flex-start;
         gap: 0;
         overflow: hidden;
 
-        /* Perspective belongs on the items' direct parent: overflow forces
-           transform-style flat, so a preserve-3d chain from the panel breaks. */
         perspective: 900px;
         visibility: hidden;
         transition: visibility 0s linear 0.42s;
@@ -202,8 +195,6 @@ import { NAV_LINKS } from '@/consts';
         transform: rotateX(0deg);
       }
 
-      /* Opening runs top to bottom; the closed-state delays reverse it, so the
-         panel folds shut from the bottom up instead of all at once. */
       .nav__list li:nth-child(1) {
         transition-delay: 0.09s;
       }

@@ -46,11 +46,11 @@ if (webglKb > BUDGET.deferredWebglKb) {
 
 /* Regression guard for ADR 0009. A minifier that folds animation-timeline into
    the animation shorthand silently disables every scroll-driven animation, and
-   the page still builds and renders — only the motion stops. */
+   the page still builds and renders, only the motion stops. */
 const styles = css.map((f) => readFileSync(f, 'utf8')).join('\n');
 
 if (!styles.includes('animation-timeline:')) {
-  failures.push('no animation-timeline longhand in the built CSS — scroll animations are dead');
+  failures.push('no animation-timeline longhand in the built CSS, scroll animations are dead');
 }
 
 const folded = styles.match(/animation:[^;}]*(scroll\(|view\(|--exp)[^;}]*/g);

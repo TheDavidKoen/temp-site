@@ -8,8 +8,6 @@ interface Props {
 
 const { text, index, count, animate = true }: Props = Astro.props;
 
-/* Deterministic jitter so a rebuild produces identical markup, Math.random
-   here would churn the output on every build. */
 const jitter = (index: number, seed: number): number => {
   const n = Math.sin(index * 12.9898 + seed * 78.233) * 43758.5453;
   return n - Math.floor(n);
@@ -72,11 +70,6 @@ const words = text.split(' ').map((word) =>
     display: inline-block;
   }
 
-  /* Animates against --exp, the named view timeline declared by PinnedText,
-     so the reveal is driven by scroll through the pinned section rather than
-     by this paragraph's own position. Only usable inside PinnedText.
-     The contain range covers exactly the period the stage is pinned.
-     Unsupported browsers skip this block and render static text. */
   @supports (animation-timeline: view()) {
     .reveal__char {
       animation: char-fly linear both;
@@ -99,8 +92,6 @@ const words = text.split(' ').map((word) =>
     }
   }
 
-  /* The global reduced-motion rule only shortens durations, which can leave a
-     scroll-driven transform frozen mid-flight, off screen. */
   @media (prefers-reduced-motion: reduce) {
     .reveal__char {
       animation: none;

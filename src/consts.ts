@@ -1,3 +1,6 @@
+/**
+ * Every piece of site content. Components read from here and never hardcode copy.
+ */
 export const SITE = {
   name: 'David Koen',
   title: 'David Koen',
@@ -33,9 +36,6 @@ export const MARQUEE_PHRASES = [
   'YNWA',
 ] as const;
 
-/* Rendered in DOM order into a wrapped flex row, which reads top-left to
-   bottom-right, the intro's index-based stagger relies on that to produce its
-   reading-order sweep. Reordering this array reorders the sweep. */
 export const INTRO_FIELD = [
   'AGILE',
   'SPRINT',
@@ -151,11 +151,7 @@ export const EXPERIENCE_NARRATIVE = [
   'As AI-driven tools continue to reshape how consumers and professionals work, I’ve embraced this shift while remaining committed to continuous skill development, so that I stay among those directing this technological transformation rather than merely riding its wave.',
 ] as const;
 
-/* adr is optional: not every choice needed a decision record, and the ones
-   that did cite it so the popup and docs/adr cannot drift apart.
-   why is written in the first person about this site specifically, with no
-   comparisons to other frameworks. The ADR carries the engineering argument. */
-export interface StackEntry {
+interface StackEntry {
   readonly layer: string;
   readonly choice: string;
   readonly logo: string;
@@ -195,7 +191,7 @@ export const STACK: readonly StackEntry[] = [
     layer: 'API',
     choice: 'Cloudflare Functions',
     logo: '/cloudflarepages.svg',
-    why: 'Serverless functions at the edge, powering the terminal behind the other button up there. Nothing to provision, nothing to keep alive. It answers your own terminal too: curl davidkoen.is-a.dev/api/cli?cmd=whoami reads this same CV.',
+    why: 'Serverless functions at the edge, powering the terminal behind the other button up there. Nothing to provision, nothing to keep alive. It answers your own terminal too: curl "https://davidkoen.is-a.dev/api/cli?cmd=whoami" reads this same CV.',
     adr: '0011-signed-session-tokens',
   },
   {

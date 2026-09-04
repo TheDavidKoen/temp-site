@@ -1,5 +1,4 @@
 // @ts-check
-
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, fontProviders } from 'astro/config';
@@ -25,8 +24,6 @@ export default defineConfig({
       subsets: ['latin'],
       fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
     },
-    /* Missed Mix sets its own type in Figtree; the launcher mark borrows the
-       family so the badge matches the site it links to. */
     {
       name: 'Figtree',
       cssVariable: '--font-figtree',
@@ -46,10 +43,6 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
-    /* Lightning CSS folds animation-timeline into the animation shorthand,
-       which per spec resets it to auto — silently killing every scroll-driven
-       animation in production while dev (unminified) looks fine. Costs 0.6KB
-       gzip. See docs/adr/0009-disable-css-minification.md before removing. */
     build: { cssMinify: false },
   },
 });

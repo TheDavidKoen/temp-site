@@ -9,8 +9,6 @@
   const canvas = document.querySelector<HTMLCanvasElement>('[data-ghost-canvas]');
   const nav = navigator as Navigator & { deviceMemory?: number };
 
-  /* Mirrors the media query that hides .ghost below 64rem, without the width
-     check the scene would download for a canvas nobody can see. */
   const wanted =
     !matchMedia('(prefers-reduced-motion: reduce)').matches &&
     matchMedia('(width >= 64rem)').matches &&

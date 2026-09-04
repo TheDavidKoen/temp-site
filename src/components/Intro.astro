@@ -105,8 +105,6 @@ const NAME = SITE.name;
 </script>
 
 <style>
-  /* The skip flag is set on <html> by the inline script in BaseLayout before
-     first paint; without that ordering a returning visitor sees a flash. */
   :global(html[data-intro='skip']) .intro {
     display: none;
   }
@@ -123,9 +121,6 @@ const NAME = SITE.name;
     animation: intro-exit 0.38s var(--ease-in-expo) 1.2s forwards;
   }
 
-  /* The scramble script owns the exit: it suspends the fallback above while
-     running, then triggers the real exit once every word has settled. The
-     1.2s fallback only fires if the script never runs. */
   .intro.is-running {
     animation: none;
   }
@@ -150,8 +145,6 @@ const NAME = SITE.name;
     padding: 2rem 1.5rem;
   }
 
-  /* Monospace holds every glyph at one width, so swapping characters cannot
-     reflow the field mid-scramble. */
   .intro__word {
     font-family: var(--font-mono);
     font-size: var(--text-xs);
@@ -180,8 +173,6 @@ const NAME = SITE.name;
     display: inline-block;
   }
 
-  /* Reserves the settled width so the proportional display face cannot shift
-     the centred name while its characters are still cycling. */
   .intro__name-sizer {
     visibility: hidden;
   }
@@ -190,9 +181,6 @@ const NAME = SITE.name;
     color: var(--color-signal);
   }
 
-  /* Hidden only once the script takes over, so a no-script render still shows
-     the stop. Both rules key off the classes the scramble sets, so the drop
-     cannot fire before the name has settled. */
   .intro.is-running .intro__dot {
     opacity: 0;
   }

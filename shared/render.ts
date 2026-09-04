@@ -1,3 +1,6 @@
+/**
+ * Turns a command result into ANSI text or into JSON.
+ */
 import type { Block, CommandResult } from './commands';
 
 const ANSI = {

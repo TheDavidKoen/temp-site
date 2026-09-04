@@ -1,3 +1,6 @@
+/**
+ * The ghost that tracks the pointer in the contact section.
+ */
 import {
   BufferGeometry,
   Color,
@@ -22,13 +25,11 @@ const SKIRT_AMP = 0.17;
 const RIB_EVERY = 7;
 const BOB = 0.07;
 
-/* Derived from the outline so framing tracks any change to the shape. */
 const TOP = DOME_Y + HALF_W;
 const BOTTOM = SKIRT_Y - SKIRT_AMP;
 const CENTRE_Y = (TOP + BOTTOM) / 2;
 const HALF_H = (TOP - BOTTOM) / 2;
 
-/* Bounding radius, so no rotation can swing an edge out of frame. */
 const REACH = Math.hypot(HALF_W + DEPTH / 2, HALF_H) + BOB + 0.18;
 
 const INK = new Color(0x101a1c);
@@ -36,8 +37,6 @@ const SIGNAL = new Color(0xff0000);
 
 type Point = [number, number];
 
-/* Dome across the top, straight sides, sinusoidal skirt. The loop closes back
-   up the left edge, so no explicit left-side points are needed. */
 function outline(): Point[] {
   const points: Point[] = [];
 
@@ -104,8 +103,6 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
   const ghost = new Group();
   scene.add(ghost);
 
-  /* Recentres the outline on the origin so the ghost rotates about its middle
-     rather than pivoting around its base. */
   const shape = new Group();
   shape.position.y = -CENTRE_Y;
   ghost.add(shape);
@@ -126,8 +123,6 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
     eyes.add(pupil);
   }
 
-  /* Cached on resize. Reading the rect inside the loop would force a layout
-     every frame while WebGL renders. */
   let rect = canvas.getBoundingClientRect();
   const pointer = { x: 0, y: 0 };
 

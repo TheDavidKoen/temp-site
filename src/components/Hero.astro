@@ -2,7 +2,6 @@
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
 const FIELD = 1400;
 
-/* Seeded rather than random so the first paint is identical on every build. */
 const seed = (i: number): string =>
   GLYPHS[Math.floor(Math.abs(Math.sin(i * 91.7)) * GLYPHS.length)];
 ---
@@ -26,8 +25,6 @@ const seed = (i: number): string =>
   const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
   const nav = navigator as Navigator & { deviceMemory?: number };
 
-  /* Matches the media query that hides .hero below 40rem, without this the
-     127KB scene would still download for a section nobody can see. */
   const wanted =
     !matchMedia('(prefers-reduced-motion: reduce)').matches &&
     !matchMedia('(width < 40rem)').matches;
@@ -39,8 +36,6 @@ const seed = (i: number): string =>
   if (glyphs.length && wanted) {
     let lastY = window.scrollY;
 
-    // Driven by scroll distance rather than a timer, so the field is still
-    // when the page is, and churns while you move.
     window.addEventListener(
       'scroll',
       () => {
@@ -71,13 +66,11 @@ const seed = (i: number): string =>
 </script>
 
 <style>
-  /* Scroll distance is the animation's timeline: the scene finishes exactly
-     when the stage unpins. Changing this height changes the pacing. */
-  .hero {
+/* Declares --hero, which the header reveal in Header.astro also animates
+       against. Renaming it here silently disables that. */
+    .hero {
     height: 300vh;
 
-    /* Declared here, not in the media block below: the welcome drift consumes
-       --hero from a rule that only applies on desktop. */
     view-timeline: --hero block;
   }
 
@@ -87,11 +80,6 @@ const seed = (i: number): string =>
     }
   }
 
-  /* minmax(0, 1fr), never a bare 1fr: a bare fr track keeps an automatic
-     min-content minimum, so the 1400-glyph field grows the row past 100dvh.
-     The canvas then reports that inflated height to the scene and the route's
-     bottom lands below the fold, and the centred welcome is pushed down with
-     it. Both bugs are this one line. */
   .hero__stage {
     position: sticky;
     top: 0;
@@ -102,8 +90,6 @@ const seed = (i: number): string =>
     contain: paint;
   }
 
-  /* Tiles edge to edge rather than clustering: auto-fill columns with more
-     cells than any viewport needs, and the overflow clipped. */
   .hero__glyphs {
     grid-area: 1 / 1;
     display: grid;
@@ -132,8 +118,6 @@ const seed = (i: number): string =>
     user-select: none;
   }
 
-  /* Drifts against the hero's own view timeline, so it tracks the same scroll
-     that drives the chase rather than the document. */
   @supports (animation-timeline: view()) {
     .hero__welcome {
       animation: welcome-drift linear both;
