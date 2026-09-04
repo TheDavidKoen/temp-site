@@ -71,12 +71,42 @@ import { NAV_LINKS } from '@/consts';
 
 <style>
   .header {
-    position: sticky;
+    position: fixed;
     top: 0;
+    inset-inline: 0;
     z-index: 50;
     border-bottom: 1px solid var(--color-surface-muted);
     background-color: color-mix(in srgb, var(--color-surface) 85%, transparent);
     backdrop-filter: blur(12px);
+  }
+
+  @media (width >= 40rem) {
+    @supports (animation-timeline: view()) {
+      .header {
+        animation: header-reveal linear both;
+        animation-timeline: --hero;
+        animation-range: exit 85% exit 100%;
+      }
+    }
+  }
+
+  @keyframes header-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(-100%);
+      pointer-events: none;
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header {
+      animation: none;
+    }
   }
 
   .nav__list {

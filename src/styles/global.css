@@ -201,6 +201,11 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    timeline-scope: --hero;
+  }
+
+  main [id] {
+    scroll-margin-top: 5rem;
   }
 
   h1,
