@@ -78,7 +78,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
         SKILL_GROUPS.map(({ title, items }) => (
           <div class="border-l-2 border-signal pl-5">
             <h3 class="font-display text-xl font-medium text-ink">{title}</h3>
-            <ul class="mt-4 space-y-2">
+            <ul class="mt-4 list-disc space-y-2 pl-4 marker:text-signal">
               {items.map((item) => (
                 <li class="text-sm text-ink-muted">{item}</li>
               ))}
