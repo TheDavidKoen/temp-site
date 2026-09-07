@@ -16,6 +16,8 @@
   const stowable = [...document.querySelectorAll<HTMLElement>('.launcher--stowable')];
 
   if (toggle && stowable.length) {
+    const isOpen = (): boolean => toggle.getAttribute('aria-expanded') === 'true';
+
     /* inert, not just pointer-events: a stowed bubble is still in the document,
        so without it the three stay reachable by keyboard while invisible. */
     const setOpen = (open: boolean): void => {
@@ -27,11 +29,23 @@
     setOpen(false);
 
     toggle.addEventListener('click', () => {
-      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+      setOpen(!isOpen());
+    });
+
+    /* click rather than pointerdown: a touch that turns into a scroll never
+       fires it, so the dock does not collapse the moment a finger lands. */
+    document.addEventListener('click', (event) => {
+      if (!isOpen()) return;
+
+      // A modal is its own dismissal surface, so leave the dock as it was.
+      if (document.querySelector('dialog[open]')) return;
+
+      const target = event.target;
+      if (target instanceof Element && target.closest('.launcher') === null) setOpen(false);
     });
 
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+      if (event.key === 'Escape' && isOpen()) {
         setOpen(false);
         toggle.focus();
       }
