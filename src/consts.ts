@@ -129,7 +129,6 @@ export const SKILL_GROUPS = [
       'Component-driven architecture',
       'Responsive design systems',
       'SEO, Core Web Vitals and performance budgets',
-      'WCAG accessibility standards',
     ],
   },
   {
