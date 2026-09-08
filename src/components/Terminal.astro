@@ -197,7 +197,7 @@ const opening = toText(run('help'), false);
 
   .terminal__close:hover,
   .terminal__close:focus-visible {
-    color: var(--color-signal);
+    color: var(--color-signal-on-ink);
   }
 
   .terminal__body {
@@ -228,7 +228,7 @@ const opening = toText(run('help'), false);
 
   .terminal__legend dt {
     margin-top: 0.9rem;
-    color: var(--color-signal);
+    color: var(--color-signal-on-ink);
     letter-spacing: var(--tracking-label);
     text-transform: uppercase;
   }
@@ -265,7 +265,7 @@ const opening = toText(run('help'), false);
   }
 
   .terminal__prompt {
-    color: var(--color-signal);
+    color: var(--color-signal-on-ink);
   }
 
   .terminal__input {
@@ -279,7 +279,7 @@ const opening = toText(run('help'), false);
   }
 
   .terminal__input::placeholder {
-    color: color-mix(in srgb, var(--color-surface) 35%, transparent);
+    color: color-mix(in srgb, var(--color-surface) 50%, transparent);
   }
 
   .terminal__hint {
@@ -292,6 +292,6 @@ const opening = toText(run('help'), false);
   .terminal__note {
     display: block;
     margin-top: 0.4rem;
-    color: color-mix(in srgb, var(--color-surface) 38%, transparent);
+    color: color-mix(in srgb, var(--color-surface) 50%, transparent);
   }
 </style>

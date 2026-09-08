@@ -1,5 +1,5 @@
 /**
- * Turns a command result into ANSI text or into JSON.
+ * Turns a command result into plain text, with or without ANSI colour.
  */
 import type { Block, CommandResult } from './commands';
 
@@ -33,8 +33,4 @@ function renderBlock(block: Block, colour: boolean): string[] {
 export function toText(result: CommandResult, colour: boolean): string {
   const body = result.blocks.flatMap((block) => renderBlock(block, colour));
   return `${body.join('\n')}\n`;
-}
-
-export function toJson(result: CommandResult): CommandResult {
-  return result;
 }

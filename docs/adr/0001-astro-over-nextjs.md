@@ -1,4 +1,4 @@
-# 0001 — Astro over Next.js
+# 0001. Astro over Next.js
 
 **Status:** Accepted · 2026-08-21
 

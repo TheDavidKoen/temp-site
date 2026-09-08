@@ -1,4 +1,4 @@
-# 0009 — Disable CSS minification
+# 0009. Disable CSS minification
 
 **Status:** Accepted · 2026-08-21
 
@@ -25,7 +25,7 @@ animation: linear both char-fly --exp;
 
 `animation-timeline` is not a component of the `animation` shorthand, and the
 shorthand **resets it to `auto`**. Both animations therefore ran against the
-document timeline — which for a scroll-driven animation means never advancing.
+document timeline, which for a scroll-driven animation means never advancing.
 
 The dev server serves unminified CSS, so the bug was invisible until deployment.
 
@@ -42,7 +42,7 @@ a 50 KB critical-path budget.
 
 - Restructuring the source to avoid the `animation` shorthand. The minifier
   folds longhands into shorthands too, so this only moves the problem.
-- Keeping minification and accepting the breakage. Not viable — it disables two
+- Keeping minification and accepting the breakage. Not viable: it disables two
   of the site's three headline interactions.
 
 ## Consequences

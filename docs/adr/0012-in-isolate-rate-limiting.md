@@ -1,11 +1,11 @@
-# 0012 — In-isolate rate limiting
+# 0012. In-isolate rate limiting
 
 **Status:** Accepted, with a stated ceiling · 2026-08-25
 
 ## Context
 
 `/api/cli` is public, unauthenticated, and promoted on a CV and on LinkedIn. It
-does real work per request — seeding a generator, signing a token — so it needs
+does real work per request, seeding a generator and signing a token, so it needs
 some ceiling.
 
 Two obvious options were unavailable:
@@ -34,7 +34,7 @@ recycled, so traffic spread across regions, or paced slowly, passes through.
 The endpoint writes nothing and stores nothing, so there is no data to lose and
 no cost to run away with. The worst case is exhausting the daily Workers request
 allowance, which pauses this one route until it resets while the static site
-keeps serving — static assets do not draw on that quota.
+keeps serving; static assets do not draw on that quota.
 
 A nuisance-grade risk did not justify standing up separate infrastructure.
 
@@ -45,7 +45,7 @@ key, built for this. Pages cannot define a Durable Object class, only bind to
 one defined in a Worker, so it would mean a second Worker project and a second
 deployment.
 
-Revisit if the endpoint ever gains a write path — a leaderboard, a guestbook —
+Revisit if the endpoint ever gains a write path, a leaderboard or a guestbook,
 because the calculus changes entirely once requests can persist data.
 
 ## Consequences

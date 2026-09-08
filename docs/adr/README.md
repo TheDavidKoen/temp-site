@@ -17,6 +17,7 @@ what was decided, and what it costs.
 | [0010](0010-terminal-command-allowlist.md) | Terminal commands are a fixed allowlist |
 | [0011](0011-signed-session-tokens.md) | Signed session tokens |
 | [0012](0012-in-isolate-rate-limiting.md) | In-isolate rate limiting |
+| [0013](0013-vitest-for-the-shared-layer.md) | Vitest, covering shared/ and functions/ only |
 
 Superseded records stay in place with their status changed, rather than being
 deleted.

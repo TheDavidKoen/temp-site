@@ -176,10 +176,18 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
   resize();
   new ResizeObserver(resize).observe(canvas);
   window.addEventListener('pointermove', onPointerMove, { passive: true });
+  /* Coalesced to one read per frame: scroll can fire several times a frame and
+     getBoundingClientRect forces a synchronous layout on every call. */
+  let rectPending = false;
   window.addEventListener(
     'scroll',
     () => {
-      rect = canvas.getBoundingClientRect();
+      if (rectPending) return;
+      rectPending = true;
+      requestAnimationFrame(() => {
+        rect = canvas.getBoundingClientRect();
+        rectPending = false;
+      });
     },
     { passive: true },
   );

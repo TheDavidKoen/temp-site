@@ -11,8 +11,10 @@ pull request.
 | `fix/` | Correcting broken behaviour |
 | `chore/` | Tooling, dependencies, config |
 | `docs/` | Documentation only |
+| `content/` | Copy and CV content in `shared/content.ts` |
+| `refactor/` | Restructuring with no behaviour change |
 
-Branches are deleted once merged — see
+Branches are deleted once merged, see
 [ADR 0003](docs/adr/0003-github-flow.md). A merged branch is spent: GitHub will
 not reopen its pull request for new commits, so further work starts a fresh
 branch off `main`.
@@ -28,7 +30,10 @@ git checkout -b feat/thing
 ## Commits
 
 [Conventional Commits](https://www.conventionalcommits.org/). Subject in the
-imperative, under ~70 characters. Use the body to explain *why*, not what.
+imperative, under 70 characters. Use the body to explain *why*, not what.
+
+Every commit takes a type. A subject with no type is the one thing a reviewer
+reading this history will notice.
 
 ```
 feat: add scroll-driven WebGL hero
@@ -43,8 +48,9 @@ loads as a lazy chunk behind an IntersectionObserver.
 pnpm verify
 ```
 
-That runs `astro check` then Biome. Both must be clean. Also run a production
-build and the budget check, since some failures only surface there:
+That runs `astro check`, the Worker type check, Biome and the test suite. All
+four must be clean. Also run a production build and the budget check, since some
+failures only surface there:
 
 ```sh
 pnpm build
@@ -62,22 +68,26 @@ Then check, by eye:
 
 ## Code conventions
 
-**Content goes in `src/consts.ts`,** not in components. Components receive
-typed props. Adding a skill or a phrase should be a data edit.
+**Content goes in `shared/content.ts`,** not in components. Components receive
+typed props. Adding a skill or a phrase should be a data edit, and the terminal
+picks it up for free because it reads the same module.
+
+**`shared/` imports nothing from `src/` or `functions/`.** It is the leaf both
+sides depend on. Reversing that arrow drags Astro types into a Workers compile.
 
 **Design tokens go in `@theme`** in `src/styles/global.css`. No raw hex values
 or magic numbers in components.
 
 **Comments mark traps, not intentions.** Write one only where a developer could
-break something without it — a cross-file contract, a load-bearing value, a
+break something without it: a cross-file contract, a load-bearing value, a
 non-obvious constraint. Rationale belongs in an ADR. Prefer expressive naming
 over a comment.
 
 Good:
 
 ```css
-/* Clip lives on the sticky element itself, never an ancestor — overflow on
-   an ancestor would cancel the stickiness. */
+/* Clip lives on the sticky element itself, never an ancestor. Overflow on an
+   ancestor would cancel the stickiness. */
 ```
 
 Not worth writing:
@@ -89,6 +99,14 @@ Not worth writing:
 **Animated components handle `prefers-reduced-motion` themselves.** The global
 kill switch only shortens durations, which parks an infinite or scroll-driven
 animation mid-cycle instead of stopping it.
+
+**Behaviour in `shared/` and `functions/` gets a test.** Both are pure functions
+over data, so an assertion is cheap. Components are not tested; the line and the
+reasoning are in [ADR 0013](docs/adr/0013-vitest-for-the-shared-layer.md).
+
+**Contrast on a new surface gets measured before text goes on it.** The ratios
+live in [ADR 0005](docs/adr/0005-colour-system.md). Lighthouse only ever sees the
+page at rest, so it cannot catch a regression inside a dialog.
 
 ## Recording a decision
 

@@ -3,7 +3,7 @@
  * for terminals, JSON for everything else, and JSON over POST for the page.
  */
 import { run } from '../../../shared/commands';
-import { toJson, toText } from '../../../shared/render';
+import { toText } from '../../../shared/render';
 import { decode, encode } from '../../_session';
 
 interface Env {
@@ -125,7 +125,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         status,
         headers: { ...headers, 'content-type': 'text/plain; charset=utf-8' },
       })
-    : new Response(JSON.stringify(toJson(result), null, 2), {
+    : new Response(JSON.stringify(result, null, 2), {
         status,
         headers: { ...headers, 'content-type': 'application/json; charset=utf-8' },
       });

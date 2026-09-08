@@ -3,63 +3,100 @@
 A single static page built by Astro, deployed to Cloudflare Pages. No server,
 no database, no CMS.
 
+## Layout
+
+```
+shared/      content and logic imported by both the page and the Worker
+src/         the Astro site
+functions/   the Cloudflare Pages Function behind /api/cli
+scripts/     build-time checks
+docs/        this, plus the decision records
+```
+
+`shared/` is the leaf. It imports nothing from `src/` or `functions/`, which is
+what lets the page and the API render from the same data without dragging Astro
+types into a Workers compile.
+
 ## Rendering model
 
-Everything renders to HTML at build time. The only JavaScript that ships is:
+Everything renders to HTML at build time. Nine scripts ship, and only the first
+two run before paint:
 
 | Script | Size (gzip) | Loading |
 |---|---|---|
-| Intro scramble | 0.4 KB | Inline in `<body>` |
 | Intro skip flag | ~0.2 KB | Inline in `<head>`, must run before first paint |
-| Hero loader | 1.0 KB | Deferred module |
-| `hero-scene` (Three.js) | 126.9 KB | Dynamic import behind an `IntersectionObserver` |
+| Intro scramble | ~0.9 KB | Inline in `<body>` |
+| Header nav | ~0.3 KB | Inline module |
+| Cursor trail | ~0.6 KB | Inline module |
+| Dock | ~0.4 KB | Inline module |
+| Hero loader | 0.7 KB | Deferred module |
+| Ghost loader | 0.5 KB | Deferred module |
+| Terminal | 0.7 KB | Deferred module |
+| Stack sheet | 0.2 KB | Deferred module |
+| `dialog` + preload helper | 1.0 KB | Deferred, shared by the two dialogs |
+| `hero-scene` (Three.js) | 1.7 KB | Dynamic import behind an `IntersectionObserver` |
+| `ghost-scene` (Three.js) | 1.2 KB | Dynamic import behind an `IntersectionObserver` |
+| `three` | 129.4 KB | Dynamic, shared by both scenes |
 
-The Three.js chunk is never on the critical path. It is fetched only once the
-hero is within 200px of the viewport, and not at all when the visitor prefers
-reduced motion or the device reports fewer than 4 cores or 4 GB of memory.
+The Three.js chunk is never on the critical path. It is fetched only once a scene
+is near the viewport, and not at all when the visitor prefers reduced motion or
+the device reports fewer than 4 cores or 4 GB of memory. Both scenes share the
+one chunk, so the second costs 1.2 KB rather than another 129 KB.
+
+Figures move with the build. `pnpm run budget -- --markdown` prints the current
+ones; see [performance.md](performance.md).
 
 ## Content flow
 
-`src/consts.ts` is the single source of content. Components receive it as typed
-props and never hardcode copy.
+`shared/content.ts` is the single source of content. Components receive it as
+typed props and never hardcode copy.
 
 ```
-consts.ts ──> index.astro ──> components
-     └──────> Seo.astro (structured data derives from SKILL_GROUPS, SOCIAL_LINKS)
+shared/content.ts ──> index.astro ──> components
+        │        └──> Seo.astro (structured data derives from SKILL_GROUPS, SOCIAL_LINKS)
+        └────────────> shared/commands.ts ──> functions/api/cli  (terminal, curl)
 ```
 
-`SKILL_GROUPS` feeds both the visible skills grid and the `knowsAbout` array in
-the JSON-LD. Editing one updates both.
+`SKILL_GROUPS` feeds the visible skills grid, the `knowsAbout` array in the
+JSON-LD, and the terminal's `skills` command. Editing one updates all three.
+
+`REPO_URL` is the only place the repository is named. The stack sheet builds its
+ADR links from it.
 
 ## Design tokens
 
-`src/styles/global.css` declares every token inside Tailwind's `@theme` block —
+`src/styles/global.css` declares every token inside Tailwind's `@theme` block:
 colours, the fluid type scale, spacing, container widths, breakpoints and easing
 curves. Components consume them as `var(--token)` or as generated utilities.
 
-Two token groups are shared across systems and cannot be changed in isolation:
+Three token groups are shared across systems and cannot be changed in isolation:
 
 - **Easing curves** are used by CSS transitions, the intro, and the Three.js
   camera. One definition, three consumers.
-- **Colour tokens** are read by the WebGL scene as hex literals in
-  `hero-scene.ts`. Changing the palette means changing both.
+- **Colour tokens** are read by the WebGL scenes as hex literals in
+  `hero-scene.ts` and `ghost-scene.ts`. Changing the palette means changing all
+  three files.
+- **Accent tokens** are split by the surface they sit on. `--color-signal` and
+  `--color-signal-text` are measured against the page ground;
+  `--color-signal-on-ink` exists because neither clears AA on `--color-ink`. The
+  ratios are in [ADR 0005](adr/0005-colour-system.md) and commented at the token.
 
 ## Motion
 
 All scroll effects are native CSS scroll-driven animations
-(`animation-timeline`), not JavaScript. They run off the main thread and
-degrade to static content in browsers without support, via `@supports`.
+(`animation-timeline`), not JavaScript. They run off the main thread and degrade
+to static content in browsers without support, via `@supports`.
 
 Two sections pin while their animation plays:
 
 | Section | Height | Mechanism |
 |---|---|---|
-| Hero | 300vh (220vh mobile) | Sticky stage; Three.js reads `scrollY` |
+| Hero | 300vh (hidden below 40rem) | Sticky stage; Three.js reads `scrollY` |
 | Experience | 380vh (300vh mobile) | Sticky stage; named `view-timeline: --exp` |
 
-`PinnedText` declares `--exp`; `ScrollReveal` animates against it. The name is a
-contract between the two components — renaming it in one silently disables the
-other.
+`PinnedText` declares `--exp`; `ScrollReveal` animates against it. `Hero`
+declares `--hero`; the header reveal in `Header` animates against it. Both names
+are contracts between two components. Renaming one silently disables the other.
 
 ## Accessibility
 
@@ -69,7 +106,9 @@ other.
   `global.css` shortens durations, and each animated component additionally
   sets `animation: none`, because shortening an infinite or scroll-driven
   animation leaves it parked mid-cycle rather than stopping it.
-- The intro is skipped entirely under reduced motion — the bundle never runs.
+- The intro is skipped entirely under reduced motion; the bundle never runs.
+- Lighthouse only ever sees the page at rest, so the two dialogs are checked by
+  hand against the contrast ceilings in ADR 0005.
 
 ## The API
 
@@ -81,26 +120,44 @@ session cookie, resolves the command against a fixed map, and returns rendered
 text plus a freshly signed cookie. Between requests it holds nothing.
 
 ```
-browser / curl ──▶ index.ts ──▶ commands.ts ──▶ consts.ts   (CV)
+browser / curl ──▶ index.ts ──▶ commands.ts ──▶ content.ts  (CV)
                         │                └──▶ game.ts     (deduction)
                         ├──▶ _session.ts   sign / verify
-                        └──▶ render.ts     text or JSON
+                        └──▶ render.ts     text
 ```
 
-`shared/` is imported by both the Astro build and the Worker, which is what lets
-the page and the API render from the same data. `functions/` compiles under its
-own tsconfig with Workers types and no DOM lib, and `astro check` skips it — so
-CI runs `check:functions` separately. Without that step a broken endpoint passes
-every other gate and fails only at the edge.
+`functions/` compiles under its own tsconfig with Workers types and no DOM lib,
+and `astro check` skips it, so CI runs `check:functions` separately. Without that
+step a broken endpoint passes every other gate and fails only at the edge.
 
 Game state lives in the client because the server keeps none. That is safe only
 because the token is signed; see [ADR 0011](adr/0011-signed-session-tokens.md).
 The solution itself is derived from a seed on each request by code that exists
-only in `functions/`, so it is never in the token to begin with.
+only in `game.ts`, so it is never in the token to begin with.
+
+The whole state travels in a cookie, so the retention caps in `game.ts` are load
+bearing. `_session.test.ts` asserts that the largest state the engine allows
+still encodes under 4096 bytes; raising a cap without that check silently loses
+the player's case.
+
+## Tests
+
+`vitest run`, three files, colocated with what they cover:
+
+| File | Covers |
+|---|---|
+| `shared/commands.test.ts` | Routing, and the ADR 0010 allowlist regression |
+| `shared/game.test.ts` | Solvability, scoring, note fidelity, retention caps |
+| `functions/_session.test.ts` | Signing, rejection paths, the cookie size bound |
+
+They run in `pnpm verify` and in CI. See
+[ADR 0013](adr/0013-vitest-for-the-shared-layer.md) for why the tests stop at
+`shared/` and `functions/` rather than reaching into components.
 
 ## Known trade-offs
 
-- The hero copy block, including the page's only `h1`, is hidden below 40rem.
-  Google indexes mobile-first. See [ADR 0008](adr/0008-hide-hero-copy-on-mobile.md).
-- `ScrollReveal` emits one span per character — roughly 900 elements. Word-level
+- `ScrollReveal` emits one span per character, roughly 900 elements. Word-level
   granularity would cut that by 85% at a coarser visual grain.
+- The hero is `display: none` below 40rem. It carries no text, so nothing is
+  hidden from a crawler or a screen reader; the `h1` sits in the section below it
+  at every width. See [ADR 0008](adr/0008-hide-hero-copy-on-mobile.md).

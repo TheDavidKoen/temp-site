@@ -1,4 +1,4 @@
-# 0004 — Tailwind v4 without Sass
+# 0004. Tailwind v4 without Sass
 
 **Status:** Accepted · 2026-08-21
 
@@ -14,7 +14,7 @@ Tailwind CSS v4 alone. No preprocessor.
 ## Rationale
 
 Tailwind v4 is itself the preprocessor and explicitly does not support Sass,
-Less or Stylus — including inside Astro `<style>` blocks. The combination is not
+Less or Stylus, including inside Astro `<style>` blocks. The combination is not
 merely unidiomatic; it is unsupported.
 
 The alternatives were both worse. Pinning Tailwind v3 to keep Sass means
