@@ -1,4 +1,4 @@
-# 0002 — Cloudflare Pages over Workers Static Assets
+# 0002. Cloudflare Pages over Workers Static Assets
 
 **Status:** Accepted · 2026-08-21
 
@@ -16,7 +16,7 @@ Cloudflare Pages.
 The site's domain is a free `is-a.dev` subdomain, a zone owned by is-a.dev, not
 by us. Workers cannot attach a custom domain on a zone the account does not own.
 Pages can. For a purely static site there is no other meaningful gap between the
-two — static asset requests are free on both.
+two: static asset requests are free on both.
 
 ## Amendment, 2026-08-21
 

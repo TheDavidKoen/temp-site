@@ -1,4 +1,4 @@
-# 0007 — Native CSS scroll animations over GSAP
+# 0007. Native CSS scroll animations over GSAP
 
 **Status:** Accepted · 2026-08-21
 

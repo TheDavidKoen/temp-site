@@ -1,4 +1,4 @@
-# 0010 — Terminal commands are a fixed allowlist
+# 0010. Terminal commands are a fixed allowlist
 
 **Status:** Accepted · 2026-08-25
 
@@ -20,7 +20,7 @@ Lookup uses `Object.hasOwn`, not the `in` operator.
 return true against an object literal. Dispatching on that would call something
 never intended as a command. `Object.hasOwn` tests own properties only.
 
-Input is truncated to 64 characters and reduced to its first whitespace-
+Input is truncated to 120 characters and reduced to its first whitespace-
 separated token before lookup. Anything unrecognised returns 404 with the list
 of valid commands.
 
@@ -31,4 +31,7 @@ of valid commands.
 - The endpoint cannot be made to execute anything, which is the property worth
   being able to state plainly rather than hoping about.
 - `curl .../api/cli?cmd=constructor` returning an ordinary "command not found"
-  is the regression test for this decision.
+  is the regression test for this decision. It is asserted in
+  `shared/commands.test.ts` against every name on `Object.prototype`, so the
+  property survives a refactor rather than depending on someone remembering to
+  try it.

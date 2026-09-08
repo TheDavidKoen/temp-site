@@ -1,6 +1,6 @@
-# 0008 — Hero copy moved out of the pinned stage
+# 0008. Hero copy moved out of the pinned stage
 
-**Status:** Superseded by this record's own revision · 2026-08-21
+**Status:** Accepted, superseding its own original decision · 2026-08-21
 
 ## Original decision
 
@@ -23,7 +23,7 @@ the block achieved that only on mobile, and did so by suppressing the page's
 only `h1`.
 
 Moving it achieves the same visual result at every width, and the `h1` stays in
-the rendered document — so the SEO and accessibility cost disappears rather than
+the rendered document, so the SEO and accessibility cost disappears rather than
 being accepted.
 
 ## Consequences

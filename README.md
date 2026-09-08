@@ -1,6 +1,6 @@
-# temp-site
+# davidkoen.is-a.dev
 
-Personal site for **David Koen** — Digital Project Manager and Web Developer.
+Personal site for **David Koen**, Digital Project Manager and Web Developer.
 
 Live: **[davidkoen.is-a.dev](https://davidkoen.is-a.dev)**
 
@@ -18,6 +18,7 @@ decision records are meant to be read alongside the rendered page.
 | API | Cloudflare Pages Functions (Workers runtime) |
 | Motion | Native CSS scroll-driven animations |
 | Lint + format | Biome |
+| Tests | Vitest, over `shared/` and `functions/` |
 | Fonts | Astro Fonts API, self-hosted |
 | Host | Cloudflare Pages |
 
@@ -44,35 +45,49 @@ The dev server runs at **http://localhost:4321**.
 | `pnpm build` | Production build to `dist/` |
 | `pnpm preview` | Serve the built output |
 | `pnpm check` | Type and template diagnostics (`astro check`) |
-| `pnpm lint` | Biome lint + format check |
+| `pnpm check:functions` | Type-check `functions/` against the Workers types |
+| `pnpm lint` | Biome lint and format check |
 | `pnpm lint:fix` | Apply Biome's safe fixes |
-| `pnpm verify` | `check` then `lint` — run before opening a PR |
+| `pnpm test` | Run the test suite once |
+| `pnpm test:watch` | Run it in watch mode |
+| `pnpm verify` | All four checks above. Run before opening a PR |
 | `pnpm budget` | Assert the performance budget against `dist/` |
+| `pnpm budget -- --markdown` | Print the measurement tables for `docs/performance.md` |
 
 ## Project structure
 
 ```text
+shared/             Imported by both the Astro build and the Worker
+├── content.ts      All site content and configuration
+├── commands.ts     Terminal command router
+├── game.ts         Deduction game engine
+└── render.ts       Command result to text
 src/
 ├── components/     UI components, one concern each
 ├── layouts/        BaseLayout: head, fonts, SEO, chrome
 ├── pages/          Routes (single page)
-├── scripts/        Standalone modules loaded dynamically
-├── styles/         global.css — design tokens in @theme
-└── consts.ts       All site content and configuration
+├── scripts/        Standalone modules, loaded on demand
+└── styles/         global.css, design tokens in @theme
+functions/          Cloudflare Pages Function behind /api/cli
+scripts/            Build-time checks
 docs/
 ├── adr/            Architecture decision records
-├── ARCHITECTURE.md How the pieces fit
-└── PERFORMANCE.md  Budget and measurements
+├── architecture.md How the pieces fit
+└── performance.md  Budget and measurements
 ```
 
-**Content lives in `src/consts.ts`, not in components.** Skills, marquee
-phrases, the intro word field and the experience narrative are all typed
-exports consumed as props. Adding a skill is a data edit.
+**`shared/` is the leaf.** It imports nothing from `src/` or `functions/`, which
+is what lets the page and the API render from the same data without dragging
+Astro types into a Workers compile.
+
+**Content lives in `shared/content.ts`, not in components.** Skills, marquee
+phrases, the intro word field, the experience narrative and the stack table are
+typed exports consumed as props. Adding a skill is a data edit.
 
 ## The terminal
 
 A launcher in the top corner opens a terminal backed by `/api/cli`, a Cloudflare
-Pages Function. It answers two kinds of request from one handler:
+Pages Function. It answers three kinds of request from one handler:
 
 ```sh
 curl davidkoen.is-a.dev/api/cli?cmd=whoami      # ANSI text
@@ -82,9 +97,10 @@ curl -c jar -b jar \
      davidkoen.is-a.dev/api/cli?cmd=start       # plays the game
 ```
 
-CV content comes from `src/consts.ts`, so the page, the API and the terminal all
-render from one source. Commands are a fixed map of handlers — nothing supplied
-by a caller is ever evaluated ([ADR 0010](docs/adr/0010-terminal-command-allowlist.md)).
+CV content comes from `shared/content.ts`, so the page, the API and the terminal
+all render from one source. Commands are a fixed map of handlers: nothing
+supplied by a caller is ever evaluated
+([ADR 0010](docs/adr/0010-terminal-command-allowlist.md)).
 
 There is also a deduction game. Accusations are scored out of three, in the
 manner of Mastermind, so every guess narrows the field rather than returning a
@@ -97,22 +113,27 @@ qualitative hint.
 | Abuse | 30 requests per 10s per IP, in-isolate ([ADR 0012](docs/adr/0012-in-isolate-rate-limiting.md)) |
 | Server state | None. The endpoint keeps nothing between requests |
 
+The whole game state travels in that cookie, so the retention caps in `game.ts`
+are load bearing. `functions/_session.test.ts` asserts that the largest state the
+engine allows still encodes under both the decoder's 4096-byte limit and the
+browser's own cookie limit.
+
 `GAME_SECRET` must be set as a secret on the Pages project, on **both**
-Production and Preview — preview deployments do not inherit production secrets.
-Use a **different** value for each: preview URLs are public, and a shared key
-would make a token minted on a preview deployment valid against production.
-Locally it comes from `.dev.vars`, which is gitignored.
+Production and Preview, because preview deployments do not inherit production
+secrets. Use a **different** value for each: preview URLs are public, and a
+shared key would make a token minted on a preview deployment valid against
+production. Locally it comes from `.dev.vars`, which is gitignored.
 
-Set it from the dashboard, under Settings → Variables and Secrets, switching the
-environment selector to Preview. `wrangler pages secret put` writes to
-production only — it takes no environment flag. Pages reads the value at deploy
-time, so an existing deployment needs a retry before it picks the secret up.
+Set it from the dashboard, under Settings, Variables and Secrets, switching the
+environment selector to Preview. `wrangler pages secret put` writes to production
+only; it takes no environment flag. Pages reads the value at deploy time, so an
+existing deployment needs a retry before it picks the secret up.
 
-Only the game needs it, because it signs the session. Without it the case
-returns 503 and says so, while the CV commands carry on — they read from
-`consts.ts` and need no key.
+Only the game needs it, because it signs the session. Without it the case returns
+503 and says so, while the CV commands carry on: they read from `content.ts` and
+need no key.
 
-`pnpm dev` does not serve `/api/cli` — Astro knows nothing about Pages
+`pnpm dev` does not serve `/api/cli`, because Astro knows nothing about Pages
 Functions. Use `wrangler pages dev dist` for anything touching the endpoint.
 
 ## Contributing
@@ -126,13 +147,13 @@ Every pull request into `main` runs [`.github/workflows/ci.yml`](.github/workflo
 
 | Job | Does |
 |---|---|
-| `verify` | `astro check`, Biome, production build, performance budget |
+| `verify` | `astro check`, Worker types, Biome, tests, production build, performance budget |
 | `lighthouse` | Audits the built output, three runs, desktop preset |
 
-The budget step enforces [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) and
-guards a regression that is otherwise invisible — a minifier folding
-`animation-timeline` into the `animation` shorthand disables every
-scroll-driven animation while the page still builds and renders.
+The budget step enforces [`docs/performance.md`](docs/performance.md) and guards
+a regression that is otherwise invisible: a minifier folding `animation-timeline`
+into the `animation` shorthand disables every scroll-driven animation while the
+page still builds and renders.
 
 ## Deployment
 
@@ -148,7 +169,9 @@ preview URL.
 
 The Node version is pinned in `.node-version` because Astro 7 requires
 `>=22.12.0` and Cloudflare's default build image ships an older release. The
-package manager is detected from `pnpm-lock.yaml`.
+package manager is detected from `pnpm-lock.yaml`. `wrangler.toml` pins the
+Workers `compatibility_date`, so a rebuild cannot quietly change runtime
+semantics under `functions/`.
 
 The domain is a free `is-a.dev` subdomain, registered by pull request against
 [is-a-dev/register](https://github.com/is-a-dev/register). Cloudflare Pages was
@@ -159,15 +182,15 @@ a zone this account does not own. See
 **Attaching that domain cannot be done from the Cloudflare dashboard.** `is-a.dev`
 is on the [Public Suffix List](https://publicsuffix.org/), so the dashboard treats
 the subdomain as a registrable domain in its own right and demands a zone transfer
-that is impossible — the zone belongs to is-a.dev. It has to be added through the
-Pages API instead:
+that is impossible, since the zone belongs to is-a.dev. It has to be added through
+the Pages API instead:
 
 ```sh
-curl -X POST "https://api.cloudflare.com/client/v4/accounts/<account-id>/pages/projects/<project>/domains"   -H "Authorization: Bearer <token>"   -H "Content-Type: application/json"   -d '{"name":"davidkoen.is-a.dev"}'
+curl -X POST "https://api.cloudflare.com/client/v4/accounts/<account-id>/pages/projects/<project>/domains" -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d '{"name":"davidkoen.is-a.dev"}'
 ```
 
-The token needs only **Account → Cloudflare Pages → Edit**. is-a.dev also provide
-a form at [cf-pages.is-a.dev](https://cf-pages.is-a.dev) that wraps the same call.
+The token needs only **Account, Cloudflare Pages, Edit**. is-a.dev also provide a
+form at [cf-pages.is-a.dev](https://cf-pages.is-a.dev) that wraps the same call.
 
 ## Known issues
 

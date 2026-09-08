@@ -1,4 +1,4 @@
-# 0006 — Pin TypeScript to 6.x
+# 0006. Pin TypeScript to 6.x
 
 **Status:** Accepted · 2026-08-21
 
