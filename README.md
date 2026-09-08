@@ -169,9 +169,18 @@ preview URL.
 
 The Node version is pinned in `.node-version` because Astro 7 requires
 `>=22.12.0` and Cloudflare's default build image ships an older release. The
-package manager is detected from `pnpm-lock.yaml`. `wrangler.toml` pins the
-Workers `compatibility_date`, so a rebuild cannot quietly change runtime
-semantics under `functions/`.
+package manager is detected from `pnpm-lock.yaml`.
+
+**There is deliberately no `wrangler.toml`.** Adding one to a Pages project that
+never had it makes the file the source of truth and turns the dashboard fields
+read-only, which would strand `GAME_SECRET` and the build settings. The Workers
+`compatibility_date` is therefore unpinned, and wrangler warns about it on every
+local start. To pin it, generate the file from the live project rather than
+writing it by hand, then check what it produced before deploying:
+
+```sh
+pnpm exec wrangler pages download config <project-name>
+```
 
 The domain is a free `is-a.dev` subdomain, registered by pull request against
 [is-a-dev/register](https://github.com/is-a-dev/register). Cloudflare Pages was

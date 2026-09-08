@@ -1,5 +1,0 @@
-# Pins the Workers runtime semantics for functions/. Without it wrangler falls back
-# to the current date, so an existing deployment can change behaviour on a rebuild.
-name = "davidkoen-site"
-compatibility_date = "2026-09-08"
-pages_build_output_dir = "dist"
