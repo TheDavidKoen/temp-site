@@ -15,6 +15,13 @@ export interface GameState {
   readonly attempts: number;
 }
 
+/* Retention caps. The whole state is signed into a cookie, so the worst case these
+   allow must stay under the 4096-byte ceiling in functions/_session.ts and under the
+   browser's own cookie limit. Raising any of them means re-checking that bound. */
+const MAX_NOTES = 12;
+const MAX_NOTE_LENGTH = 80;
+const MAX_PROBES = 16;
+
 const SUSPECTS = ['gandalf', 'aragorn', 'legolas', 'gimli', 'boromir', 'galadriel'] as const;
 const WEAPONS = ['dagger', 'goblet', 'staff', 'bow', 'rope', 'bust'] as const;
 const ROOMS = ['hall', 'library', 'study', 'cellar', 'kitchen', 'garden'] as const;
@@ -385,10 +392,12 @@ export function play(state: GameState, input: string): { blocks: Block[]; state:
       return { state, blocks: remaining(state) };
 
     case 'note': {
-      const line = words.slice(1).join(' ').slice(0, 100);
+      /* Sliced from the raw input, not the lowercased tokens: a note is the player's
+         own text and has to come back the way they typed it. */
+      const line = input.trim().slice(verb.length).trim().slice(0, MAX_NOTE_LENGTH);
       if (!line) return { state, blocks: [{ kind: 'text', value: 'Note what?' }] };
       return {
-        state: { ...state, notes: [...state.notes, line].slice(-20) },
+        state: { ...state, notes: [...state.notes, line].slice(-MAX_NOTES) },
         blocks: [{ kind: 'text', value: 'Written down.' }],
       };
     }
@@ -416,7 +425,7 @@ export function play(state: GameState, input: string): { blocks: Block[]; state:
         (room === file.scene ? 1 : 0);
 
       const record = `${who} · ${weapon} · ${room} · ${hits}/3`;
-      const probes = [...state.probes, record].slice(-24);
+      const probes = [...state.probes, record].slice(-MAX_PROBES);
 
       if (hits < 3) {
         return {
