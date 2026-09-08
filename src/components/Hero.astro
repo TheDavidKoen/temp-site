@@ -36,15 +36,22 @@ const seed = (i: number): string =>
   if (glyphs.length && wanted) {
     let lastY = window.scrollY;
 
+    /* Coalesced to one burst per frame. The listener itself is cheap; the 220
+       writes are not, and scroll can fire several times between paints. */
+    let queued = false;
     window.addEventListener(
       'scroll',
       () => {
-        if (Math.abs(window.scrollY - lastY) < 8) return;
+        if (queued || Math.abs(window.scrollY - lastY) < 8) return;
         lastY = window.scrollY;
-        for (let n = 0; n < 220; n++) {
-          const glyph = glyphs[(Math.random() * glyphs.length) | 0];
-          glyph.textContent = CHARS[(Math.random() * CHARS.length) | 0];
-        }
+        queued = true;
+        requestAnimationFrame(() => {
+          for (let n = 0; n < 220; n++) {
+            const glyph = glyphs[(Math.random() * glyphs.length) | 0];
+            glyph.textContent = CHARS[(Math.random() * CHARS.length) | 0];
+          }
+          queued = false;
+        });
       },
       { passive: true },
     );
@@ -66,11 +73,10 @@ const seed = (i: number): string =>
 </script>
 
 <style>
-/* Declares --hero, which the header reveal in Header.astro also animates
-       against. Renaming it here silently disables that. */
-    .hero {
+  /* Declares --hero, which the header reveal in Header.astro also animates
+     against. Renaming it here silently disables that. */
+  .hero {
     height: 300vh;
-
     view-timeline: --hero block;
   }
 
