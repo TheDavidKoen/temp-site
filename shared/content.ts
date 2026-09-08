@@ -14,7 +14,7 @@ export const CONTACT_EMAIL = 'DavidoDawie@gmail.com';
 const CONTACT_SUBJECT = 'DK Contact';
 export const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(CONTACT_SUBJECT)}`;
 
-export const REPO_URL = 'https://github.com/TheDavidKoen/davidkoen-site';
+export const REPO_URL = 'https://github.com/TheDavidKoen/temp-site';
 
 export const NAV_LINKS = [
   { href: '#about', label: 'About' },
@@ -149,7 +149,7 @@ export const EXPERIENCE_NARRATIVE = [
   'I began my career in web and software development in 2017, starting as a WordPress Developer Intern. Since then, I have worked in a variety of roles, including as a Coding Facilitator position, teaching foundational coding and computer literacy skills to both professionals and aspiring professionals.',
   'I have a strong interest in the continually evolving technology and software ecosystem. This has driven me to build a professional network that keeps me informed of emerging trends and industry best practices.',
   'Through this experience, I have developed a solid understanding of what it takes to build functional digital products and services, along with the ability to translate that technical knowledge for non-technical stakeholders and to lead productive discussions with cross-functional teams.',
-  'As AI-driven tools continue to reshape how consumers and professionals work, I’ve embraced this shift while remaining committed to continuous skill development, so that I stay among those directing this technological transformation rather than merely riding its wave.',
+  'As AI-driven tools continue to reshape how consumers and professionals work, Iâ€™ve embraced this shift while remaining committed to continuous skill development, so that I stay among those directing this technological transformation rather than merely riding its wave.',
 ] as const;
 
 interface StackEntry {
@@ -199,7 +199,7 @@ export const STACK: readonly StackEntry[] = [
     layer: 'Hosting',
     choice: 'Cloudflare Pages',
     logo: '/cloudflarepages.svg',
-    why: 'Static hosting on Cloudflare’s CDN. Assets serve from whichever edge location is nearest, so load times hold up wherever the site is opened from.',
+    why: 'Static hosting on Cloudflareâ€™s CDN. Assets serve from whichever edge location is nearest, so load times hold up wherever the site is opened from.',
     adr: '0002-cloudflare-pages-over-workers',
   },
   {
