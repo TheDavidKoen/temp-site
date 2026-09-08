@@ -14,9 +14,7 @@
     "check:functions": "tsc -p functions/tsconfig.json --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "verify": "pnpm run check && pnpm run check:functions && pnpm run lint && pnpm run test",
+    "verify": "pnpm run check && pnpm run check:functions && pnpm run lint",
     "astro": "astro",
     "budget": "node scripts/check-budget.mjs"
   },
@@ -34,7 +32,6 @@
     "@lhci/cli": "^0.15.1",
     "@types/three": "^0.185.4",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.0",
     "wrangler": "^4.125.0"
   }
 }

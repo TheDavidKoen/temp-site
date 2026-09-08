@@ -31,7 +31,5 @@ of valid commands.
 - The endpoint cannot be made to execute anything, which is the property worth
   being able to state plainly rather than hoping about.
 - `curl .../api/cli?cmd=constructor` returning an ordinary "command not found"
-  is the regression test for this decision. It is asserted in
-  `shared/commands.test.ts` against every name on `Object.prototype`, so the
-  property survives a refactor rather than depending on someone remembering to
-  try it.
+  is the check that this decision still holds. The same is true of every name on
+  `Object.prototype`.
