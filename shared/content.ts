@@ -33,21 +33,18 @@ export const MARQUEE_PHRASES = [
   'Tech Enthusiast',
   'Coffee Lover',
   'JRR Tolkien Nerd',
-  'Book Reader',
+  'Book Worm',
   'Cinema Junkie',
   'YNWA',
 ] as const;
 
 export const INTRO_FIELD = [
   'AGILE',
-  'SPRINT',
   'PLANNING',
   'SCOPE',
   'ESTIMATION',
   'ROADMAP',
   'DEADLINE',
-  'OWNERSHIP',
-  'STAKEHOLDER',
   'COLLABORATION',
   'BRIEF',
   'LAUNCH',
@@ -63,7 +60,6 @@ export const INTRO_FIELD = [
   'DEPLOYMENT',
   'QA',
   'TESTING',
-  'DOCUMENTATION',
   'SPA',
   'SSR',
   'COMPONENTS',
@@ -95,12 +91,6 @@ export const INTRO_FIELD = [
   'ENGINEERS',
   'TRAINING',
   'MENTORING',
-  'STANDARDS',
-  'TICKETING',
-  'REMOTE',
-  'JOHANNESBURG',
-  'CAPE TOWN',
-  'SINCE 2017',
 ] as const;
 
 export const SKILL_GROUPS = [
@@ -131,13 +121,13 @@ export const SKILL_GROUPS = [
       'Component-driven architecture',
       'Responsive design systems',
       'SEO, Core Web Vitals and performance budgets',
+      'Unidirectional data flow (Flux)',
     ],
   },
   {
     title: 'Backend & data',
     items: [
       'RESTful API design',
-      'Unidirectional data flow (Flux)',
       'Authentication, sessions and access control',
       'SQL and NoSQL data modelling',
       'Serverless and edge runtimes',
