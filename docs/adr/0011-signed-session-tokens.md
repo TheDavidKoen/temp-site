@@ -49,6 +49,6 @@ progress, not the answer.
   rejects anything over 4096 bytes. The caps in `game.ts` were originally set
   without checking that bound: 24 accusations plus 20 notes of 100 characters
   encoded to 4110 bytes, which this decoder refused, silently ending the case.
-  They are now 16, 12 and 80, and `_session.test.ts` asserts that the largest
-  permitted state encodes under both this limit and the browser cookie limit.
-  Raising a cap without that test passing reintroduces the bug.
+  They are now 16, 12 and 80, which bounds the largest permitted state at 2615
+  bytes, under both this limit and the browser cookie limit. Raising a cap
+  without recalculating that bound reintroduces the bug.

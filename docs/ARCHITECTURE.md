@@ -136,23 +136,9 @@ The solution itself is derived from a seed on each request by code that exists
 only in `game.ts`, so it is never in the token to begin with.
 
 The whole state travels in a cookie, so the retention caps in `game.ts` are load
-bearing. `_session.test.ts` asserts that the largest state the engine allows
-still encodes under 4096 bytes; raising a cap without that check silently loses
-the player's case.
-
-## Tests
-
-`vitest run`, three files, colocated with what they cover:
-
-| File | Covers |
-|---|---|
-| `shared/commands.test.ts` | Routing, and the ADR 0010 allowlist regression |
-| `shared/game.test.ts` | Solvability, scoring, note fidelity, retention caps |
-| `functions/_session.test.ts` | Signing, rejection paths, the cookie size bound |
-
-They run in `pnpm verify` and in CI. See
-[ADR 0013](adr/0013-vitest-for-the-shared-layer.md) for why the tests stop at
-`shared/` and `functions/` rather than reaching into components.
+bearing. At 16 accusations and 12 notes of 80 characters the worst case encodes
+to 2615 bytes, inside the decoder's 4096-byte limit. Raising a cap past that
+silently loses the player's case.
 
 ## Known trade-offs
 

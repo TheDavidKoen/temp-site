@@ -100,10 +100,6 @@ Not worth writing:
 kill switch only shortens durations, which parks an infinite or scroll-driven
 animation mid-cycle instead of stopping it.
 
-**Behaviour in `shared/` and `functions/` gets a test.** Both are pure functions
-over data, so an assertion is cheap. Components are not tested; the line and the
-reasoning are in [ADR 0013](docs/adr/0013-vitest-for-the-shared-layer.md).
-
 **Contrast on a new surface gets measured before text goes on it.** The ratios
 live in [ADR 0005](docs/adr/0005-colour-system.md). Lighthouse only ever sees the
 page at rest, so it cannot catch a regression inside a dialog.

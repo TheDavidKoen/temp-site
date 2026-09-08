@@ -18,7 +18,6 @@ decision records are meant to be read alongside the rendered page.
 | API | Cloudflare Pages Functions (Workers runtime) |
 | Motion | Native CSS scroll-driven animations |
 | Lint + format | Biome |
-| Tests | Vitest, over `shared/` and `functions/` |
 | Fonts | Astro Fonts API, self-hosted |
 | Host | Cloudflare Pages |
 
@@ -114,8 +113,8 @@ qualitative hint.
 | Server state | None. The endpoint keeps nothing between requests |
 
 The whole game state travels in that cookie, so the retention caps in `game.ts`
-are load bearing. `functions/_session.test.ts` asserts that the largest state the
-engine allows still encodes under both the decoder's 4096-byte limit and the
+are load bearing. At 16 accusations and 12 notes of 80 characters the worst case
+encodes to 2615 bytes, inside both the decoder's 4096-byte limit and the
 browser's own cookie limit.
 
 `GAME_SECRET` must be set as a secret on the Pages project, on **both**
