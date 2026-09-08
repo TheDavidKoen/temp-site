@@ -2,13 +2,7 @@
  * Routes terminal input to either a CV handler or a game verb. Imported by both
  * the Astro build and the Worker, which is what keeps the page and the API in step.
  */
-import {
-  CONTACT_EMAIL,
-  EXPERIENCE_NARRATIVE,
-  SITE,
-  SKILL_GROUPS,
-  SOCIAL_LINKS,
-} from '../src/consts';
+import { CONTACT_EMAIL, EXPERIENCE_NARRATIVE, SITE, SKILL_GROUPS, SOCIAL_LINKS } from './content';
 import { GAME_VERBS, type GameState, newGame, opening, play } from './game';
 
 export type Block =

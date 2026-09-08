@@ -1,4 +1,10 @@
 ---
+import {
+  CONTACT_MAILTO,
+  EXPERIENCE_NARRATIVE,
+  MARQUEE_PHRASES,
+  SKILL_GROUPS,
+} from '@shared/content';
 import Button from '@/components/Button.astro';
 import Container from '@/components/Container.astro';
 import GhostScene from '@/components/GhostScene.astro';
@@ -8,7 +14,6 @@ import PinnedText from '@/components/PinnedText.astro';
 import QueryMark from '@/components/QueryMark.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Section from '@/components/Section.astro';
-import { CONTACT_MAILTO, EXPERIENCE_NARRATIVE, MARQUEE_PHRASES, SKILL_GROUPS } from '@/consts';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
@@ -17,7 +22,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
   <Container as="section" class="py-[var(--section-space)]">
     <p class="mb-6 label">
-      Tech Enthusiast 
+      Tech Enthusiast
     </p>
 
     <h1 class="max-w-[14ch] font-display text-display font-bold text-ink">
@@ -27,7 +32,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     <p class="mt-8 max-w-prose text-lg text-ink-muted">
       I lead delivery without losing the
       technical thread. I translate between marketing, design and engineering, and I plan work in
-      stages across a project&rsquo;s full scope.
+      stages across a project’s full scope.
     </p>
 
     <div class="mt-10 flex flex-wrap gap-4">
@@ -40,14 +45,14 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     <div class="grid gap-10 lg:grid-cols-[2fr_1fr] lg:gap-16">
       <div class="space-y-6">
         <p class="max-w-prose text-xl text-ink">
-          Most projects don&rsquo;t fail on code. They fail on the handoffs, the brief that
+          Most projects don’t fail on code. They fail on the handoffs, the brief that
           lost a requirement, the estimate nobody stress-tested, the dependency nobody flagged
           until it blocked three people.
         </p>
         <p class="max-w-prose text-ink-muted">
-          I&rsquo;ve spent years on the building side of those handoffs: agency client work,
+          I’ve spent years on the building side of those handoffs: agency client work,
           in-house maintenance cycles, internal frameworks, and a year teaching developers how to
-          structure work they hadn&rsquo;t met yet. That background means I can read an
+          structure work they hadn’t met yet. That background means I can read an
           engineering estimate, ask the question that surfaces the hidden dependency, and explain
           the answer to a marketing stakeholder without either side losing the thread.
         </p>
@@ -111,7 +116,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <p class="text-ink-muted">
         I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.
       </p>
-        <Button href={CONTACT_MAILTO}>Let's Get In Touch</Button>
+        <Button href={CONTACT_MAILTO}>Let’s get in touch</Button>
       </div>
 
       <GhostScene />

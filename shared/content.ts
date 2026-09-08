@@ -14,6 +14,8 @@ export const CONTACT_EMAIL = 'DavidoDawie@gmail.com';
 const CONTACT_SUBJECT = 'DK Contact';
 export const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(CONTACT_SUBJECT)}`;
 
+export const REPO_URL = 'https://github.com/TheDavidKoen/davidkoen-site';
+
 export const NAV_LINKS = [
   { href: '#about', label: 'About' },
   { href: '#skills', label: 'Skills' },

@@ -1,7 +1,7 @@
 ---
-import { STACK } from '@/consts';
+import { REPO_URL, STACK } from '@shared/content';
 
-const ADR_BASE = 'https://github.com/TheDavidKoen/temp-site/blob/main/docs/adr';
+const ADR_BASE = `${REPO_URL}/blob/main/docs/adr`;
 ---
 
 <button
@@ -51,7 +51,7 @@ const ADR_BASE = 'https://github.com/TheDavidKoen/temp-site/blob/main/docs/adr';
                   class="stack__adr link-slide"
                   href={`${ADR_BASE}/${entry.adr}.md`}
                   target="_blank"
-                  rel="noopener"
+                  rel="noopener noreferrer"
                 >
                   ADR {entry.adr.slice(0, 4)}
                 </a>
