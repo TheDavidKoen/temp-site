@@ -1,5 +1,5 @@
 {
-  "name": "temp-site",
+  "name": "davidkoen-site",
   "type": "module",
   "version": "0.0.1",
   "packageManager": "pnpm@11.22.0",
@@ -11,12 +11,14 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "check:functions": "tsc -p functions/tsconfig.json --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "verify": "pnpm run check && pnpm run check:functions && pnpm run lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "pnpm run check && pnpm run check:functions && pnpm run lint && pnpm run test",
     "astro": "astro",
-    "budget": "node scripts/check-budget.mjs",
-    "check:functions": "tsc -p functions/tsconfig.json --noEmit"
+    "budget": "node scripts/check-budget.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
@@ -32,6 +34,7 @@
     "@lhci/cli": "^0.15.1",
     "@types/three": "^0.185.4",
     "typescript": "^6.0.3",
+    "vitest": "^5.0.0",
     "wrangler": "^4.125.0"
   }
 }

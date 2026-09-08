@@ -38,10 +38,13 @@ jobs:
       - name: Lint and format
         run: pnpm run lint
 
+      - name: Tests
+        run: pnpm run test
+
       - name: Production build
         run: pnpm build
 
-      # Enforces docs/PERFORMANCE.md and guards the ADR 0009 regression.
+      # Enforces docs/performance.md and guards the ADR 0009 regression.
       - name: Performance budget
         run: pnpm run budget
 
