@@ -125,10 +125,10 @@
     mask-size: contain;
   }
 
-  .launcher__tip {
+  /* Appearance only. Callers position it and supply the reveal transform, since
+     the dock opens to the left and the tool rail opens upward. */
+  .tip {
     position: absolute;
-    top: 50%;
-    right: calc(100% + 0.85rem);
     padding: 0.45rem 0.75rem;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
@@ -137,11 +137,16 @@
     background-color: var(--color-ink);
     border-radius: 0.4rem;
     opacity: 0;
-    transform: translateY(-50%) translateX(0.4rem);
     pointer-events: none;
     transition:
       opacity 0.2s linear,
       transform 0.26s var(--ease-out-quint);
+  }
+
+  .launcher__tip {
+    top: 50%;
+    right: calc(100% + 0.85rem);
+    transform: translateY(-50%) translateX(0.4rem);
   }
 
   .launcher__tip::after {
@@ -279,6 +284,28 @@
 
   /* One offset for every anchor target, so a jump clears the fixed header.
      Changing the header height means changing this. */
+  /* The hero is hidden below 40rem, so in document order the tool rail would
+     open the page above the name it belongs under. Reordered rather than
+     duplicated, so the markup stays single-source. */
+  @media (width < 40rem) {
+    main {
+      display: flex;
+      flex-direction: column;
+    }
+
+    main > * {
+      order: 3;
+    }
+
+    main > .intro {
+      order: 1;
+    }
+
+    main > .rail {
+      order: 2;
+    }
+  }
+
   main [id] {
     scroll-margin-top: 6rem;
   }

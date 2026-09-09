@@ -206,3 +206,24 @@ export const STACK: readonly StackEntry[] = [
     why: 'Every pull request runs CI before it can merge: formatting, type checks, a Lighthouse audit, and a performance budget that fails the build if the critical path grows past 50 KB.',
   },
 ];
+
+export const TOOLS = [
+  { name: 'Git', logo: '/git.svg' },
+  { name: 'GitHub Actions', logo: '/githubactions.svg' },
+  { name: 'Docker', logo: '/docker.svg' },
+  { name: 'Cloudflare', logo: '/cloudflare.svg' },
+  { name: 'PostgreSQL', logo: '/postgresql.svg' },
+  { name: 'MongoDB Atlas', logo: '/mongodb.svg' },
+  { name: 'Firebase', logo: '/firebase.svg' },
+  { name: 'Postman', logo: '/postman.svg' },
+  { name: 'Lighthouse CI', logo: '/lighthouse.svg' },
+  { name: 'Figma', logo: '/figma.svg' },
+  { name: 'Jira', logo: '/jira.svg' },
+  { name: 'Monday.com', logo: '/monday.svg' },
+  { name: 'Slack', logo: '/slack.svg' },
+] as const;
+
+export const HERO_QUOTE = {
+  text: 'He that breaks a thing to find out what it is has left the path of wisdom.',
+  attribution: 'Gandalf the Grey',
+} as const;
