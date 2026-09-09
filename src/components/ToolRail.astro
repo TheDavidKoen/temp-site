@@ -2,7 +2,7 @@
 import { TOOLS } from '@shared/content';
 ---
 
-<section class="rail" aria-label="Tools I work with">
+<section class="rail" data-tool-scroller aria-label="Tools I work with">
   <div class="rail__track" data-tool-rail>
     {
       [0, 1].map((group) => (
@@ -26,25 +26,69 @@ import { TOOLS } from '@shared/content';
 </section>
 
 <script>
-  const rail = document.querySelector<HTMLElement>('[data-tool-rail]');
+  const scroller = document.querySelector<HTMLElement>('[data-tool-scroller]');
+  const track = document.querySelector<HTMLElement>('[data-tool-rail]');
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const sliding = matchMedia('(width < 40rem)').matches;
 
   /* The row is visible by default and the script hides it, so it survives with
-     no JavaScript. Skipped where the rail slides instead of sitting still. */
-  if (rail && !still && !sliding) {
-    rail.dataset.armed = 'true';
+     no JavaScript. Only the static desktop row reveals on entry. */
+  if (track && !still && !sliding) {
+    track.dataset.armed = 'true';
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (!entries.some((entry) => entry.isIntersecting)) return;
         observer.disconnect();
-        rail.dataset.shown = 'true';
+        track.dataset.shown = 'true';
       },
       { threshold: 0.35 },
     );
 
-    observer.observe(rail);
+    observer.observe(track);
+  }
+
+  /* Driven by scrollLeft rather than a transform, so the automatic drift and a
+     finger dragging the row are the same mechanism and cannot fight. Holding
+     pauses it; the two identical groups make the wrap seamless. */
+  if (scroller && track && sliding && !still) {
+    const SPEED = 0.35;
+    let held = false;
+    let visible = true;
+    let frame = 0;
+
+    const step = (): void => {
+      frame = requestAnimationFrame(step);
+      if (held || !visible) return;
+
+      scroller.scrollLeft += SPEED;
+      const half = track.scrollWidth / 2;
+      if (scroller.scrollLeft >= half) scroller.scrollLeft -= half;
+    };
+
+    const hold = (): void => {
+      held = true;
+    };
+    const release = (): void => {
+      held = false;
+    };
+
+    scroller.addEventListener('pointerdown', hold, { passive: true });
+    scroller.addEventListener('pointerup', release, { passive: true });
+    scroller.addEventListener('pointercancel', release, { passive: true });
+    scroller.addEventListener('pointerleave', release, { passive: true });
+
+    // Idle while off screen or on a hidden tab, rather than scrolling nothing.
+    new IntersectionObserver((entries) => {
+      visible = entries.some((entry) => entry.isIntersecting);
+    }).observe(scroller);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(frame);
+      else frame = requestAnimationFrame(step);
+    });
+
+    frame = requestAnimationFrame(step);
   }
 </script>
 
@@ -69,15 +113,25 @@ import { TOOLS } from '@shared/content';
     .rail {
       margin-top: calc(var(--section-space) * -0.7);
       padding-block: 1.25rem;
+      overflow-x: auto;
+
+      /* :root sets smooth scrolling, which would animate every scrollLeft the
+         drift writes and stall it. */
+      scroll-behavior: auto;
+
+      /* Dragging the row must not arm the browser's back gesture. */
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+
+    .rail::-webkit-scrollbar {
+      display: none;
     }
   }
 
-  /* Two identical groups sliding by half their width, so the loop is seamless.
-     Same trick as the phrase marquee. */
   .rail__track {
     display: flex;
     width: max-content;
-    animation: rail-slide 32s linear infinite;
   }
 
   .rail__list {
@@ -89,18 +143,11 @@ import { TOOLS } from '@shared/content';
     list-style: none;
   }
 
-  @keyframes rail-slide {
-    to {
-      transform: translateX(-50%);
-    }
-  }
-
   /* Above the hero's own breakpoint there is room for all thirteen at once, so
-     the second group and the slide are both dropped. */
+     the duplicate group is dropped and the row stops sliding. */
   @media (width >= 40rem) {
     .rail__track {
       width: auto;
-      animation: none;
     }
 
     .rail__list:nth-child(2) {
@@ -188,14 +235,13 @@ import { TOOLS } from '@shared/content';
     transform: translateX(-50%);
   }
 
-  .rail__item:hover .rail__tip {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .rail__track {
-      animation: none;
+  /* Only where a real pointer exists. On touch the tip stays at opacity 0,
+     still carrying the accessible name, rather than sticking after a tap. */
+  @media (width >= 40rem) {
+    .rail__item:hover .rail__tip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
   }
+
 </style>
