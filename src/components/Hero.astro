@@ -39,22 +39,16 @@ const seed = (i: number): string =>
       </figure>
     </div>
 
-    <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
   </div>
 </section>
 
 <script>
-  const section = document.querySelector<HTMLElement>('[data-hero]');
-  const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
-  const nav = navigator as Navigator & { deviceMemory?: number };
+  const glyphs = [...document.querySelectorAll<HTMLElement>('.hero__glyph')];
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
 
   const wanted =
     !matchMedia('(prefers-reduced-motion: reduce)').matches &&
     !matchMedia('(width < 40rem)').matches;
-  const capable = (nav.deviceMemory ?? 8) >= 4 && (nav.hardwareConcurrency ?? 8) >= 4;
-
-  const glyphs = [...document.querySelectorAll<HTMLElement>('.hero__glyph')];
-  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
 
   if (glyphs.length && wanted) {
     let lastY = window.scrollY;
@@ -78,20 +72,6 @@ const seed = (i: number): string =>
       },
       { passive: true },
     );
-  }
-
-  if (section && canvas && wanted && capable) {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        observer.disconnect();
-        import('@/scripts/hero-scene').then(({ initHeroScene }) => {
-          initHeroScene(canvas, section);
-        });
-      },
-      { rootMargin: '200px' },
-    );
-    observer.observe(section);
   }
 </script>
 
@@ -259,14 +239,6 @@ const seed = (i: number): string =>
     .hero__quote {
       display: none;
     }
-  }
-
-  .hero__canvas {
-    grid-area: 1 / 1;
-    z-index: 1;
-    display: block;
-    width: 100%;
-    height: 100%;
   }
 
 </style>

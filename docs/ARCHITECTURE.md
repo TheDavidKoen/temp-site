@@ -29,12 +29,12 @@ two run before paint:
 | Header nav | ~0.3 KB | Inline module |
 | Cursor trail | ~0.6 KB | Inline module |
 | Dock | ~0.4 KB | Inline module |
-| Hero loader | 0.7 KB | Deferred module |
+| Chase loader | 0.7 KB | Deferred module |
 | Ghost loader | 0.5 KB | Deferred module |
 | Terminal | 0.7 KB | Deferred module |
 | Stack sheet | 0.2 KB | Deferred module |
 | `dialog` + preload helper | 1.0 KB | Deferred, shared by the two dialogs |
-| `hero-scene` (Three.js) | 1.7 KB | Dynamic import behind an `IntersectionObserver` |
+| `chase-scene` (Three.js) | 1.7 KB | Dynamic import behind an `IntersectionObserver` |
 | `ghost-scene` (Three.js) | 1.2 KB | Dynamic import behind an `IntersectionObserver` |
 | `three` | 129.4 KB | Dynamic, shared by both scenes |
 
@@ -74,7 +74,7 @@ Three token groups are shared across systems and cannot be changed in isolation:
 - **Easing curves** are used by CSS transitions, the intro, and the Three.js
   camera. One definition, three consumers.
 - **Colour tokens** are read by the WebGL scenes as hex literals in
-  `hero-scene.ts` and `ghost-scene.ts`. Changing the palette means changing all
+  `chase-scene.ts` and `ghost-scene.ts`. Changing the palette means changing all
   three files.
 - **Accent tokens** are split by the surface they sit on. `--color-signal` and
   `--color-signal-text` are measured against the page ground;
@@ -91,8 +91,12 @@ Two sections pin while their animation plays:
 
 | Section | Height | Mechanism |
 |---|---|---|
-| Hero | 300vh (hidden below 40rem) | Sticky stage; Three.js reads `scrollY` |
+| Hero | 300vh (hidden below 40rem) | Sticky stage; named `view-timeline: --hero` |
 | Experience | 380vh (300vh mobile) | Sticky stage; named `view-timeline: --exp` |
+
+The one exception is the chase beside the introduction. That panel is shorter
+than the viewport, so it reads `scrollY` directly and derives progress from its
+own pass across the screen rather than from a pinned stage.
 
 `PinnedText` declares `--exp`; `ScrollReveal` animates against it. `Hero`
 declares `--hero`; the header reveal in `Header` animates against it. Both names

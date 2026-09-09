@@ -1,5 +1,5 @@
 /**
- * The chase animation in the hero. Scroll position drives it; nothing is on a
+ * The chase beside the introduction. Scroll position drives it; nothing is on a
  * timer, so it holds still when the page does.
  */
 import {
@@ -22,7 +22,7 @@ import {
   WebGLRenderer,
 } from 'three';
 
-const RADIUS = 0.85;
+const RADIUS = 0.62;
 const DEPTH = 0.5;
 const ARC_STEPS = 40;
 const RIB_EVERY = 6;
@@ -30,21 +30,21 @@ const LOOP_PTS = ARC_STEPS + 2;
 const RIBS = Math.floor(LOOP_PTS / RIB_EVERY) + 1;
 const SEGMENTS = LOOP_PTS * 2 + RIBS;
 
-const BALL_R = 0.17;
+const BALL_R = 0.13;
 
 const CHASE_END = 0.82;
-const GAP = 2.3;
-const MARGIN = 1.4;
+const GAP = 1.9;
+const MARGIN = 1.1;
 
 const INK = new Color(0x101a1c);
 const SIGNAL = new Color(0xff0000);
 
-const LEGS = 5;
-const Y_TOP = 3.1;
-const Y_BOTTOM = -3.1;
-const X_MAX = 5.2;
-const MIN_RUN = 2.2;
-const START = new Vector3(-5.2, 3.1, 0);
+const LEGS = 6;
+const Y_TOP = 4.5;
+const Y_BOTTOM = -4.5;
+const X_MAX = 3.2;
+const MIN_RUN = 1.3;
+const START = new Vector3(-X_MAX, Y_TOP, 0);
 
 /* Rebuilt per load so the chase is never the same shape twice, always from the
    same corner. Runs are axis aligned, so every turn is a right angle.
@@ -78,7 +78,7 @@ const jitter = (i: number, seed: number): number => {
   return n - Math.floor(n);
 };
 
-export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): void {
+export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): void {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -151,16 +151,26 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     wedgeAttribute.needsUpdate = true;
   };
 
-  let pinTop = 0;
-  let travel = 0;
+  let stageTop = 0;
+  let stageHeight = 0;
 
   const measure = (): void => {
-    pinTop = section.getBoundingClientRect().top + window.scrollY;
-    travel = section.offsetHeight - window.innerHeight;
+    const rect = stage.getBoundingClientRect();
+    stageTop = rect.top + window.scrollY;
+    stageHeight = rect.height;
   };
 
-  const progressOf = (): number =>
-    travel <= 0 ? 0 : MathUtils.clamp((window.scrollY - pinTop) / travel, 0, 1);
+  /* Progress across the panel's whole pass through the viewport, not across a
+     pinned stage: this element is shorter than the screen, so the pinned model
+     produces negative travel and the chase never starts.
+     Measured on resize and read from scrollY per frame, so the loop never
+     forces a layout. */
+  const progressOf = (): number => {
+    const span = window.innerHeight + stageHeight;
+    return span <= 0
+      ? 0
+      : MathUtils.clamp((window.scrollY + window.innerHeight - stageTop) / span, 0, 1);
+  };
 
   const resize = (): void => {
     const { clientWidth: w, clientHeight: h } = canvas;
@@ -225,7 +235,7 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
   new IntersectionObserver((entries) => {
     if (entries.some((entry) => entry.isIntersecting)) start();
     else stop();
-  }).observe(section);
+  }).observe(stage);
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stop();
