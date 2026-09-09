@@ -31,7 +31,7 @@ const fonts = files.filter((f) => f.endsWith('.woff2'));
 
 /* Anchored to the chunk names the build actually emits, so an unrelated file that
    merely contains "three" cannot exempt itself from the critical path. */
-const DEFERRED = /^(three\.module|hero-scene|ghost-scene)\./;
+const DEFERRED = /^(three\.module|chase-scene|ghost-scene)\./;
 const isDeferred = (f) => DEFERRED.test(basename(f));
 
 const sum = (paths, measure) => paths.reduce((total, f) => total + measure(f), 0);

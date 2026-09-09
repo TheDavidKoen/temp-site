@@ -6,6 +6,7 @@ import {
   SKILL_GROUPS,
 } from '@shared/content';
 import Button from '@/components/Button.astro';
+import ChaseScene from '@/components/ChaseScene.astro';
 import Container from '@/components/Container.astro';
 import GhostScene from '@/components/GhostScene.astro';
 import Hero from '@/components/Hero.astro';
@@ -24,23 +25,27 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   <ToolRail />
 
   <Container as="section" class="intro py-[var(--section-space)]">
-    <p class="mb-6 label">
-      Tech Enthusiast
-    </p>
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-16">
+      <div>
+        <p class="mb-6 label">Tech Enthusiast</p>
 
-    <h1 class="max-w-[14ch] font-display text-display font-bold text-ink">
-      David Koen<span class="text-signal">.</span>
-    </h1>
+        <h1 class="max-w-[14ch] font-display text-display font-bold text-ink">
+          David Koen<span class="text-signal">.</span>
+        </h1>
 
-    <p class="mt-8 max-w-prose text-lg text-ink-muted">
-      I lead delivery without losing the
-      technical thread. I translate between marketing, design and engineering, and I plan work in
-      stages across a project’s full scope.
-    </p>
+        <p class="mt-8 max-w-prose text-lg text-ink-muted">
+          I lead delivery without losing the
+          technical thread. I translate between marketing, design and engineering, and I plan work in
+          stages across a project’s full scope.
+        </p>
 
-    <div class="mt-10 flex flex-wrap gap-4">
-      <Button href="#experience">View experience</Button>
-      <Button href="#contact" variant="outline">How I fit in</Button>
+        <div class="mt-10 flex flex-wrap gap-4">
+          <Button href="#experience">View experience</Button>
+          <Button href="#contact" variant="outline">How I fit in</Button>
+        </div>
+      </div>
+
+      <ChaseScene />
     </div>
   </Container>
 

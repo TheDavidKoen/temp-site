@@ -26,7 +26,7 @@ pnpm build && pnpm run budget -- --markdown
 | CSS | 45 KB | **8.6 KB** |
 | Page scripts | 5 KB | **2.8 KB** |
 | `ghost-scene` (deferred) | 3 KB | **1.2 KB** |
-| `hero-scene` (deferred) | 3 KB | **1.7 KB** |
+| `chase-scene` (deferred) | 3 KB | **1.7 KB** |
 | `three` (deferred) | 521 KB | **129.4 KB** |
 | Fonts | 7 x woff2 | self-hosted |
 | Total `dist/` | 1069 KB | |
