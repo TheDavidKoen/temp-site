@@ -1,0 +1,201 @@
+---
+import { TOOLS } from '@shared/content';
+---
+
+<section class="rail" aria-label="Tools I work with">
+  <div class="rail__track" data-tool-rail>
+    {
+      [0, 1].map((group) => (
+        <ul class="rail__list" aria-hidden={group === 1 ? 'true' : undefined}>
+          {TOOLS.map((tool, i) => (
+            <li class="rail__item" style={`--i: ${i}`}>
+              <span
+                class="rail__mark"
+                style={`--tool-mark: url('${tool.logo}')`}
+                aria-hidden="true"
+              />
+              {/* Hidden by opacity rather than sr-only, so one element serves both
+                  the hover label and the accessible name. */}
+              <span class="tip rail__tip">{tool.name}</span>
+            </li>
+          ))}
+        </ul>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  const rail = document.querySelector<HTMLElement>('[data-tool-rail]');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sliding = matchMedia('(width < 40rem)').matches;
+
+  /* The row is visible by default and the script hides it, so it survives with
+     no JavaScript. Skipped where the rail slides instead of sitting still. */
+  if (rail && !still && !sliding) {
+    rail.dataset.armed = 'true';
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        rail.dataset.shown = 'true';
+      },
+      { threshold: 0.35 },
+    );
+
+    observer.observe(rail);
+  }
+</script>
+
+<style>
+  /* overflow only exists to hide the marquee's second group, so it is dropped
+     above the slider breakpoint. Left on, it clips every tooltip. */
+  .rail {
+    overflow: hidden;
+    border-bottom: 1px solid var(--color-surface-muted);
+    padding-block: 2.25rem;
+  }
+
+  @media (width >= 40rem) {
+    .rail {
+      overflow: visible;
+    }
+  }
+
+  /* Pulled up into the intro block's own bottom padding, so the row reads as
+     part of that block rather than as the section after it. */
+  @media (width < 40rem) {
+    .rail {
+      margin-top: calc(var(--section-space) * -0.7);
+      padding-block: 1.25rem;
+    }
+  }
+
+  /* Two identical groups sliding by half their width, so the loop is seamless.
+     Same trick as the phrase marquee. */
+  .rail__track {
+    display: flex;
+    width: max-content;
+    animation: rail-slide 32s linear infinite;
+  }
+
+  .rail__list {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    margin: 0;
+    padding: 0 1.25rem 0 0;
+    list-style: none;
+  }
+
+  @keyframes rail-slide {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Above the hero's own breakpoint there is room for all thirteen at once, so
+     the second group and the slide are both dropped. */
+  @media (width >= 40rem) {
+    .rail__track {
+      width: auto;
+      animation: none;
+    }
+
+    .rail__list:nth-child(2) {
+      display: none;
+    }
+
+    .rail__list {
+      flex: 1;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.75rem 2.5rem;
+      max-width: var(--container-wide);
+      margin-inline: auto;
+      padding: 0 1.5rem;
+    }
+  }
+
+  @media (width >= 64rem) {
+    .rail__list {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: 0;
+      padding-inline: 3rem;
+    }
+  }
+
+  .rail__item {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+
+  /* Lifts the whole item, not just the tip, so the label clears the logos
+     either side of it rather than sliding under them. */
+  .rail__item:hover {
+    z-index: 2;
+  }
+
+  .rail__track[data-armed='true'] .rail__item {
+    opacity: 0;
+    transform: translateY(0.75rem);
+    transition:
+      opacity 0.65s linear,
+      transform 0.85s var(--ease-out-quint);
+    transition-delay: calc(var(--i) * 110ms);
+  }
+
+  .rail__track[data-armed='true'][data-shown='true'] .rail__item {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Masked so thirteen brand palettes cannot fight the two this site uses. */
+  .rail__mark {
+    display: block;
+    width: 1.75rem;
+    height: 1.75rem;
+    background-color: color-mix(in srgb, var(--color-ink-muted) 55%, transparent);
+    mask-image: var(--tool-mark);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    transition: background-color 0.28s linear;
+  }
+
+  .rail__item:hover .rail__mark {
+    background-color: var(--color-ink);
+  }
+
+  .rail__tip {
+    bottom: calc(100% + 0.6rem);
+    left: 50%;
+    transform: translateX(-50%) translateY(0.3rem);
+  }
+
+  .rail__tip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-top-color: var(--color-ink);
+    transform: translateX(-50%);
+  }
+
+  .rail__item:hover .rail__tip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rail__track {
+      animation: none;
+    }
+  }
+</style>

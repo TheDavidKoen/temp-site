@@ -123,14 +123,12 @@ const dots = Array.from({ length: DOTS }, (_, i) => ({
     will-change: transform;
   }
 
-  @media (width < 64rem) {
-    .trail {
-      display: none;
-    }
-  }
-
-  @media (pointer: coarse) {
-    .trail {
+  /* Matches the specificity of the data-active rule above. A plain .trail here
+     loses to it, so a window that loaded wide and was then narrowed kept the
+     dots on a viewport that should never show them. */
+  @media (width < 64rem), (pointer: coarse) {
+    .trail,
+    .trail[data-active='true'] {
       display: none;
     }
   }

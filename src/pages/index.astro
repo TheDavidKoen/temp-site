@@ -14,13 +14,16 @@ import PinnedText from '@/components/PinnedText.astro';
 import QueryMark from '@/components/QueryMark.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Section from '@/components/Section.astro';
+import ToolRail from '@/components/ToolRail.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout>
   <Hero />
 
-  <Container as="section" class="py-[var(--section-space)]">
+  <ToolRail />
+
+  <Container as="section" class="intro py-[var(--section-space)]">
     <p class="mb-6 label">
       Tech Enthusiast
     </p>

@@ -1,4 +1,8 @@
 ---
+import { HERO_QUOTE } from '@shared/content';
+
+const QUOTE_WORDS = HERO_QUOTE.text.split(' ');
+
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
 const FIELD = 1400;
 
@@ -12,11 +16,30 @@ const seed = (i: number): string =>
       {Array.from({ length: FIELD }, (_, i) => <span class="hero__glyph">{seed(i)}</span>)}
     </div>
 
-    <span class="hero__welcome" aria-hidden="true">Welcome</span>
+    <div class="hero__centre">
+      <span class="hero__welcome" aria-hidden="true">Welcome</span>
+
+      <figure class="hero__quote">
+        <blockquote class="hero__quote-text" aria-hidden="true">
+          {
+            QUOTE_WORDS.map((word, i) => (
+              <span
+                class="hero__quote-word"
+                style={`--d: ${(i / (QUOTE_WORDS.length - 1)).toFixed(4)}`}
+              >
+                {word}
+              </span>
+            ))
+          }
+        </blockquote>
+        <figcaption class="label hero__quote-by" aria-hidden="true">
+          {HERO_QUOTE.attribution}
+        </figcaption>
+        <span class="sr-only">{HERO_QUOTE.text} {HERO_QUOTE.attribution}</span>
+      </figure>
+    </div>
 
     <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
-
-    <span class="hero__cue" aria-hidden="true">Scroll down</span>
   </div>
 </section>
 
@@ -111,17 +134,35 @@ const seed = (i: number): string =>
     user-select: none;
   }
 
-  .hero__welcome {
+  /* Wordmark and quote share one column so the gap between them holds at any
+     viewport, rather than each being centred and hoping they clear. */
+  .hero__centre {
     grid-area: 1 / 1;
     place-self: center;
+    display: grid;
+    justify-items: center;
+    gap: clamp(1.5rem, 4vh, 3.5rem);
+    width: 100%;
+  }
+
+  .hero__welcome {
     font-family: var(--font-display);
     font-size: clamp(5rem, 20vw, 18rem);
     font-weight: 700;
     letter-spacing: -0.04em;
     line-height: 1;
     white-space: nowrap;
-    color: color-mix(in srgb, var(--color-ink) 7%, transparent);
+    color: var(--color-ink-muted);
     user-select: none;
+  }
+
+  /* Guarded, because without the stroke a transparent fill leaves the word
+     invisible rather than outlined. */
+  @supports (-webkit-text-stroke: 1px currentcolor) {
+    .hero__welcome {
+      color: transparent;
+      -webkit-text-stroke: 2px var(--color-ink-muted);
+    }
   }
 
   @supports (animation-timeline: view()) {
@@ -141,6 +182,85 @@ const seed = (i: number): string =>
     }
   }
 
+  .hero__quote {
+    max-width: 34rem;
+    margin: 0;
+    padding-inline: 1.5rem;
+    text-align: center;
+  }
+
+  .hero__quote-text {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: 1.45;
+    text-wrap: balance;
+    color: var(--color-ink-muted);
+  }
+
+  .hero__quote-word {
+    display: inline-block;
+    margin-right: 0.28em;
+  }
+
+  /* Carried by the first and last word rather than the blockquote, so the marks
+     fade in with the line instead of sitting there alone before it arrives.
+     Escapes rather than literal glyphs, so the source stays ASCII and a tool
+     rewriting this file in the wrong encoding cannot mangle them. */
+  .hero__quote-word:first-child::before {
+    content: "\201C";
+  }
+
+  .hero__quote-word:last-child::after {
+    content: "\201D";
+  }
+
+  .hero__quote-by {
+    display: block;
+    margin-top: 0.9rem;
+    color: var(--color-ink-muted);
+  }
+
+  /* Each word carries its own slice of the hero scroll, so the line assembles
+     left to right as the reader moves rather than arriving whole. */
+  @supports (animation-timeline: view()) {
+    .hero__quote-word {
+      animation: quote-word linear both;
+      animation-timeline: --hero;
+      animation-range: contain calc(8% + var(--d) * 30%) contain calc(22% + var(--d) * 30%);
+    }
+
+    .hero__quote-by {
+      animation: quote-word linear both;
+      animation-timeline: --hero;
+      animation-range: contain 42% contain 56%;
+    }
+  }
+
+  @keyframes quote-word {
+    from {
+      opacity: 0;
+      transform: translateY(0.9em);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__quote-word,
+    .hero__quote-by {
+      animation: none;
+    }
+  }
+
+  @media (height < 44rem) {
+    .hero__quote {
+      display: none;
+    }
+  }
+
   .hero__canvas {
     grid-area: 1 / 1;
     z-index: 1;
@@ -149,44 +269,4 @@ const seed = (i: number): string =>
     height: 100%;
   }
 
-  .hero__cue {
-    grid-area: 1 / 1;
-    z-index: 1;
-    place-self: center;
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    text-align: center;
-    color: var(--color-ink-muted);
-  }
-
-  .hero__cue::after {
-    content: '';
-    display: block;
-    width: 1px;
-    height: 2.5rem;
-    margin: 0.75rem auto 0;
-    background: linear-gradient(to bottom, var(--color-ink-muted), transparent);
-  }
-
-  @media (height < 44rem) {
-    .hero__cue {
-      display: none;
-    }
-  }
-
-  @supports (animation-timeline: scroll()) {
-    .hero__cue {
-      animation: cue-fade linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 20vh;
-    }
-  }
-
-  @keyframes cue-fade {
-    to {
-      opacity: 0;
-    }
-  }
 </style>
