@@ -10,12 +10,14 @@ import {
   CurvePath,
   DynamicDrawUsage,
   Group,
+  InstancedMesh,
   LineBasicMaterial,
   LineCurve3,
   LineSegments,
   MathUtils,
   Mesh,
   MeshBasicMaterial,
+  Object3D,
   OrthographicCamera,
   Scene,
   Vector3,
@@ -32,9 +34,20 @@ const SEGMENTS = LOOP_PTS * 2 + RIBS;
 
 const BALL_R = 0.13;
 
+const DOTS = 64;
+const DOT_R = 0.04;
+const TRAIL_GAP = 0.028;
+
 const CHASE_END = 0.82;
 const GAP = 1.9;
-const MARGIN = 1.1;
+const MARGIN = 2.0;
+
+/* BLAST and FADE are a pair. The pieces must be invisible by the time they
+   reach the frustum edge, or the canvas clips the burst into a box. At these
+   values they are gone at burst 0.56, having travelled 1.73 of the 2.0
+   available. Raising BLAST without lowering FADE brings the box back. */
+const BLAST = 2.0;
+const FADE = 1.8;
 
 const INK = new Color(0x101a1c);
 const SIGNAL = new Color(0xff0000);
@@ -114,9 +127,32 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   const ball = new Mesh(new CircleGeometry(BALL_R, 28), ballMaterial);
   scene.add(ball);
 
+  const dots = new InstancedMesh(
+    new CircleGeometry(DOT_R, 10),
+    new MeshBasicMaterial({ color: SIGNAL }),
+    DOTS,
+  );
+  scene.add(dots);
+
+  const dummy = new Object3D();
+  const dotAt = Array.from({ length: DOTS }, (_, i) => ROUTE.getPointAt(i / (DOTS - 1)));
+
+  /* Scaled to nothing rather than removed, so the count stays fixed and the
+     instance matrix is written once per frame either way. */
+  const writeDots = (reached: number): void => {
+    for (let i = 0; i < DOTS; i++) {
+      const t = i / (DOTS - 1);
+      dummy.position.copy(dotAt[i]);
+      dummy.scale.setScalar(t <= reached - TRAIL_GAP ? 1 : 0);
+      dummy.updateMatrix();
+      dots.setMatrixAt(i, dummy.matrix);
+    }
+    dots.instanceMatrix.needsUpdate = true;
+  };
+
   const writeWedge = (mouth: number, burst: number): void => {
     const span = Math.PI * 2 - mouth * 2;
-    const blast = burst * 5.5;
+    const blast = burst * BLAST;
 
     const at = (i: number): [number, number] => {
       if (i === 0) return [0, 0];
@@ -208,11 +244,12 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
 
     ball.position.set(ahead.x, ahead.y, 0);
     ball.scale.setScalar(Math.max(0, 1 - burst * 1.6));
-    ballMaterial.opacity = Math.max(0, 1 - burst * 1.8);
+    ballMaterial.opacity = Math.max(0, 1 - burst * FADE);
 
-    wedgeMaterial.opacity = Math.max(0, 1 - burst * 1.25);
+    wedgeMaterial.opacity = Math.max(0, 1 - burst * FADE);
     if (burst === 0) mouthHold = 0.06 + Math.abs(Math.sin(now / 130)) * 0.5;
     writeWedge(mouthHold, burst);
+    writeDots(chase);
 
     renderer.render(scene, camera);
   };
