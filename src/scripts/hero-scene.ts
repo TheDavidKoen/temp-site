@@ -10,14 +10,12 @@ import {
   CurvePath,
   DynamicDrawUsage,
   Group,
-  InstancedMesh,
   LineBasicMaterial,
   LineCurve3,
   LineSegments,
   MathUtils,
   Mesh,
   MeshBasicMaterial,
-  Object3D,
   OrthographicCamera,
   Scene,
   Vector3,
@@ -32,13 +30,10 @@ const LOOP_PTS = ARC_STEPS + 2;
 const RIBS = Math.floor(LOOP_PTS / RIB_EVERY) + 1;
 const SEGMENTS = LOOP_PTS * 2 + RIBS;
 
-const DOTS = 74;
-const DOT_R = 0.055;
 const BALL_R = 0.17;
 
 const CHASE_END = 0.82;
 const GAP = 2.3;
-const TRAIL_GAP = 0.028;
 const MARGIN = 1.4;
 
 const INK = new Color(0x101a1c);
@@ -118,28 +113,6 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
   const ballMaterial = new MeshBasicMaterial({ color: SIGNAL, transparent: true });
   const ball = new Mesh(new CircleGeometry(BALL_R, 28), ballMaterial);
   scene.add(ball);
-
-  const dots = new InstancedMesh(
-    new CircleGeometry(DOT_R, 10),
-    new MeshBasicMaterial({ color: SIGNAL }),
-    DOTS,
-  );
-  scene.add(dots);
-
-  const dummy = new Object3D();
-  const dotAt = Array.from({ length: DOTS }, (_, i) => ROUTE.getPointAt(i / (DOTS - 1)));
-
-  const writeDots = (reached: number): void => {
-    for (let i = 0; i < DOTS; i++) {
-      const t = i / (DOTS - 1);
-      const shown = t <= reached - TRAIL_GAP;
-      dummy.position.copy(dotAt[i]);
-      dummy.scale.setScalar(shown ? 1 : 0);
-      dummy.updateMatrix();
-      dots.setMatrixAt(i, dummy.matrix);
-    }
-    dots.instanceMatrix.needsUpdate = true;
-  };
 
   const writeWedge = (mouth: number, burst: number): void => {
     const span = Math.PI * 2 - mouth * 2;
@@ -230,7 +203,6 @@ export function initHeroScene(canvas: HTMLCanvasElement, section: HTMLElement): 
     wedgeMaterial.opacity = Math.max(0, 1 - burst * 1.25);
     if (burst === 0) mouthHold = 0.06 + Math.abs(Math.sin(now / 130)) * 0.5;
     writeWedge(mouthHold, burst);
-    writeDots(chase);
 
     renderer.render(scene, camera);
   };
