@@ -16,12 +16,24 @@ export const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURICompon
 
 export const REPO_URL = 'https://github.com/TheDavidKoen/temp-site';
 
-export const NAV_LINKS = [
+/* note instead of href marks an item that opens a panel rather than jumping to
+   a section. Exactly one entry uses it. */
+interface NavLink {
+  readonly label: string;
+  readonly href?: string;
+  readonly note?: string;
+}
+
+export const NAV_LINKS: readonly NavLink[] = [
   { href: '#about', label: 'About' },
   { href: '#skills', label: 'Skills' },
   { href: '#experience', label: 'Experience' },
+  {
+    label: 'Work',
+    note: 'For examples of my production, please click the "Explore more" bubble in the top right of your screen.',
+  },
   { href: '#contact', label: 'Contact' },
-] as const;
+];
 
 export const SOCIAL_LINKS = [
   { href: 'https://github.com/TheDavidKoen', label: 'GitHub' },

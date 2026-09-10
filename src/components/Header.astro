@@ -29,13 +29,35 @@ import Wordmark from '@/components/Wordmark.astro';
       <div id="primary-nav" class="nav__panel">
         <ul class="nav__list">
           {
-            NAV_LINKS.map(({ href, label }) => (
-              <li>
-                <a href={href} class="link-slide label text-ink-muted">
-                  {label}
-                </a>
-              </li>
-            ))
+            NAV_LINKS.map(({ href, label, note }, i) =>
+              href ? (
+                <li>
+                  <a href={href} class="link-slide label text-ink-muted">
+                    {label}
+                  </a>
+                </li>
+              ) : (
+                <li class="nav__disclosure">
+                  <button
+                    type="button"
+                    class="link-slide label text-ink-muted nav__trigger"
+                    aria-expanded="false"
+                    aria-controls={`nav-note-${i}`}
+                    data-nav-trigger
+                  >
+                    {label}
+                  </button>
+                  <button
+                    type="button"
+                    class="nav__note"
+                    id={`nav-note-${i}`}
+                    data-nav-note
+                  >
+                    {note}
+                  </button>
+                </li>
+              ),
+            )
           }
         </ul>
       </div>
@@ -64,6 +86,38 @@ import Wordmark from '@/components/Wordmark.astro';
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') setOpen(false);
+    });
+  }
+
+  const trigger = document.querySelector<HTMLButtonElement>('[data-nav-trigger]');
+  const note = document.querySelector<HTMLElement>('[data-nav-note]');
+
+  if (trigger && note) {
+    const showNote = (open: boolean): void => {
+      trigger.setAttribute('aria-expanded', String(open));
+      note.dataset.open = String(open);
+    };
+
+    trigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      showNote(trigger.getAttribute('aria-expanded') !== 'true');
+    });
+
+    /* Toggles the dock the note points at. stopPropagation matters: without it
+       this same click reaches the dock's own outside-click handler, which would
+       shut the dock the instant we opened it. The synthetic click on the toggle
+       is fine, since its target is inside .launcher. */
+    note.addEventListener('click', (event) => {
+      event.stopPropagation();
+      showNote(false);
+      document.querySelector<HTMLButtonElement>('[data-dock-toggle]')?.click();
+    });
+
+    // Anywhere else dismisses it, including the burger and the other links.
+    document.addEventListener('click', () => showNote(false));
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') showNote(false);
     });
   }
 </script>
@@ -116,6 +170,64 @@ import Wordmark from '@/components/Wordmark.astro';
 
   .nav__burger {
     display: none;
+  }
+
+  .nav__disclosure {
+    position: relative;
+  }
+
+  /* Resets only the button chrome. Setting font here would beat the .label
+     class on the same element, since Astro's scoped styles are unlayered and
+     .label lives in the components layer. */
+  .nav__trigger {
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  /* visibility rather than display, so the panel can transition. Delayed on the
+     way out so it does not vanish before the fade finishes. */
+  .nav__note {
+    position: absolute;
+    top: calc(100% + 0.9rem);
+    right: 0;
+    z-index: 1;
+    width: min(20rem, 70vw);
+    margin: 0;
+    padding: 0.9rem 1.1rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+    letter-spacing: normal;
+    text-transform: none;
+    text-align: left;
+    color: var(--color-surface);
+    background-color: var(--color-ink);
+    /* Transparent at the full width, so colouring it on hover shifts nothing. */
+    border: 3px solid transparent;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-0.4rem);
+    transition:
+      opacity 0.2s linear,
+      transform 0.26s var(--ease-out-quint),
+      border-color 0.2s linear,
+      visibility 0s linear 0.26s;
+  }
+
+  .nav__note[data-open='true'] {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  .nav__note:hover,
+  .nav__note:focus-visible {
+    border-color: var(--color-signal);
   }
 
   @media (width < 40rem) {
@@ -221,9 +333,29 @@ import Wordmark from '@/components/Wordmark.astro';
         transition-delay: 0.2s;
       }
 
-      .nav__list a {
+      .nav__list a,
+      .nav__trigger {
         display: block;
+        width: 100%;
         padding: 1rem 1.5rem;
+        text-align: left;
+      }
+
+      /* In the fold-out panel the note sits in the flow, so display rather than
+         visibility: a hidden-but-present panel would leave a gap in the menu. */
+      .nav__note {
+        position: static;
+        display: none;
+        width: auto;
+        margin: 0 1.5rem 1rem;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        transition: none;
+      }
+
+      .nav__note[data-open='true'] {
+        display: block;
       }
   }
 </style>
