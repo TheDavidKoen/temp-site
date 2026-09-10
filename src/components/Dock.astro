@@ -7,11 +7,12 @@
   aria-label="Explore more"
 >
   <span class="launcher__mark" aria-hidden="true"></span>
-  <span class="tip launcher__tip" aria-hidden="true">Explore more.</span>
+  <span class="tip launcher__tip" aria-hidden="true" data-dock-tip>Explore more.</span>
 </button>
 
 <script>
   const toggle = document.querySelector<HTMLButtonElement>('[data-dock-toggle]');
+  const tip = document.querySelector<HTMLElement>('[data-dock-tip]');
   const stowable = [...document.querySelectorAll<HTMLElement>('.launcher--stowable')];
 
   if (toggle && stowable.length) {
@@ -22,6 +23,8 @@
     const setOpen = (open: boolean): void => {
       document.documentElement.dataset.dock = open ? 'open' : 'closed';
       toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close' : 'Explore more');
+      if (tip) tip.textContent = open ? 'Close.' : 'Explore more.';
       for (const bubble of stowable) bubble.inert = !open;
     };
 
