@@ -10,6 +10,7 @@ import Dock from '@/components/Dock.astro';
 import MissedMix from '@/components/MissedMix.astro';
 import Stack from '@/components/Stack.astro';
 import Terminal from '@/components/Terminal.astro';
+import ThemeToggle from '@/components/ThemeToggle.astro';
 
 interface Props {
   title?: string;
@@ -34,10 +35,28 @@ const { title, description } = Astro.props;
 
     <Seo title={title} description={description} />
 
-    <!-- Must stay inline and in <head>: both flags are read before first paint. -->
+    <!-- Must stay inline and in <head>: all three flags are read before first paint. -->
     <script is:inline>
       (() => {
-        document.documentElement.dataset.dock = 'closed';
+        const root = document.documentElement;
+        root.dataset.dock = 'closed';
+
+        // A saved choice wins; otherwise follow the operating system.
+        let saved = null;
+        try {
+          saved = localStorage.getItem('theme');
+        } catch {
+          // Storage can be refused in private browsing; fall back to the system.
+        }
+        const dark =
+          saved === 'dark' ||
+          (saved !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+        root.dataset.theme = dark ? 'dark' : 'light';
+
+        // Literal, because the stylesheet may not have parsed yet. Matches --color-surface.
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute('content', dark ? '#101a1c' : '#f5f5f5');
 
         try {
           const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -75,5 +94,6 @@ const { title, description } = Astro.props;
     <Stack />
     <MissedMix />
     <Dock />
+    <ThemeToggle />
   </body>
 </html>

@@ -42,8 +42,11 @@
       // A modal is its own dismissal surface, so leave the dock as it was.
       if (document.querySelector('dialog[open]')) return;
 
+      /* Dock members only. The theme switch shares the bubble's look but is not
+         part of the dock, so clicking it should close the dock like anywhere else. */
       const target = event.target;
-      if (target instanceof Element && target.closest('.launcher') === null) setOpen(false);
+      const inDock = target instanceof Element && target.closest('.launcher--toggle, .launcher--stowable');
+      if (!inDock) setOpen(false);
     });
 
     document.addEventListener('keydown', (event) => {

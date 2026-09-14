@@ -31,7 +31,9 @@ const fonts = files.filter((f) => f.endsWith('.woff2'));
 
 /* Anchored to the chunk names the build actually emits, so an unrelated file that
    merely contains "three" cannot exempt itself from the critical path. */
-const DEFERRED = /^(three\.module|chase-scene|ghost-scene)\./;
+/* Three.js is forced into a chunk named three in the Astro config. Left to Rollup it
+   was folded into whichever shared module first imported it, and renamed with it. */
+const DEFERRED = /^(three|figures|chase-scene|ghost-scene)\./;
 const isDeferred = (f) => DEFERRED.test(basename(f));
 
 const sum = (paths, measure) => paths.reduce((total, f) => total + measure(f), 0);
@@ -54,12 +56,16 @@ if (webglKb > BUDGET.deferredWebglKb) {
    the page still builds and renders, only the motion stops. */
 const styles = css.map((f) => readFileSync(f, 'utf8')).join('\n');
 
+let timelinesBroken = false;
+
 if (!styles.includes('animation-timeline:')) {
+  timelinesBroken = true;
   failures.push('no animation-timeline longhand in the built CSS, scroll animations are dead');
 }
 
 const folded = styles.match(/animation:[^;}]*(scroll\(|view\(|--exp)[^;}]*/g);
 if (folded) {
+  timelinesBroken = true;
   failures.push(`animation-timeline folded into the shorthand: ${folded[0].slice(0, 60)}`);
 }
 
@@ -94,7 +100,7 @@ if (process.argv.includes('--markdown')) {
     [
       `  critical path  ${criticalKb.toFixed(1)} KB gzip  (budget ${BUDGET.criticalPathKb})`,
       `  deferred webgl ${webglKb.toFixed(1)} KB gzip  (budget ${BUDGET.deferredWebglKb})`,
-      `  scroll timelines ${failures.length ? 'BROKEN' : 'intact'}`,
+      `  scroll timelines ${timelinesBroken ? 'BROKEN' : 'intact'}`,
     ].join('\n'),
   );
 }

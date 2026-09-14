@@ -1,38 +1,49 @@
 /**
  * The chase beside the introduction. Scroll position drives it; nothing is on a
- * timer, so it holds still when the page does.
+ * timer, so it holds still when the page does. The pacman chases a dot in light
+ * mode and a ghost in dark mode.
  */
 import {
-  BufferAttribute,
-  BufferGeometry,
   CircleGeometry,
-  Color,
   CurvePath,
-  DynamicDrawUsage,
   Group,
   InstancedMesh,
-  LineBasicMaterial,
   LineCurve3,
-  LineSegments,
   MathUtils,
   Mesh,
   MeshBasicMaterial,
   Object3D,
   OrthographicCamera,
   Scene,
+  Shape,
+  ShapeGeometry,
+  Vector2,
   Vector3,
   WebGLRenderer,
 } from 'three';
+import { createPacman, ghostOutline } from './figures';
+import { currentTheme, onThemeChange, token } from './theme';
 
 const RADIUS = 0.62;
 const DEPTH = 0.5;
-const ARC_STEPS = 40;
-const RIB_EVERY = 6;
-const LOOP_PTS = ARC_STEPS + 2;
-const RIBS = Math.floor(LOOP_PTS / RIB_EVERY) + 1;
-const SEGMENTS = LOOP_PTS * 2 + RIBS;
 
 const BALL_R = 0.13;
+
+/* Sized so the ghost still clears the mouth at the tightest point: the route
+   keeps pacman and quarry at least 1.33 apart, and the two together span about
+   0.92. */
+const QUARRY = {
+  halfWidth: 0.22,
+  domeY: 0.05,
+  skirtY: -0.22,
+  waves: 3,
+  amplitude: 0.05,
+  arcSteps: 18,
+  skirtSteps: 18,
+} as const;
+const EYE_X = 0.09;
+const EYE_Y = 0.04;
+const LOOK = 0.025;
 
 const DOTS = 64;
 const DOT_R = 0.04;
@@ -55,9 +66,6 @@ const MARGIN = 2.0;
    available. Raising BLAST without lowering FADE brings the box back. */
 const BLAST = 2.0;
 const FADE = 1.8;
-
-const INK = new Color(0x101a1c);
-const SIGNAL = new Color(0xff0000);
 
 const LEGS = 6;
 const Y_TOP = 4.5;
@@ -93,10 +101,31 @@ function buildRoute(): CurvePath<Vector3> {
   return route;
 }
 
-const jitter = (i: number, seed: number): number => {
-  const n = Math.sin(i * 12.9898 + seed * 78.233) * 43758.5453;
-  return n - Math.floor(n);
-};
+/* Filled rather than wireframe, since an outline this small reads as noise. The
+   pupils are kept separate so they can look along the route. */
+function createQuarry() {
+  const shape = new Shape(ghostOutline(QUARRY).map(([x, y]) => new Vector2(x, y)));
+  const body = new MeshBasicMaterial({ transparent: true });
+  const eyes = new MeshBasicMaterial({ transparent: true });
+  const pupils = new MeshBasicMaterial({ transparent: true });
+
+  const group = new Group();
+  group.add(new Mesh(new ShapeGeometry(shape), body));
+
+  const pupilMeshes: Mesh[] = [];
+  for (const side of [-1, 1]) {
+    const eye = new Mesh(new CircleGeometry(0.065, 16), eyes);
+    eye.position.set(side * EYE_X, EYE_Y, 0.01);
+    group.add(eye);
+
+    const pupil = new Mesh(new CircleGeometry(0.032, 12), pupils);
+    pupil.position.set(side * EYE_X, EYE_Y, 0.02);
+    group.add(pupil);
+    pupilMeshes.push(pupil);
+  }
+
+  return { group, body, eyes, pupils, pupilMeshes };
+}
 
 export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): void {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
@@ -115,31 +144,50 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
     bounds.y = Math.max(bounds.y, Math.abs(point.y));
   }
 
-  const wedge = new Float32Array(SEGMENTS * 2 * 3);
-  const wedgeAttribute = new BufferAttribute(wedge, 3);
-  wedgeAttribute.setUsage(DynamicDrawUsage);
-  const wedgeGeometry = new BufferGeometry();
-  wedgeGeometry.setAttribute('position', wedgeAttribute);
+  const pacman = createPacman(RADIUS, DEPTH);
 
-  const wedgeMaterial = new LineBasicMaterial({ color: INK, transparent: true });
-
+  /* Outer group carries the travel angle, inner group a fixed tilt so the
+     front and back loops separate instead of overlapping under an
+     axis-aligned orthographic camera. */
   const chaser = new Group();
   const tilt = new Group();
   tilt.rotation.set(-0.3, 0.42, 0);
-  tilt.add(new LineSegments(wedgeGeometry, wedgeMaterial));
+  tilt.add(pacman.lines);
   chaser.add(tilt);
   scene.add(chaser);
 
-  const ballMaterial = new MeshBasicMaterial({ color: SIGNAL, transparent: true });
+  const ballMaterial = new MeshBasicMaterial({ transparent: true });
   const ball = new Mesh(new CircleGeometry(BALL_R, 28), ballMaterial);
   scene.add(ball);
 
-  const dots = new InstancedMesh(
-    new CircleGeometry(DOT_R, 10),
-    new MeshBasicMaterial({ color: SIGNAL }),
-    DOTS,
-  );
+  const quarry = createQuarry();
+  const quarryMaterials = [quarry.body, quarry.eyes, quarry.pupils];
+  scene.add(quarry.group);
+
+  const dotMaterial = new MeshBasicMaterial();
+  const dots = new InstancedMesh(new CircleGeometry(DOT_R, 10), dotMaterial, DOTS);
   scene.add(dots);
+
+  /* Colours come from the tokens and are read again on every theme change,
+     so the scene can never drift from the palette. */
+  const paint = (): void => {
+    const ink = token('--color-ink');
+    const signal = token('--color-signal');
+
+    pacman.material.color.set(ink);
+    ballMaterial.color.set(signal);
+    dotMaterial.color.set(signal);
+    quarry.body.color.set(signal);
+    quarry.eyes.color.set(ink);
+    quarry.pupils.color.set(token('--color-surface'));
+
+    const dark = currentTheme() === 'dark';
+    ball.visible = !dark;
+    quarry.group.visible = dark;
+  };
+
+  paint();
+  onThemeChange(paint);
 
   const dummy = new Object3D();
   const dotAt = Array.from({ length: DOTS }, (_, i) => ROUTE.getPointAt(i / (DOTS - 1)));
@@ -155,43 +203,6 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
       dots.setMatrixAt(i, dummy.matrix);
     }
     dots.instanceMatrix.needsUpdate = true;
-  };
-
-  const writeWedge = (mouth: number, burst: number): void => {
-    const span = Math.PI * 2 - mouth * 2;
-    const blast = burst * BLAST;
-
-    const at = (i: number): [number, number] => {
-      if (i === 0) return [0, 0];
-      const angle = mouth + (span * (i - 1)) / ARC_STEPS;
-      const reach = RADIUS + blast * (0.4 + jitter(i, 1) * 0.6);
-      return [Math.cos(angle) * reach, Math.sin(angle) * reach];
-    };
-
-    let o = 0;
-    const put = (x: number, y: number, z: number): void => {
-      wedge[o++] = x;
-      wedge[o++] = y;
-      wedge[o++] = z;
-    };
-
-    for (const face of [1, -1]) {
-      const z = (DEPTH / 2) * face * (1 + blast);
-      for (let i = 0; i < LOOP_PTS; i++) {
-        const [ax, ay] = at(i);
-        const [bx, by] = at((i + 1) % LOOP_PTS);
-        put(ax, ay, z);
-        put(bx, by, z);
-      }
-    }
-
-    for (let i = 0; i < LOOP_PTS; i += RIB_EVERY) {
-      const [ax, ay] = at(i);
-      put(ax, ay, (DEPTH / 2) * (1 + blast));
-      put(ax, ay, (-DEPTH / 2) * (1 + blast));
-    }
-
-    wedgeAttribute.needsUpdate = true;
   };
 
   let stageTop = 0;
@@ -252,19 +263,39 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
 
     const here = ROUTE.getPointAt(chase);
     const closing = 1 - MathUtils.smoothstep(chase, 0.86, 1);
-    const ahead = ROUTE.getPointAt(Math.min(1, chase + LEAD_T * closing));
+    const lead = Math.min(1, chase + LEAD_T * closing);
+    const ahead = ROUTE.getPointAt(lead);
 
     chaser.position.set(here.x, here.y, 0);
     const tangent = ROUTE.getTangentAt(chase);
     chaser.rotation.z = Math.atan2(tangent.y, tangent.x);
 
-    ball.position.set(ahead.x, ahead.y, 0);
-    ball.scale.setScalar(Math.max(0, 1 - burst * 1.6));
-    ballMaterial.opacity = Math.max(0, 1 - burst * FADE);
+    const shrink = Math.max(0, 1 - burst * 1.6);
+    const fade = Math.max(0, 1 - burst * FADE);
 
-    wedgeMaterial.opacity = Math.max(0, 1 - burst * FADE);
+    ball.position.set(ahead.x, ahead.y, 0);
+    ball.scale.setScalar(shrink);
+    ballMaterial.opacity = fade;
+
+    quarry.group.position.set(ahead.x, ahead.y, 0);
+    quarry.group.scale.setScalar(shrink);
+    for (const material of quarryMaterials) material.opacity = fade;
+
+    // The ghost looks the way it is fleeing.
+    if (quarry.group.visible) {
+      const heading = ROUTE.getTangentAt(lead);
+      for (let i = 0; i < quarry.pupilMeshes.length; i++) {
+        quarry.pupilMeshes[i].position.set(
+          (i === 0 ? -1 : 1) * EYE_X + heading.x * LOOK,
+          EYE_Y + heading.y * LOOK,
+          0.02,
+        );
+      }
+    }
+
+    pacman.material.opacity = fade;
     if (burst === 0) mouthHold = 0.06 + Math.abs(Math.sin(now / 130)) * 0.5;
-    writeWedge(mouthHold, burst);
+    pacman.draw(mouthHold, burst * BLAST);
     writeDots(chase);
 
     renderer.render(scene, camera);

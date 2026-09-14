@@ -219,4 +219,12 @@ const NAME = SITE.name;
       visibility: hidden;
     }
   }
+
+  /* The curtain stays dark in both themes, so it keeps the light palette's
+     values instead of following the dark swap. See ADR 0013. */
+  :global(html[data-theme='dark']) .intro {
+    --color-ink: #101a1c;
+    --color-surface: #f5f5f5;
+    --color-surface-muted: #bbd5da;
+  }
 </style>
