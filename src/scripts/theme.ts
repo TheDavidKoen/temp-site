@@ -24,15 +24,6 @@ export function onThemeChange(listener: (theme: Theme) => void): void {
   document.addEventListener(CHANGE_EVENT, () => listener(currentTheme()));
 }
 
-const savedTheme = (): Theme | null => {
-  try {
-    const value = localStorage.getItem(STORAGE_KEY);
-    return value === 'light' || value === 'dark' ? value : null;
-  } catch {
-    return null;
-  }
-};
-
 function apply(theme: Theme): void {
   document.documentElement.dataset.theme = theme;
   document
@@ -145,11 +136,4 @@ export function setTheme(theme: Theme): Promise<void> {
   }
 
   return dissolve(() => apply(theme));
-}
-
-/** Follows the operating system until the visitor makes a choice of their own. */
-export function followSystemTheme(): void {
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-    if (!savedTheme()) apply(event.matches ? 'dark' : 'light');
-  });
 }

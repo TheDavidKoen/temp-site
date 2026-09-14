@@ -9,7 +9,7 @@
 </button>
 
 <script>
-  import { currentTheme, followSystemTheme, onThemeChange, setTheme } from '@/scripts/theme';
+  import { currentTheme, onThemeChange, setTheme } from '@/scripts/theme';
 
   const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
   const tip = document.querySelector<HTMLElement>('[data-theme-tip]');
@@ -26,7 +26,6 @@
 
     label();
     onThemeChange(label);
-    followSystemTheme();
 
     let switching = false;
     button.addEventListener('click', async () => {

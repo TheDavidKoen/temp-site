@@ -41,16 +41,13 @@ const { title, description } = Astro.props;
         const root = document.documentElement;
         root.dataset.dock = 'closed';
 
-        // A saved choice wins; otherwise follow the operating system.
-        let saved = null;
+        // Light unless the visitor has chosen dark; the system setting is ignored.
+        let dark = false;
         try {
-          saved = localStorage.getItem('theme');
+          dark = localStorage.getItem('theme') === 'dark';
         } catch {
-          // Storage can be refused in private browsing; fall back to the system.
+          // Storage can be refused in private browsing; stay light.
         }
-        const dark =
-          saved === 'dark' ||
-          (saved !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
         root.dataset.theme = dark ? 'dark' : 'light';
 
         // Literal, because the stylesheet may not have parsed yet. Matches --color-surface.

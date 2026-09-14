@@ -188,7 +188,7 @@ export const STACK: readonly StackEntry[] = [
     layer: '3D',
     choice: 'Three.js',
     logo: '/threedotjs.svg',
-    why: 'Renders the WebGL scenes in the hero and the ghost further down the page. Lazy loaded only once you scroll near it, and skipped entirely on low-memory devices or when reduced motion is set.',
+    why: 'Renders the WebGL scenes. Lazy loaded only once you scroll near it, and skipped entirely on low-memory devices or when reduced motion is set.',
   },
   {
     layer: 'API',

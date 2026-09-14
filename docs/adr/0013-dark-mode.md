@@ -7,8 +7,7 @@
 The site shipped a light palette only. A switch in the bottom-left corner now
 changes to a dark one, and three constraints shaped how:
 
-- No flash of the wrong theme on load, for a returning visitor or a first-time
-  one whose operating system is set to dark.
+- No flash of the light theme on load for a returning visitor who chose dark.
 - Every text pair in dark mode has to clear the thresholds ADR 0005 holds the
   light palette to.
 - The two Three.js scenes draw in colour too, and WebGL cannot read CSS.
@@ -58,11 +57,12 @@ exactly those values in ADR 0005, so pinning keeps that measurement true.
 Modal scrims and the dock's hover shadow use a fixed `--color-scrim`. A scrim that
 followed ink would brighten a dark page instead of dimming it.
 
-### Applied before paint, following the system
+### Applied before paint, light by default
 
-An inline script in `<head>` sets `data-theme` before the first frame. A saved
-choice wins. Without one the page follows `prefers-color-scheme`, and keeps
-following it if the system setting changes during the visit.
+An inline script in `<head>` sets `data-theme` before the first frame. The page
+loads in light mode, the palette it was designed in, and only a choice the visitor
+has saved overrides that. The system `prefers-color-scheme` setting is
+deliberately not followed, so a first visit always sees the light theme.
 
 ### The switch dissolves in square cells
 
@@ -88,5 +88,5 @@ ghost instead of a dot, and the figure that tracks the pointer becomes a pacman.
 - A new surface needs a measured row here and in ADR 0005 before text goes on it.
 - Lighthouse audits one theme at rest. Dark mode is checked by hand against the
   tables above.
-- A visitor with a dark system setting sees dark mode first. Defaulting to light
-  instead is one line in the head script.
+- Every first visit loads in light mode, whatever the system setting. Following
+  `prefers-color-scheme` instead is one line in the head script.
