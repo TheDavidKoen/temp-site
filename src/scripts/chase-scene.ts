@@ -39,6 +39,13 @@ const DOT_R = 0.04;
 const TRAIL_GAP = 0.028;
 
 const CHASE_END = 0.82;
+
+/* FOLLOW is how fast the chase catches up with the scroll; MAX_RATE is the most
+   of the route it may cover per second. Reading scrollY directly moved the
+   pacman up to 123px in a single frame on one wheel notch. Together these turn
+   that into a glide of about 11px a frame, settling 2.2s after scrolling stops. */
+const FOLLOW = 4;
+const MAX_RATE = 0.35;
 const GAP = 1.9;
 const MARGIN = 2.0;
 
@@ -226,10 +233,19 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   let frame = 0;
   let running = false;
   let mouthHold = 0.06;
+  let shown = 0;
+  let lastFrame = 0;
 
   const tick = (now: number): void => {
     frame = requestAnimationFrame(tick);
-    const progress = progressOf();
+
+    // Clamped so a frame after a tab switch cannot fling the chase forward.
+    const dt = lastFrame ? Math.min(0.05, (now - lastFrame) / 1000) : 0;
+    lastFrame = now;
+
+    const step = (progressOf() - shown) * (1 - Math.exp(-dt * FOLLOW));
+    shown += Math.sign(step) * Math.min(Math.abs(step), MAX_RATE * dt);
+    const progress = shown;
 
     const chase = Math.min(progress, CHASE_END) / CHASE_END;
     const burst = progress <= CHASE_END ? 0 : (progress - CHASE_END) / (1 - CHASE_END);
@@ -257,6 +273,10 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   const start = (): void => {
     if (running) return;
     running = true;
+    // Lands where the page already is, rather than replaying from the start
+    // after a reload partway down.
+    shown = progressOf();
+    lastFrame = 0;
     frame = requestAnimationFrame(tick);
   };
 
