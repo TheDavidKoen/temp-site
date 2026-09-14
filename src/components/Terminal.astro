@@ -294,4 +294,14 @@ const opening = toText(run('help'), false);
     margin-top: 0.4rem;
     color: color-mix(in srgb, var(--color-surface) 50%, transparent);
   }
+
+  /* A terminal reads dark in both themes, so it keeps the light palette's values;
+     its text mixes were measured against exactly these in ADR 0005. The border
+     separates it from a dark page behind the scrim. */
+  :global(html[data-theme='dark']) .terminal {
+    --color-ink: #101a1c;
+    --color-surface: #f5f5f5;
+    --color-signal-on-ink: #ff4d3d;
+    border: 1px solid var(--color-surface-muted);
+  }
 </style>

@@ -42,6 +42,16 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
-    build: { cssMinify: false },
+    build: {
+      cssMinify: false,
+      rollupOptions: {
+        output: {
+          /* Three.js in a chunk of its own, shared by both scenes. Left to Rollup it
+             was folded into figures.ts, the first module they share, which moved it
+             out from under the budget script's deferred pattern. */
+          manualChunks: (id: string) => (id.includes('/node_modules/three/') ? 'three' : undefined),
+        },
+      },
+    },
   },
 });

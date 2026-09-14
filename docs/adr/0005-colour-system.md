@@ -65,3 +65,5 @@ hand when it changes.
 - `#BBD5DA` must never carry a meaningful UI boundary; those need 3:1.
 - `#FFFFFF` is available above the page ground, so raised surfaces lift by
   getting brighter rather than by casting shadows.
+- Dark mode reuses these measurements by swapping roles. Its in-between surfaces
+  are measured in [ADR 0013](0013-dark-mode.md).

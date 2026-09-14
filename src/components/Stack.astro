@@ -181,6 +181,11 @@ const ADR_BASE = `${REPO_URL}/blob/main/docs/adr`;
     object-position: left center;
   }
 
+  /* The logos are single-colour black SVGs and vanish on the dark sheet. */
+  :global(html[data-theme='dark']) .stack__logo {
+    filter: invert(1);
+  }
+
   .stack__why {
     margin: 0;
     max-width: var(--container-prose);

@@ -1,0 +1,84 @@
+<button
+  class="launcher theme-toggle"
+  type="button"
+  data-theme-toggle
+  aria-label="Switch to dark mode"
+>
+  <span class="launcher__mark theme-toggle__mark" aria-hidden="true"></span>
+  <span class="tip theme-toggle__tip" aria-hidden="true" data-theme-tip>Switch to dark mode.</span>
+</button>
+
+<script>
+  import { currentTheme, followSystemTheme, onThemeChange, setTheme } from '@/scripts/theme';
+
+  const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const tip = document.querySelector<HTMLElement>('[data-theme-tip]');
+
+  if (button && tip) {
+    const other = (): 'light' | 'dark' => (currentTheme() === 'dark' ? 'light' : 'dark');
+
+    // The label always names the theme a click would switch to.
+    const label = (): void => {
+      const text = `Switch to ${other()} mode`;
+      button.setAttribute('aria-label', text);
+      tip.textContent = `${text}.`;
+    };
+
+    label();
+    onThemeChange(label);
+    followSystemTheme();
+
+    let switching = false;
+    button.addEventListener('click', async () => {
+      if (switching) return;
+      switching = true;
+      await setTheme(other());
+      switching = false;
+    });
+  }
+</script>
+
+<style>
+  /* Keeps the dock bubble's appearance and moves it to the opposite corner. */
+  .theme-toggle {
+    top: auto;
+    right: auto;
+    bottom: max(var(--dock-right), env(safe-area-inset-bottom));
+    left: var(--dock-right);
+  }
+
+  /* Driven by the attribute the head script sets, so the right figure shows from
+     the first frame rather than after this component's script runs. */
+  .theme-toggle__mark {
+    --launcher-mark: url('/pacman.svg');
+  }
+
+  :global(html[data-theme='dark']) .theme-toggle__mark {
+    --launcher-mark: url('/ghost.svg');
+  }
+
+  /* Opens rightward, since the bubble sits against the left edge. */
+  .theme-toggle__tip {
+    top: 50%;
+    left: calc(100% + 0.85rem);
+    transform: translateY(-50%) translateX(-0.4rem);
+  }
+
+  .theme-toggle__tip::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-right-color: var(--color-ink);
+    transform: translateY(-50%);
+  }
+
+  .theme-toggle:hover .theme-toggle__tip,
+  .theme-toggle:focus-visible .theme-toggle__tip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+</style>

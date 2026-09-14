@@ -19,29 +19,37 @@ types into a Workers compile.
 
 ## Rendering model
 
-Everything renders to HTML at build time. Nine scripts ship, and only the first
-two run before paint:
+Everything renders to HTML at build time. Only the first two scripts run before
+paint:
 
 | Script | Size (gzip) | Loading |
 |---|---|---|
-| Intro skip flag | ~0.2 KB | Inline in `<head>`, must run before first paint |
+| Pre-paint flags (theme, dock, intro) | ~0.3 KB | Inline in `<head>`, must run before first paint |
 | Intro scramble | ~0.9 KB | Inline in `<body>` |
 | Header nav | ~0.3 KB | Inline module |
 | Cursor trail | ~0.6 KB | Inline module |
 | Dock | ~0.4 KB | Inline module |
+| Theme switch | 0.3 KB | Inline module |
+| `theme` | 0.9 KB | Shared by the switch, and by the scenes once they load |
 | Chase loader | 0.7 KB | Deferred module |
 | Ghost loader | 0.5 KB | Deferred module |
 | Terminal | 0.7 KB | Deferred module |
 | Stack sheet | 0.2 KB | Deferred module |
 | `dialog` + preload helper | 1.0 KB | Deferred, shared by the two dialogs |
-| `chase-scene` (Three.js) | 1.7 KB | Dynamic import behind an `IntersectionObserver` |
-| `ghost-scene` (Three.js) | 1.2 KB | Dynamic import behind an `IntersectionObserver` |
-| `three` | 129.4 KB | Dynamic, shared by both scenes |
+| `chase-scene` (Three.js) | 1.9 KB | Dynamic import behind an `IntersectionObserver` |
+| `ghost-scene` (Three.js) | 1.4 KB | Dynamic import behind an `IntersectionObserver` |
+| `figures` | 0.6 KB | Dynamic, the pacman and ghost geometry both scenes draw |
+| `three` | 132.3 KB | Dynamic, shared by both scenes, pinned to its own chunk |
 
 The Three.js chunk is never on the critical path. It is fetched only once a scene
 is near the viewport, and not at all when the visitor prefers reduced motion or
 the device reports fewer than 4 cores or 4 GB of memory. Both scenes share the
-one chunk, so the second costs 1.2 KB rather than another 129 KB.
+one chunk, so the second costs 1.4 KB rather than another 132 KB.
+
+`manualChunks` in the Astro config forces Three.js into a chunk named `three`.
+Left to Rollup it was folded into `figures`, the first module the scenes share,
+which renamed it out from under the budget script and counted all of it as critical
+path.
 
 Figures move with the build. `pnpm run budget -- --markdown` prints the current
 ones; see [performance.md](performance.md).
@@ -73,13 +81,28 @@ Three token groups are shared across systems and cannot be changed in isolation:
 
 - **Easing curves** are used by CSS transitions, the intro, and the Three.js
   camera. One definition, three consumers.
-- **Colour tokens** are read by the WebGL scenes as hex literals in
-  `chase-scene.ts` and `ghost-scene.ts`. Changing the palette means changing all
-  three files.
+- **Colour tokens** are read at runtime by the WebGL scenes through `theme.ts`,
+  and read again on every theme change, so the palette has one source.
 - **Accent tokens** are split by the surface they sit on. `--color-signal` and
   `--color-signal-text` are measured against the page ground;
   `--color-signal-on-ink` exists because neither clears AA on `--color-ink`. The
   ratios are in [ADR 0005](adr/0005-colour-system.md) and commented at the token.
+  Dark mode swaps them by role; see [ADR 0013](adr/0013-dark-mode.md).
+
+## Theme
+
+Light and dark mode are one `data-theme` attribute on `<html>`. An inline script sets it
+before first paint: a saved choice wins, otherwise the system setting. Dark mode
+redefines the colour tokens in a single unlayered block, so components follow
+without overrides of their own.
+
+Two surfaces are the exception. The intro curtain and the terminal read dark in
+both themes, so each pins the light palette locally.
+
+`theme.ts` owns every change after load. It saves the choice, runs the dissolve,
+and fires `themechange`, which the two scenes listen for because WebGL cannot read
+CSS. Setting the attribute any other way skips that event and leaves the scenes
+painting the old palette.
 
 ## Motion
 
@@ -111,8 +134,10 @@ are contracts between two components. Renaming one silently disables the other.
   sets `animation: none`, because shortening an infinite or scroll-driven
   animation leaves it parked mid-cycle rather than stopping it.
 - The intro is skipped entirely under reduced motion; the bundle never runs.
-- Lighthouse only ever sees the page at rest, so the two dialogs are checked by
-  hand against the contrast ceilings in ADR 0005.
+- The theme switch names the theme a click would switch to, in both its accessible
+  name and its tooltip. Under reduced motion it switches instantly, with no dissolve.
+- Lighthouse only ever sees the page at rest, in one theme, so the two dialogs and
+  dark mode are checked by hand against ADR 0005 and ADR 0013.
 
 ## The API
 
@@ -151,3 +176,6 @@ silently loses the player's case.
 - The hero is `display: none` below 40rem. It carries no text, so nothing is
   hidden from a crawler or a screen reader; the `h1` sits in the section below it
   at every width. See [ADR 0008](adr/0008-hide-hero-copy-on-mobile.md).
+- The theme dissolve covers the page rather than resampling it. Browsers do not
+  expose page pixels to script, and rasterising the DOM would still miss the WebGL
+  canvases.

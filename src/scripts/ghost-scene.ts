@@ -1,9 +1,9 @@
 /**
- * The ghost that tracks the pointer in the contact section.
+ * The figure that tracks the pointer in the contact section: a ghost in light
+ * mode and a pacman in dark mode.
  */
 import {
   BufferGeometry,
-  Color,
   Float32BufferAttribute,
   Group,
   LineBasicMaterial,
@@ -13,53 +13,35 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
+import { createPacman, ghostOutline } from './figures';
+import { currentTheme, onThemeChange, token } from './theme';
 
-const HALF_W = 1;
-const DOME_Y = 0.55;
-const SKIRT_Y = -1.15;
+const GHOST = {
+  halfWidth: 1,
+  domeY: 0.55,
+  skirtY: -1.15,
+  waves: 4,
+  amplitude: 0.17,
+  arcSteps: 44,
+  skirtSteps: 56,
+} as const;
+
 const DEPTH = 0.6;
-const ARC_STEPS = 44;
-const SKIRT_WAVES = 4;
-const SKIRT_STEPS = 56;
-const SKIRT_AMP = 0.17;
 const RIB_EVERY = 7;
 const BOB = 0.07;
+const PACMAN_RADIUS = 1.3;
 
-const TOP = DOME_Y + HALF_W;
-const BOTTOM = SKIRT_Y - SKIRT_AMP;
+const TOP = GHOST.domeY + GHOST.halfWidth;
+const BOTTOM = GHOST.skirtY - GHOST.amplitude;
 const CENTRE_Y = (TOP + BOTTOM) / 2;
 const HALF_H = (TOP - BOTTOM) / 2;
 
-const REACH = Math.hypot(HALF_W + DEPTH / 2, HALF_H) + BOB + 0.18;
-
-const INK = new Color(0x101a1c);
-const SIGNAL = new Color(0xff0000);
-
-type Point = [number, number];
-
-function outline(): Point[] {
-  const points: Point[] = [];
-
-  for (let i = 0; i <= ARC_STEPS; i++) {
-    const angle = Math.PI - (i / ARC_STEPS) * Math.PI;
-    points.push([Math.cos(angle) * HALF_W, DOME_Y + Math.sin(angle) * HALF_W]);
-  }
-
-  points.push([HALF_W, SKIRT_Y]);
-
-  for (let i = 1; i <= SKIRT_STEPS; i++) {
-    const t = i / SKIRT_STEPS;
-    points.push([
-      HALF_W - t * HALF_W * 2,
-      SKIRT_Y + Math.sin(t * Math.PI * SKIRT_WAVES) * SKIRT_AMP,
-    ]);
-  }
-
-  return points;
-}
+/* Fitted to the ghost, the larger of the two figures, so switching theme never
+   changes the framing. */
+const REACH = Math.hypot(GHOST.halfWidth + DEPTH / 2, HALF_H) + BOB + 0.18;
 
 function bodyGeometry(): BufferGeometry {
-  const points = outline();
+  const points = ghostOutline(GHOST);
   const front = DEPTH / 2;
   const back = -DEPTH / 2;
   const positions: number[] = [];
@@ -100,28 +82,56 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
   const scene = new Scene();
   const camera = new PerspectiveCamera(38, 1, 0.1, 100);
 
+  // Both figures hang off one group, so they share the bob and the pointer tilt.
+  const figure = new Group();
+  scene.add(figure);
+
+  const inkLines = new LineBasicMaterial();
+  const signalLines = new LineBasicMaterial();
+
   const ghost = new Group();
-  scene.add(ghost);
-
-  const shape = new Group();
-  shape.position.y = -CENTRE_Y;
-  ghost.add(shape);
-
-  shape.add(new LineSegments(bodyGeometry(), new LineBasicMaterial({ color: INK })));
+  ghost.position.y = -CENTRE_Y;
+  ghost.add(new LineSegments(bodyGeometry(), inkLines));
+  figure.add(ghost);
 
   const eyes = new Group();
   eyes.position.z = DEPTH / 2 + 0.02;
-  shape.add(eyes);
+  ghost.add(eyes);
 
   for (const side of [-1, 1]) {
-    const socket = new LineSegments(ringGeometry(0.24), new LineBasicMaterial({ color: INK }));
+    const socket = new LineSegments(ringGeometry(0.24), inkLines);
     socket.position.set(side * 0.36, 0.62, 0);
     eyes.add(socket);
 
-    const pupil = new LineSegments(ringGeometry(0.09), new LineBasicMaterial({ color: SIGNAL }));
+    const pupil = new LineSegments(ringGeometry(0.09), signalLines);
     pupil.position.set(side * 0.36, 0.62, 0.01);
     eyes.add(pupil);
   }
+
+  const pacman = createPacman(PACMAN_RADIUS, DEPTH);
+  const hunter = new Group();
+  hunter.add(pacman.lines);
+
+  const pacmanEye = new LineSegments(ringGeometry(0.13), signalLines);
+  pacmanEye.position.set(0.2, 0.7, DEPTH / 2 + 0.02);
+  hunter.add(pacmanEye);
+  figure.add(hunter);
+
+  /* Colours come from the tokens and are read again on every theme change,
+     so the scene can never drift from the palette. */
+  const paint = (): void => {
+    const ink = token('--color-ink');
+    inkLines.color.set(ink);
+    pacman.material.color.set(ink);
+    signalLines.color.set(token('--color-signal'));
+
+    const dark = currentTheme() === 'dark';
+    ghost.visible = !dark;
+    hunter.visible = dark;
+  };
+
+  paint();
+  onThemeChange(paint);
 
   let rect = canvas.getBoundingClientRect();
   const pointer = { x: 0, y: 0 };
@@ -150,13 +160,17 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
     frame = requestAnimationFrame(tick);
     clock = now / 1000;
 
-    ghost.position.y = Math.sin(clock * 1.4) * BOB;
-    ghost.rotation.y = MathUtils.lerp(ghost.rotation.y, pointer.x * 0.55, 0.06);
-    ghost.rotation.x = MathUtils.lerp(ghost.rotation.x, pointer.y * 0.32, 0.06);
-    ghost.rotation.z = Math.sin(clock * 0.9) * 0.04;
+    figure.position.y = Math.sin(clock * 1.4) * BOB;
+    figure.rotation.y = MathUtils.lerp(figure.rotation.y, pointer.x * 0.55, 0.06);
+    figure.rotation.x = MathUtils.lerp(figure.rotation.x, pointer.y * 0.32, 0.06);
+    figure.rotation.z = Math.sin(clock * 0.9) * 0.04;
 
-    eyes.position.x = MathUtils.lerp(eyes.position.x, pointer.x * 0.08, 0.1);
-    eyes.position.y = MathUtils.lerp(eyes.position.y, -pointer.y * 0.06, 0.1);
+    if (hunter.visible) {
+      pacman.draw(0.08 + Math.abs(Math.sin(clock * 7)) * 0.5);
+    } else {
+      eyes.position.x = MathUtils.lerp(eyes.position.x, pointer.x * 0.08, 0.1);
+      eyes.position.y = MathUtils.lerp(eyes.position.y, -pointer.y * 0.06, 0.1);
+    }
 
     renderer.render(scene, camera);
   };
