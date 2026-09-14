@@ -92,7 +92,7 @@ Three token groups are shared across systems and cannot be changed in isolation:
 ## Theme
 
 Light and dark mode are one `data-theme` attribute on `<html>`. An inline script sets it
-before first paint: a saved choice wins, otherwise the system setting. Dark mode
+before first paint: a saved choice wins, otherwise light mode. Dark mode
 redefines the colour tokens in a single unlayered block, so components follow
 without overrides of their own.
 
