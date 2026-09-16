@@ -355,26 +355,4 @@ html[data-theme="dark"] {
       scroll-behavior: auto !important;
     }
   }
-
-  /* The hero is hidden below 40rem, so in document order the tool rail would
-     open the page above the name it belongs under. Reordered rather than
-     duplicated, so the markup stays single-source. */
-  @media (width < 40rem) {
-    main {
-      display: flex;
-      flex-direction: column;
-    }
-
-    main > * {
-      order: 3;
-    }
-
-    main > .intro {
-      order: 1;
-    }
-
-    main > .rail {
-      order: 2;
-    }
-  }
 }
