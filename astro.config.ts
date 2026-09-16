@@ -24,14 +24,6 @@ export default defineConfig({
       fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
     },
     {
-      name: 'Figtree',
-      cssVariable: '--font-figtree',
-      provider: fontProviders.google(),
-      weights: [900],
-      subsets: ['latin'],
-      fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
-    },
-    {
       name: 'JetBrains Mono',
       cssVariable: '--font-jetbrains-mono',
       provider: fontProviders.google(),

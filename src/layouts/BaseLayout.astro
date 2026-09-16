@@ -1,16 +1,15 @@
 ---
 import { Font } from 'astro:assets';
+import CursorTrail from '@/components/CursorTrail.astro';
+import Dock from '@/components/Dock.astro';
 import Footer from '@/components/Footer.astro';
 import Header from '@/components/Header.astro';
 import Intro from '@/components/Intro.astro';
 import Seo from '@/components/Seo.astro';
-import '@/styles/global.css';
-import CursorTrail from '@/components/CursorTrail.astro';
-import Dock from '@/components/Dock.astro';
-import MissedMix from '@/components/MissedMix.astro';
 import Stack from '@/components/Stack.astro';
 import Terminal from '@/components/Terminal.astro';
 import ThemeToggle from '@/components/ThemeToggle.astro';
+import '@/styles/global.css';
 
 interface Props {
   title?: string;
@@ -31,7 +30,6 @@ const { title, description } = Astro.props;
     <Font cssVariable="--font-space-grotesk" preload />
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
-    <Font cssVariable="--font-figtree" />
 
     <Seo title={title} description={description} />
 
@@ -58,12 +56,12 @@ const { title, description } = Astro.props;
         try {
           const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
           if (reduced || sessionStorage.getItem('intro') === 'seen') {
-            document.documentElement.dataset.intro = 'skip';
+            root.dataset.intro = 'skip';
           } else {
             sessionStorage.setItem('intro', 'seen');
           }
         } catch {
-          document.documentElement.dataset.intro = 'skip';
+          root.dataset.intro = 'skip';
         }
       })();
     </script>
@@ -89,7 +87,6 @@ const { title, description } = Astro.props;
     <CursorTrail />
     <Terminal />
     <Stack />
-    <MissedMix />
     <Dock />
     <ThemeToggle />
   </body>

@@ -27,37 +27,15 @@ import Wordmark from '@/components/Wordmark.astro';
       </button>
 
       <div id="primary-nav" class="nav__panel">
-        <ul class="nav__list">
+        <ul class="nav__list" style={`--n: ${NAV_LINKS.length}`}>
           {
-            NAV_LINKS.map(({ href, label, note }, i) =>
-              href ? (
-                <li>
-                  <a href={href} class="link-slide label text-ink-muted">
-                    {label}
-                  </a>
-                </li>
-              ) : (
-                <li class="nav__disclosure">
-                  <button
-                    type="button"
-                    class="link-slide label text-ink-muted nav__trigger"
-                    aria-expanded="false"
-                    aria-controls={`nav-note-${i}`}
-                    data-nav-trigger
-                  >
-                    {label}
-                  </button>
-                  <button
-                    type="button"
-                    class="nav__note"
-                    id={`nav-note-${i}`}
-                    data-nav-note
-                  >
-                    {note}
-                  </button>
-                </li>
-              ),
-            )
+            NAV_LINKS.map(({ href, label }, i) => (
+              <li style={`--i: ${i}`}>
+                <a href={href} class="link-slide label text-ink-muted">
+                  {label}
+                </a>
+              </li>
+            ))
           }
         </ul>
       </div>
@@ -86,38 +64,6 @@ import Wordmark from '@/components/Wordmark.astro';
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') setOpen(false);
-    });
-  }
-
-  const trigger = document.querySelector<HTMLButtonElement>('[data-nav-trigger]');
-  const note = document.querySelector<HTMLElement>('[data-nav-note]');
-
-  if (trigger && note) {
-    const showNote = (open: boolean): void => {
-      trigger.setAttribute('aria-expanded', String(open));
-      note.dataset.open = String(open);
-    };
-
-    trigger.addEventListener('click', (event) => {
-      event.stopPropagation();
-      showNote(trigger.getAttribute('aria-expanded') !== 'true');
-    });
-
-    /* Toggles the dock the note points at. stopPropagation matters: without it
-       this same click reaches the dock's own outside-click handler, which would
-       shut the dock the instant we opened it. The synthetic click on the toggle
-       is fine, since its target is inside .launcher. */
-    note.addEventListener('click', (event) => {
-      event.stopPropagation();
-      showNote(false);
-      document.querySelector<HTMLButtonElement>('[data-dock-toggle]')?.click();
-    });
-
-    // Anywhere else dismisses it, including the burger and the other links.
-    document.addEventListener('click', () => showNote(false));
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') showNote(false);
     });
   }
 </script>
@@ -172,64 +118,6 @@ import Wordmark from '@/components/Wordmark.astro';
     display: none;
   }
 
-  .nav__disclosure {
-    position: relative;
-  }
-
-  /* Resets only the button chrome. Setting font here would beat the .label
-     class on the same element, since Astro's scoped styles are unlayered and
-     .label lives in the components layer. */
-  .nav__trigger {
-    padding: 0;
-    background: none;
-    border: 0;
-    cursor: pointer;
-  }
-
-  /* visibility rather than display, so the panel can transition. Delayed on the
-     way out so it does not vanish before the fade finishes. */
-  .nav__note {
-    position: absolute;
-    top: calc(100% + 0.9rem);
-    right: 0;
-    z-index: 1;
-    width: min(20rem, 70vw);
-    margin: 0;
-    padding: 0.9rem 1.1rem;
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    line-height: 1.55;
-    letter-spacing: normal;
-    text-transform: none;
-    text-align: left;
-    color: var(--color-surface);
-    background-color: var(--color-ink);
-    /* Transparent at the full width, so colouring it on hover shifts nothing. */
-    border: 3px solid transparent;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-0.4rem);
-    transition:
-      opacity 0.2s linear,
-      transform 0.26s var(--ease-out-quint),
-      border-color 0.2s linear,
-      visibility 0s linear 0.26s;
-  }
-
-  .nav__note[data-open='true'] {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-    transition-delay: 0s;
-  }
-
-  .nav__note:hover,
-  .nav__note:focus-visible {
-    border-color: var(--color-signal);
-  }
-
   @media (width < 40rem) {
     .nav__burger {
       display: grid;
@@ -260,102 +148,60 @@ import Wordmark from '@/components/Wordmark.astro';
       transform: translateY(-7px) rotate(-45deg);
     }
 
-      .nav__panel {
-        position: absolute;
-        inset: 100% 0 auto 0;
-        display: grid;
-        grid-template-rows: 0fr;
-        background-color: var(--color-surface);
-        transition: grid-template-rows 0.34s var(--ease-out-quint);
-      }
+    .nav__panel {
+      position: absolute;
+      inset: 100% 0 auto 0;
+      display: grid;
+      grid-template-rows: 0fr;
+      background-color: var(--color-surface);
+      transition: grid-template-rows 0.34s var(--ease-out-quint);
+    }
 
-      .nav__panel[data-open='true'] {
-        grid-template-rows: 1fr;
-        border-bottom: 1px solid var(--color-surface-muted);
-      }
+    .nav__panel[data-open='true'] {
+      grid-template-rows: 1fr;
+      border-bottom: 1px solid var(--color-surface-muted);
+    }
 
-      .nav__list {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0;
-        overflow: hidden;
+    .nav__list {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+      overflow: hidden;
+      perspective: 900px;
+      visibility: hidden;
+      transition: visibility 0s linear 0.42s;
+    }
 
-        perspective: 900px;
-        visibility: hidden;
-        transition: visibility 0s linear 0.42s;
-      }
+    .nav__panel[data-open='true'] .nav__list {
+      visibility: visible;
+      transition-delay: 0s;
+    }
 
-      .nav__panel[data-open='true'] .nav__list {
-        visibility: visible;
-        transition-delay: 0s;
-      }
+    /* Items fold away bottom first and open top first. */
+    .nav__list li {
+      width: 100%;
+      border-top: 1px solid var(--color-surface-muted);
+      opacity: 0;
+      transform-origin: top center;
+      transform: rotateX(-88deg);
+      backface-visibility: hidden;
+      transition:
+        opacity 0.2s linear,
+        transform 0.44s var(--ease-out-quint);
+      transition-delay: calc((var(--n) - 1 - var(--i)) * 0.03s);
+    }
 
-      .nav__list li {
-        width: 100%;
-        border-top: 1px solid var(--color-surface-muted);
-        opacity: 0;
-        transform-origin: top center;
-        transform: rotateX(-88deg);
-        backface-visibility: hidden;
-        transition:
-          opacity 0.2s linear,
-          transform 0.44s var(--ease-out-quint);
-      }
+    .nav__panel[data-open='true'] li {
+      opacity: 1;
+      transform: rotateX(0deg);
+      transition-delay: calc((var(--i) + 1) * 0.05s);
+    }
 
-      .nav__panel[data-open='true'] li {
-        opacity: 1;
-        transform: rotateX(0deg);
-      }
-
-      .nav__list li:nth-child(1) {
-        transition-delay: 0.09s;
-      }
-      .nav__list li:nth-child(2) {
-        transition-delay: 0.06s;
-      }
-      .nav__list li:nth-child(3) {
-        transition-delay: 0.03s;
-      }
-      .nav__list li:nth-child(4) {
-        transition-delay: 0s;
-      }
-
-      .nav__panel[data-open='true'] li:nth-child(1) {
-        transition-delay: 0.05s;
-      }
-      .nav__panel[data-open='true'] li:nth-child(2) {
-        transition-delay: 0.1s;
-      }
-      .nav__panel[data-open='true'] li:nth-child(3) {
-        transition-delay: 0.15s;
-      }
-      .nav__panel[data-open='true'] li:nth-child(4) {
-        transition-delay: 0.2s;
-      }
-
-      .nav__list a,
-      .nav__trigger {
-        display: block;
-        width: 100%;
-        padding: 1rem 1.5rem;
-        text-align: left;
-      }
-
-      /* In the fold-out panel the note sits in the flow, so display rather than
-         visibility: a hidden-but-present panel would leave a gap in the menu. */
-      .nav__note {
-        position: static;
-        display: none;
-        width: auto;
-        margin: 0 1.5rem 1rem;
-        opacity: 1;
-        visibility: visible;
-        transform: none;
-        transition: none;
-      }
-
-      .nav__note[data-open='true'] {
-        display: block;
-      }
+    .nav__list a {
+      display: block;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      text-align: left;
+    }
   }
 </style>

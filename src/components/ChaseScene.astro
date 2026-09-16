@@ -3,30 +3,21 @@
 </div>
 
 <script>
+  import { canRenderScene, onceVisible } from '@/scripts/lazy';
+
   const stage = document.querySelector<HTMLElement>('[data-chase]');
   const canvas = document.querySelector<HTMLCanvasElement>('[data-chase-canvas]');
-  const nav = navigator as Navigator & { deviceMemory?: number };
 
-  /* Mirrors the breakpoint that hides the panel. Without the width check the
-     127 KB scene would download for an element nobody can see. */
-  const wanted =
-    !matchMedia('(prefers-reduced-motion: reduce)').matches &&
-    matchMedia('(width >= 64rem)').matches;
-  const capable = (nav.deviceMemory ?? 8) >= 4 && (nav.hardwareConcurrency ?? 8) >= 4;
-
-  if (stage && canvas && wanted && capable) {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        observer.disconnect();
+  if (stage && canvas && canRenderScene()) {
+    onceVisible(
+      stage,
+      () => {
         import('@/scripts/chase-scene').then(({ initChaseScene }) => {
           initChaseScene(canvas, stage);
         });
       },
       { rootMargin: '200px' },
     );
-
-    observer.observe(stage);
   }
 </script>
 

@@ -1,9 +1,12 @@
 /**
- * Every piece of site content. Components read from here and never hardcode copy.
+ * Every piece of page copy, imported by the components that render it and by the
+ * terminal API. Short interface labels (tooltips, dialog titles) stay beside the
+ * markup they label.
  */
 export const SITE = {
   name: 'David Koen',
   title: 'David Koen',
+  tagline: 'Tech Enthusiast',
   description:
     'Digital Project Manager and Web Developer based in South Africa. In web since 2017, pairing hands-on frontend and backend development with sprint planning, scope and estimation, and delivery ownership from brief through launch.',
   locale: 'en_ZA',
@@ -16,24 +19,13 @@ export const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURICompon
 
 export const REPO_URL = 'https://github.com/TheDavidKoen/temp-site';
 
-/* note instead of href marks an item that opens a panel rather than jumping to
-   a section. Exactly one entry uses it. */
-interface NavLink {
-  readonly label: string;
-  readonly href?: string;
-  readonly note?: string;
-}
-
-export const NAV_LINKS: readonly NavLink[] = [
+export const NAV_LINKS = [
   { href: '#about', label: 'About' },
   { href: '#skills', label: 'Skills' },
   { href: '#experience', label: 'Experience' },
-  {
-    label: 'Work',
-    note: 'For examples of my production, please click the "Explore more" bubble in the top right of your screen.',
-  },
+  { href: '#work', label: 'Work' },
   { href: '#contact', label: 'Contact' },
-];
+] as const;
 
 export const SOCIAL_LINKS = [
   { href: 'https://github.com/TheDavidKoen', label: 'GitHub' },
@@ -41,8 +33,24 @@ export const SOCIAL_LINKS = [
   { href: 'https://codepen.io/codepen-bragi', label: 'CodePen' },
 ] as const;
 
+export const INTRO = {
+  lede: 'I lead delivery without losing the technical thread. I translate between marketing, design and engineering, and I plan work in stages across a project’s full scope.',
+  primary: { href: '#experience', label: 'View experience' },
+  secondary: { href: '#contact', label: 'How I fit in' },
+} as const;
+
+export const ABOUT = {
+  lead: 'Most projects don’t fail on code. They fail on the handoffs, the brief that lost a requirement, the estimate nobody stress-tested, the dependency nobody flagged until it blocked three people.',
+  body: 'I’ve spent years on the building side of those handoffs: agency client work, in-house maintenance cycles, internal frameworks, and a year teaching developers how to structure work they hadn’t met yet. That background means I can read an engineering estimate, ask the question that surfaces the hidden dependency, and explain the answer to a marketing stakeholder without either side losing the thread.',
+  facts: [
+    { label: 'Based in', value: SITE.location },
+    { label: 'Currently', value: 'Web Developer Lead' },
+    { label: 'Professionally in web since', value: '2017' },
+  ],
+} as const;
+
 export const MARQUEE_PHRASES = [
-  'Tech Enthusiast',
+  SITE.tagline,
   'Coffee Lover',
   'JRR Tolkien Nerd',
   'Book Worm',
@@ -153,6 +161,62 @@ export const EXPERIENCE_NARRATIVE = [
   'Through this experience, I have developed a solid understanding of what it takes to build functional digital products and services, along with the ability to translate that technical knowledge for non-technical stakeholders and to lead productive discussions with cross-functional teams.',
   'As AI-driven tools continue to reshape how consumers and professionals work, I’ve embraced this shift while remaining committed to continuous skill development, so that I stay among those directing this technological transformation rather than merely riding its wave.',
 ] as const;
+
+export const WORK = {
+  lead: 'Through the years I have planned, developed, deployed and maintained countless web-related products. As someone who has a personal passion for art in its many mediums, I find it fascinating and exciting to hone an individual’s identity into their production.',
+  body: 'Below should hopefully give an idea of my work.',
+  repoLabel: 'GitHub',
+  liveLabel: 'View project',
+  pendingNote: 'Still in the pipeline. Watch this space for developments.',
+} as const;
+
+/* slug names the logo pair in src/assets/work. A project without live shows
+   WORK.pendingNote in place of a link. */
+interface Project {
+  readonly slug: string;
+  readonly name: string;
+  readonly description: readonly string[];
+  readonly repo: string;
+  readonly live?: string;
+}
+
+export const PROJECTS: readonly Project[] = [
+  {
+    slug: 'missed-mix',
+    name: 'Missed Mix',
+    description: [
+      'Missed Mix is an idea for a music application that encourages people to meet through nothing more, or less, than one another’s music taste.',
+      'The Spotify Web API supplies the catalogue, so a profile is built from real songs, artists and albums. From there a server-side state machine, held in MongoDB and gated by signed sessions, keeps the messaging portal between two accounts sealed until both have made the handshake.',
+    ],
+    repo: 'https://github.com/TheDavidKoen/missed-mix',
+    live: 'https://missed-mix.pages.dev/',
+  },
+  {
+    slug: 'vanesse',
+    name: 'Vanessë',
+    description: [
+      'Vanessë is a custom, open-source VS Code theme that uses beautiful colour tones to make an IDE that is relaxing to work with.',
+      'Its lemon, lime, violet and blue tones sit on a deep night sky, with 82 matching file icons. Every colour is generated from TypeScript and tested against WCAG AA contrast in CI, so the palette stays easy on the eyes through longer code sprints.',
+    ],
+    repo: 'https://github.com/TheDavidKoen/vanesse',
+    live: 'https://open-vsx.org/extension/davidkoen/vanesse',
+  },
+  {
+    slug: 'deadwax',
+    name: 'Deadwax',
+    description: [
+      'Deadwax is an idea for an agentic music librarian built with LangChain and Google Gemini. It answers natural-language questions about a personal listening history and assembles playlists against hard constraints.',
+      'It is still a work in progress, and the vision is a platform that builds playlists for users based on their prompts.',
+    ],
+    repo: 'https://github.com/TheDavidKoen/deadwax',
+  },
+];
+
+export const CONTACT = {
+  heading: 'Looking for someone who can hold both sides of the brief',
+  body: 'I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.',
+  cta: 'Let’s get in touch',
+} as const;
 
 interface StackEntry {
   readonly layer: string;

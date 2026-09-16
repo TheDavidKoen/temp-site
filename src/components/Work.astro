@@ -1,0 +1,446 @@
+---
+import { PROJECTS, WORK } from '@shared/content';
+import Button from '@/components/Button.astro';
+
+const LOGOS = import.meta.glob<string>('../assets/work/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+const MAX_HEIGHT = 3.25;
+const MAX_WIDTH = 14;
+
+const viewBox = (svg: string): number[] =>
+  (svg.match(/viewBox="([^"]+)"/)?.[1] ?? '').split(' ').map(Number);
+
+/* Each project has a mark and a word file cut from one lockup with a shared
+   vertical range, so their viewBoxes give both widths and the gap between them
+   in the same units. The lockup is scaled to fit MAX_WIDTH by MAX_HEIGHT. */
+function logo(slug: string) {
+  const mark = LOGOS[`../assets/work/${slug}-mark.svg`];
+  const word = LOGOS[`../assets/work/${slug}-word.svg`];
+  if (!mark || !word) throw new Error(`Missing logo files for ${slug}`);
+
+  const [markX, , markW, height] = viewBox(mark);
+  const [wordX, , wordW] = viewBox(word);
+  const gap = wordX - (markX + markW);
+  const scale = Math.min(MAX_HEIGHT / height, MAX_WIDTH / (markW + gap + wordW));
+  const rem = (units: number): string => `${(units * scale).toFixed(3)}rem`;
+
+  return {
+    mark,
+    word,
+    style: `--logo-h: ${rem(height)}; --mark-w: ${rem(markW)}; --gap: ${rem(gap)}; --word-w: ${rem(wordW)}`,
+  };
+}
+---
+
+<ul class="work" role="list">
+  {
+    PROJECTS.map((project, i) => {
+      const { mark, word, style } = logo(project.slug);
+      const id = `project-${project.slug}`;
+
+      return (
+        <li class="project" style={`--col: ${i % 3}`} data-project>
+          <h3 class="project__title">
+            <button
+              class="project__head"
+              type="button"
+              aria-expanded="false"
+              aria-controls={id}
+              data-project-toggle
+            >
+              <span class="sr-only">{project.name}</span>
+              <span class="project__logo" style={style} aria-hidden="true">
+                <span class="project__mark" set:html={mark} />
+                <span class="project__word" set:html={word} />
+              </span>
+              <span class="project__icon" aria-hidden="true" />
+            </button>
+          </h3>
+
+          {/* Collapsed panels are inert so their links stay out of the tab order. */}
+          <div class="project__panel" id={id} inert data-project-panel>
+            <div class="project__clip">
+              <div class="project__body">
+                {project.description.map((paragraph) => (
+                  <p class="project__text">{paragraph}</p>
+                ))}
+
+                <div class="project__links">
+                  <Button href={project.repo} variant="outline" external>
+                    {WORK.repoLabel}
+                  </Button>
+                  {project.live ? (
+                    <Button href={project.live} external>
+                      {WORK.liveLabel}
+                    </Button>
+                  ) : (
+                    <span class="pending" data-pending>
+                      <Button aria-describedby={`${id}-note`} data-pending-trigger>
+                        {WORK.liveLabel}
+                      </Button>
+                      <span class="tip pending__tip" id={`${id}-note`} role="tooltip">
+                        {WORK.pendingNote}
+                      </span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<script>
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-project]')];
+  const notes = [...document.querySelectorAll<HTMLElement>('[data-pending]')];
+
+  const setOpen = (card: HTMLElement, open: boolean): void => {
+    card.toggleAttribute('data-open', open);
+    card.removeAttribute('data-settled');
+    card.querySelector('[data-project-toggle]')?.setAttribute('aria-expanded', String(open));
+    const panel = card.querySelector<HTMLElement>('[data-project-panel]');
+    if (panel) panel.inert = !open;
+  };
+
+  /* Everything except the card or note the click landed in closes, which is
+     also what keeps a single card open at a time. */
+  const closeAll = (keepCard?: Element | null, keepNote?: Element | null): void => {
+    for (const card of cards) {
+      if (card !== keepCard && card.hasAttribute('data-open')) setOpen(card, false);
+    }
+    for (const note of notes) {
+      if (note !== keepNote) note.removeAttribute('data-open');
+    }
+  };
+
+  for (const card of cards) {
+    const toggle = card.querySelector<HTMLButtonElement>('[data-project-toggle]');
+    const panel = card.querySelector<HTMLElement>('[data-project-panel]');
+    if (!toggle || !panel) continue;
+
+    toggle.addEventListener('click', () => setOpen(card, !card.hasAttribute('data-open')));
+
+    /* The panel only clips while it animates. Once open it lets content spill,
+       so the pipeline note can rise above the card's text. */
+    panel.addEventListener('transitionend', (event) => {
+      if (event.target === panel && card.hasAttribute('data-open')) {
+        card.setAttribute('data-settled', '');
+      }
+    });
+  }
+
+  // Tapping toggles the note, for touch screens where there is no hover.
+  for (const note of notes) {
+    note.querySelector('[data-pending-trigger]')?.addEventListener('click', () => {
+      note.toggleAttribute('data-open');
+    });
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    closeAll(target?.closest('[data-project]'), target?.closest('[data-pending]'));
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeAll();
+  });
+</script>
+
+<style>
+  .work {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    /* Start, not stretch, so opening one card does not pull its row neighbours
+       taller with it. */
+    align-items: start;
+  }
+
+  @media (width >= 40rem) {
+    .work {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (width >= 64rem) {
+    .work {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .project {
+    background-color: var(--color-surface-raised);
+    border: 1px solid var(--color-surface-muted);
+    border-radius: 0.75rem;
+    transition:
+      transform 0.28s var(--ease-out-quint),
+      box-shadow 0.28s var(--ease-out-quint),
+      border-color 0.28s linear;
+  }
+
+  .project:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--color-scrim) 14%, transparent);
+  }
+
+  .project[data-open] {
+    border-color: var(--color-signal);
+  }
+
+  .project[data-settled] {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* The entrance animates translate, not transform, so it never fights the
+     hover lift. Staggered by column. */
+  @supports (animation-timeline: view()) {
+    .project {
+      animation: project-in linear both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--col) * 12%) entry calc(70% + var(--col) * 12%);
+    }
+  }
+
+  @keyframes project-in {
+    from {
+      opacity: 0;
+      translate: 0 2rem;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  .project__title {
+    margin: 0;
+  }
+
+  .project__head {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 1.75rem 3rem;
+    color: var(--color-ink);
+    background: none;
+    border: 0;
+    border-radius: 0.75rem;
+    cursor: pointer;
+  }
+
+  .project__icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 1rem;
+    height: 1rem;
+    background-color: var(--color-ink-muted);
+    mask: url('/plus.svg') center / contain no-repeat;
+    transition:
+      transform 0.46s var(--ease-spring),
+      background-color 0.2s linear;
+  }
+
+  .project__head:hover .project__icon {
+    background-color: var(--color-signal);
+  }
+
+  /* Matches the dock toggle: the plus unwinds into a cross. */
+  .project[data-open] .project__icon {
+    transform: rotate(135deg);
+    background-color: var(--color-signal);
+  }
+
+  /* A fixed box, so every card's head is the same height whatever the logo's
+     proportions. Centred, so the mark glides to the middle as the word folds. */
+  .project__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 3.25rem;
+  }
+
+  .project__mark,
+  .project__word {
+    display: block;
+    flex-shrink: 0;
+    height: var(--logo-h);
+  }
+
+  .project__logo :global(svg) {
+    display: block;
+    height: var(--logo-h);
+  }
+
+  .project__mark,
+  .project__mark :global(svg) {
+    width: var(--mark-w);
+  }
+
+  .project__word :global(svg) {
+    width: var(--word-w);
+  }
+
+  .project__mark {
+    transition: transform 0.5s var(--ease-spring);
+  }
+
+  .project:hover .project__mark {
+    transform: rotate(-5deg);
+  }
+
+  .project[data-open] .project__mark {
+    transform: scale(1.12);
+  }
+
+  .project[data-open]:hover .project__mark {
+    transform: scale(1.12) rotate(-5deg);
+  }
+
+  /* Folds from the right: the svg keeps its width while its box narrows. */
+  .project__word {
+    width: var(--word-w);
+    margin-left: var(--gap);
+    overflow: hidden;
+    transition:
+      width 0.5s var(--ease-out-quint),
+      margin-left 0.5s var(--ease-out-quint),
+      opacity 0.3s linear 0.1s;
+  }
+
+  .project[data-open] .project__word {
+    width: 0;
+    margin-left: 0;
+    opacity: 0;
+    transition:
+      width 0.5s var(--ease-out-quint),
+      margin-left 0.5s var(--ease-out-quint),
+      opacity 0.2s linear;
+  }
+
+  /* Animating the row from 0fr to 1fr grows the panel to its content height
+     without measuring it in script. */
+  .project__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.45s var(--ease-out-quint);
+  }
+
+  .project[data-open] .project__panel {
+    grid-template-rows: 1fr;
+  }
+
+  .project__clip {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .project[data-settled] .project__clip {
+    overflow: visible;
+  }
+
+  /* Spacing sits on this child rather than the clip, or the collapsed row would
+     keep its height. The side margins leave room for focus outlines. */
+  .project__body {
+    margin-inline: 1.5rem;
+    padding-block: 1.25rem 1.5rem;
+    border-top: 1px solid var(--color-surface-muted);
+    opacity: 0;
+    translate: 0 -0.5rem;
+    transition:
+      opacity 0.2s linear,
+      translate 0.45s var(--ease-out-quint);
+  }
+
+  .project[data-open] .project__body {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 0.3s linear 0.08s,
+      translate 0.45s var(--ease-out-quint) 0.08s;
+  }
+
+  .project__text {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: 1.7;
+    color: var(--color-ink-muted);
+  }
+
+  .project__text + .project__text {
+    margin-top: 0.75rem;
+  }
+
+  .project__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  @media (width >= 64rem) {
+    .project__links {
+      justify-content: center;
+    }
+  }
+
+  .pending {
+    position: relative;
+    display: inline-block;
+  }
+
+  /* Anchored to the button's right edge so it opens back over the card rather
+     than past the edge of the screen. */
+  .pending__tip {
+    right: 0;
+    bottom: calc(100% + 0.75rem);
+    z-index: 2;
+    width: min(15rem, 70vw);
+    line-height: 1.5;
+    text-align: left;
+    white-space: normal;
+    transform: translateY(0.4rem);
+  }
+
+  .pending__tip::after {
+    top: 100%;
+    right: 1.5rem;
+    border-top-color: var(--color-ink);
+  }
+
+  .pending[data-open] .pending__tip,
+  .pending:has(:focus-visible) .pending__tip {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (hover: hover) {
+    .pending:hover .pending__tip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project {
+      animation: none;
+    }
+
+    .project:hover,
+    .project:hover .project__mark,
+    .project[data-open] .project__mark {
+      transform: none;
+    }
+  }
+</style>

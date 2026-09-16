@@ -12,7 +12,7 @@ const seed = (i: number): string =>
 
 <section class="hero" data-hero>
   <div class="hero__stage">
-    <div class="hero__glyphs" aria-hidden="true">
+    <div class="hero__glyphs" data-glyphs={GLYPHS} aria-hidden="true">
       {Array.from({ length: FIELD }, (_, i) => <span class="hero__glyph">{seed(i)}</span>)}
     </div>
 
@@ -38,22 +38,23 @@ const seed = (i: number): string =>
         <span class="sr-only">{HERO_QUOTE.text} {HERO_QUOTE.attribution}</span>
       </figure>
     </div>
-
   </div>
 </section>
 
 <script>
+  const field = document.querySelector<HTMLElement>('.hero__glyphs');
   const glyphs = [...document.querySelectorAll<HTMLElement>('.hero__glyph')];
-  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#$%&*<>[]{}';
+  const chars = field?.dataset.glyphs ?? '';
+  const PER_FRAME = 220;
 
   const wanted =
     !matchMedia('(prefers-reduced-motion: reduce)').matches &&
     !matchMedia('(width < 40rem)').matches;
 
-  if (glyphs.length && wanted) {
+  if (glyphs.length && chars && wanted) {
     let lastY = window.scrollY;
 
-    /* Coalesced to one burst per frame. The listener itself is cheap; the 220
+    /* Coalesced to one burst per frame. The listener itself is cheap; the
        writes are not, and scroll can fire several times between paints. */
     let queued = false;
     window.addEventListener(
@@ -63,9 +64,9 @@ const seed = (i: number): string =>
         lastY = window.scrollY;
         queued = true;
         requestAnimationFrame(() => {
-          for (let n = 0; n < 220; n++) {
+          for (let n = 0; n < PER_FRAME; n++) {
             const glyph = glyphs[(Math.random() * glyphs.length) | 0];
-            glyph.textContent = CHARS[(Math.random() * CHARS.length) | 0];
+            glyph.textContent = chars[(Math.random() * chars.length) | 0];
           }
           queued = false;
         });
@@ -240,5 +241,4 @@ const seed = (i: number): string =>
       display: none;
     }
   }
-
 </style>

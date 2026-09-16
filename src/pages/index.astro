@@ -1,9 +1,14 @@
 ---
 import {
+  ABOUT,
+  CONTACT,
   CONTACT_MAILTO,
   EXPERIENCE_NARRATIVE,
+  INTRO,
   MARQUEE_PHRASES,
+  SITE,
   SKILL_GROUPS,
+  WORK,
 } from '@shared/content';
 import Button from '@/components/Button.astro';
 import ChaseScene from '@/components/ChaseScene.astro';
@@ -15,7 +20,10 @@ import PinnedText from '@/components/PinnedText.astro';
 import QueryMark from '@/components/QueryMark.astro';
 import ScrollReveal from '@/components/ScrollReveal.astro';
 import Section from '@/components/Section.astro';
+import SectionLead from '@/components/SectionLead.astro';
 import ToolRail from '@/components/ToolRail.astro';
+import Wordmark from '@/components/Wordmark.astro';
+import Work from '@/components/Work.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
@@ -27,21 +35,17 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   <Container as="section" class="intro py-[var(--section-space)]">
     <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-16">
       <div>
-        <p class="mb-6 label">Tech Enthusiast</p>
+        <p class="mb-6 label">{SITE.tagline}</p>
 
         <h1 class="max-w-[14ch] font-display text-display font-bold text-ink">
-          David Koen<span class="text-signal">.</span>
+          <Wordmark />
         </h1>
 
-        <p class="mt-8 max-w-prose text-lg text-ink-muted">
-          I lead delivery without losing the
-          technical thread. I translate between marketing, design and engineering, and I plan work in
-          stages across a project’s full scope.
-        </p>
+        <p class="mt-8 max-w-prose text-lg text-ink-muted">{INTRO.lede}</p>
 
         <div class="mt-10 flex flex-wrap gap-4">
-          <Button href="#experience">View experience</Button>
-          <Button href="#contact" variant="outline">How I fit in</Button>
+          <Button href={INTRO.primary.href}>{INTRO.primary.label}</Button>
+          <Button href={INTRO.secondary.href} variant="outline">{INTRO.secondary.label}</Button>
         </div>
       </div>
 
@@ -51,34 +55,17 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
   <Section id="about" label="About">
     <div class="grid gap-10 lg:grid-cols-[2fr_1fr] lg:gap-16">
-      <div class="space-y-6">
-        <p class="max-w-prose text-xl text-ink">
-          Most projects don’t fail on code. They fail on the handoffs, the brief that
-          lost a requirement, the estimate nobody stress-tested, the dependency nobody flagged
-          until it blocked three people.
-        </p>
-        <p class="max-w-prose text-ink-muted">
-          I’ve spent years on the building side of those handoffs: agency client work,
-          in-house maintenance cycles, internal frameworks, and a year teaching developers how to
-          structure work they hadn’t met yet. That background means I can read an
-          engineering estimate, ask the question that surfaces the hidden dependency, and explain
-          the answer to a marketing stakeholder without either side losing the thread.
-        </p>
-      </div>
+      <SectionLead lead={ABOUT.lead} body={ABOUT.body} />
 
       <dl class="space-y-6 border-l-2 border-signal pl-5 lg:pl-10">
-        <div>
-          <dt class="label">Based in</dt>
-          <dd class="mt-1 font-display text-lg text-ink">South Africa</dd>
-        </div>
-        <div>
-          <dt class="label">Currently</dt>
-          <dd class="mt-1 font-display text-lg text-ink">Web Developer Lead</dd>
-        </div>
-        <div>
-          <dt class="label">Professionally in web since</dt>
-          <dd class="mt-1 font-display text-lg text-ink">2017</dd>
-        </div>
+        {
+          ABOUT.facts.map(({ label, value }) => (
+            <div>
+              <dt class="label">{label}</dt>
+              <dd class="mt-1 font-display text-lg text-ink">{value}</dd>
+            </div>
+          ))
+        }
       </dl>
     </div>
   </Section>
@@ -115,16 +102,21 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     }
   </PinnedText>
 
+  <Section id="work" label="Work" class="lg:text-center">
+    <SectionLead lead={WORK.lead} body={WORK.body} centred />
+    <div class="mt-12">
+      <Work />
+    </div>
+  </Section>
+
   <Section id="contact" label="Contact">
     <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-16">
       <div class="max-w-prose space-y-8">
-      <p class="font-display text-3xl font-medium text-ink">
-        Looking for someone who can hold both sides of the brief<QueryMark />
-      </p>
-      <p class="text-ink-muted">
-        I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.
-      </p>
-        <Button href={CONTACT_MAILTO}>Let’s get in touch</Button>
+        <p class="font-display text-3xl font-medium text-ink">
+          {CONTACT.heading}<QueryMark />
+        </p>
+        <p class="text-ink-muted">{CONTACT.body}</p>
+        <Button href={CONTACT_MAILTO}>{CONTACT.cta}</Button>
       </div>
 
       <GhostScene />

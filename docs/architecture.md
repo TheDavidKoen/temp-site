@@ -27,19 +27,23 @@ paint:
 | Pre-paint flags (theme, dock, intro) | ~0.3 KB | Inline in `<head>`, must run before first paint |
 | Intro scramble | ~0.9 KB | Inline in `<body>` |
 | Header nav | ~0.3 KB | Inline module |
+| Hero scramble | ~0.3 KB | Inline module |
+| Work cards | ~0.5 KB | Inline module |
 | Cursor trail | ~0.6 KB | Inline module |
 | Dock | ~0.4 KB | Inline module |
-| Theme switch | 0.3 KB | Inline module |
-| `theme` | 0.9 KB | Shared by the switch, and by the scenes once they load |
-| Chase loader | 0.7 KB | Deferred module |
-| Ghost loader | 0.5 KB | Deferred module |
+| Theme switch | 0.3 KB | Deferred module |
+| `theme` | 0.8 KB | Shared by the switch, and by the scenes once they load |
+| Tool rail | 0.5 KB | Deferred module |
+| Chase loader | 0.4 KB | Deferred module |
+| Ghost loader | 0.4 KB | Deferred module |
+| `lazy` | 0.2 KB | The visibility and device gates shared by the rail and both loaders |
 | Terminal | 0.7 KB | Deferred module |
 | Stack sheet | 0.2 KB | Deferred module |
-| `dialog` + preload helper | 1.0 KB | Deferred, shared by the two dialogs |
+| `dialog` + preload helper | 0.9 KB | Deferred, shared by the two dialogs and the loaders |
 | `chase-scene` (Three.js) | 1.9 KB | Dynamic import behind an `IntersectionObserver` |
 | `ghost-scene` (Three.js) | 1.4 KB | Dynamic import behind an `IntersectionObserver` |
 | `figures` | 0.6 KB | Dynamic, the pacman and ghost geometry both scenes draw |
-| `three` | 132.3 KB | Dynamic, shared by both scenes, pinned to its own chunk |
+| `three` | 132.9 KB | Dynamic, shared by both scenes, pinned to its own chunk |
 
 The Three.js chunk is never on the critical path. It is fetched only once a scene
 is near the viewport, and not at all when the visitor prefers reduced motion or
@@ -56,8 +60,9 @@ ones; see [performance.md](performance.md).
 
 ## Content flow
 
-`shared/content.ts` is the single source of content. Components receive it as
-typed props and never hardcode copy.
+`shared/content.ts` is the single source of page copy. Components import it
+rather than hardcoding it; only short interface labels, such as tooltips and dialog
+titles, sit beside the markup they label.
 
 ```
 shared/content.ts ──> index.astro ──> components
@@ -70,6 +75,12 @@ JSON-LD, and the terminal's `skills` command. Editing one updates all three.
 
 `REPO_URL` is the only place the repository is named. The stack sheet builds its
 ADR links from it.
+
+Each entry in `PROJECTS` names a pair of files in `src/assets/work`: a mark and a
+wordmark cut from one lockup, with the lettering converted to outlines. The two
+share a vertical range, so `Work.astro` reads their widths and the gap between
+them straight from the viewBoxes. They are inlined so they take the theme's ink,
+and each distinct glyph is stored once and placed with `<use>`.
 
 ## Design tokens
 

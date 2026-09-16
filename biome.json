@@ -7,7 +7,14 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/dist", "!**/.astro", "!**/pnpm-lock.yaml", "!public"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/.astro",
+      "!**/pnpm-lock.yaml",
+      "!public",
+      "!src/assets/work"
+    ]
   },
   "formatter": {
     "enabled": true,
