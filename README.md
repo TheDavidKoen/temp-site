@@ -62,6 +62,7 @@ shared/             Imported by both the Astro build and the Worker
 ├── game.ts         Deduction game engine
 └── render.ts       Command result to text
 src/
+├── assets/work/     Project logos, a mark and a wordmark per project
 ├── components/     UI components, one concern each
 ├── layouts/        BaseLayout: head, fonts, SEO, chrome
 ├── pages/          Routes (single page)
@@ -79,9 +80,9 @@ docs/
 is what lets the page and the API render from the same data without dragging
 Astro types into a Workers compile.
 
-**Content lives in `shared/content.ts`, not in components.** Skills, marquee
-phrases, the intro word field, the experience narrative and the stack table are
-typed exports consumed as props. Adding a skill is a data edit.
+**Content lives in `shared/content.ts`, not in components.** Section copy,
+skills, projects, the experience narrative and the stack table are typed exports
+the components import. Adding a skill or a project is a data edit.
 
 ## The terminal
 

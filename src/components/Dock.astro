@@ -19,7 +19,7 @@
     const isOpen = (): boolean => toggle.getAttribute('aria-expanded') === 'true';
 
     /* inert, not just pointer-events: a stowed bubble is still in the document,
-       so without it the three stay reachable by keyboard while invisible. */
+       so without it the bubbles stay reachable by keyboard while invisible. */
     const setOpen = (open: boolean): void => {
       document.documentElement.dataset.dock = open ? 'open' : 'closed';
       toggle.setAttribute('aria-expanded', String(open));

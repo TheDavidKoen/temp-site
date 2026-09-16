@@ -1,23 +1,33 @@
 ---
+/* Renders a link when given href, otherwise a button with the same look. Any
+   aria- or data- attribute is passed through. */
 interface Props {
-  href: string;
+  href?: string;
   variant?: 'solid' | 'outline';
+  external?: boolean;
+  [attribute: `aria-${string}` | `data-${string}`]: string | boolean | undefined;
 }
 
-const { href, variant = 'solid' }: Props = Astro.props;
+const { href, variant = 'solid', external = false, ...attributes }: Props = Astro.props;
 
 const VARIANTS = {
   solid: 'bg-ink text-surface hover:bg-signal-text',
   outline: 'border border-ink-muted text-ink hover:border-signal hover:text-signal-text',
 } as const;
+
+const Tag = href ? 'a' : 'button';
 ---
 
-<a
+<Tag
   href={href}
+  type={href ? undefined : 'button'}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
   class:list={[
-    'inline-block px-6 py-3 font-mono text-xs uppercase tracking-label transition-colors',
+    'inline-block cursor-pointer px-6 py-3 font-mono text-xs uppercase tracking-label transition-colors',
     VARIANTS[variant],
   ]}
+  {...attributes}
 >
   <slot />
-</a>
+</Tag>

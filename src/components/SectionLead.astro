@@ -1,0 +1,16 @@
+---
+/* The opening pair a section starts with: a large lead line, then smaller body
+   copy. centred only takes effect on desktop. */
+interface Props {
+  lead: string;
+  body: string;
+  centred?: boolean;
+}
+
+const { lead, body, centred = false }: Props = Astro.props;
+---
+
+<div class:list={['space-y-6', { 'lg:text-center': centred }]}>
+  <p class:list={['max-w-prose text-xl text-ink', { 'lg:mx-auto': centred }]}>{lead}</p>
+  <p class:list={['max-w-prose text-ink-muted', { 'lg:mx-auto': centred }]}>{body}</p>
+</div>

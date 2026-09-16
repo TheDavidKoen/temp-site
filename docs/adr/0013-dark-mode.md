@@ -44,7 +44,7 @@ on it:
 | `--color-surface-tint` | `#13282A` | signal text on it | 4.68:1 |
 | `--color-surface-muted` | `#2C4247` | on the ground | 1.67:1, rules only |
 
-Chips painted in ink (the dock, tooltips, the Work note, solid buttons) invert with
+Chips painted in ink (the dock, tooltips, solid buttons) invert with
 the palette and turn light on the dark page, which is what keeps them visible.
 
 ### Two surfaces do not swap

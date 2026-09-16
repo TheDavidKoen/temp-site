@@ -9,6 +9,7 @@ import {
   LineBasicMaterial,
   LineSegments,
 } from 'three';
+import { jitter } from './jitter';
 
 const ARC_STEPS = 40;
 const RIB_EVERY = 6;
@@ -17,12 +18,6 @@ const RIBS = Math.floor(LOOP_POINTS / RIB_EVERY) + 1;
 const SEGMENTS = LOOP_POINTS * 2 + RIBS;
 
 export type Point = [number, number];
-
-/** Deterministic noise between 0 and 1, so a burst scatters the same way every time. */
-export const jitter = (i: number, seed: number): number => {
-  const n = Math.sin(i * 12.9898 + seed * 78.233) * 43758.5453;
-  return n - Math.floor(n);
-};
 
 export interface Pacman {
   readonly lines: LineSegments;

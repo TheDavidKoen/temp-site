@@ -57,6 +57,10 @@
   --dock-size: 3.25rem;
   --dock-gap: 0.65rem;
 
+  /* How many launchers stow into the dock. The closing stagger counts down from
+     it, so adding or removing one means changing this. */
+  --dock-stowed: 2;
+
   --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
@@ -167,6 +171,15 @@ html[data-theme="dark"] {
       transform 0.26s var(--ease-out-quint);
   }
 
+  /* The arrow. Callers place it and colour the side that points at the trigger. */
+  .tip::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+  }
+
   .launcher__tip {
     top: 50%;
     right: calc(100% + 0.85rem);
@@ -174,13 +187,8 @@ html[data-theme="dark"] {
   }
 
   .launcher__tip::after {
-    content: "";
-    position: absolute;
     top: 50%;
     left: 100%;
-    width: 0;
-    height: 0;
-    border: 5px solid transparent;
     border-left-color: var(--color-ink);
     transform: translateY(-50%);
   }
@@ -189,15 +197,6 @@ html[data-theme="dark"] {
   .launcher:focus-visible .launcher__tip {
     opacity: 1;
     transform: translateY(-50%) translateX(0);
-  }
-
-  .launcher__word {
-    font-family: var(--font-figtree);
-    font-size: 0.98rem;
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    color: var(--color-signal-on-ink);
   }
 
   .overlay {
@@ -290,8 +289,8 @@ html[data-theme="dark"] {
       scale(0.2);
     opacity: 0;
     transition:
-      transform 0.3s var(--ease-in-expo) calc((3 - var(--launcher-order)) * 0.05s),
-      opacity 0.2s linear calc((3 - var(--launcher-order)) * 0.05s);
+      transform 0.3s var(--ease-in-expo) calc((var(--dock-stowed) - var(--launcher-order)) * 0.05s),
+      opacity 0.2s linear calc((var(--dock-stowed) - var(--launcher-order)) * 0.05s);
   }
 }
 

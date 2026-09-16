@@ -26,6 +26,8 @@ import { TOOLS } from '@shared/content';
 </section>
 
 <script>
+  import { onceVisible } from '@/scripts/lazy';
+
   const scroller = document.querySelector<HTMLElement>('[data-tool-scroller]');
   const track = document.querySelector<HTMLElement>('[data-tool-rail]');
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -35,17 +37,13 @@ import { TOOLS } from '@shared/content';
      no JavaScript. Only the static desktop row reveals on entry. */
   if (track && !still && !sliding) {
     track.dataset.armed = 'true';
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        observer.disconnect();
+    onceVisible(
+      track,
+      () => {
         track.dataset.shown = 'true';
       },
       { threshold: 0.35 },
     );
-
-    observer.observe(track);
   }
 
   /* Driven by scrollLeft rather than a transform, so the automatic drift and a
@@ -224,13 +222,8 @@ import { TOOLS } from '@shared/content';
   }
 
   .rail__tip::after {
-    content: "";
-    position: absolute;
     top: 100%;
     left: 50%;
-    width: 0;
-    height: 0;
-    border: 5px solid transparent;
     border-top-color: var(--color-ink);
     transform: translateX(-50%);
   }
@@ -243,5 +236,4 @@ import { TOOLS } from '@shared/content';
       transform: translateX(-50%) translateY(0);
     }
   }
-
 </style>
