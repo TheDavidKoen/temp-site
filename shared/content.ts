@@ -5,7 +5,7 @@
  */
 export const SITE = {
   name: 'David Koen',
-  title: 'David Koen',
+  title: 'David Koen · Digital Project Manager & Web Developer',
   tagline: 'Tech Enthusiast',
   description:
     'Digital Project Manager and Web Developer based in South Africa. In web since 2017, pairing hands-on frontend and backend development with sprint planning, scope and estimation, and delivery ownership from brief through launch.',
