@@ -90,8 +90,8 @@ curves. Components consume them as `var(--token)` or as generated utilities.
 
 Three token groups are shared across systems and cannot be changed in isolation:
 
-- **Easing curves** are used by CSS transitions, the intro, and the Three.js
-  camera. One definition, three consumers.
+- **Easing curves** are used by component transitions, the dock, and the intro
+  curtain. One definition, every consumer.
 - **Colour tokens** are read at runtime by the WebGL scenes through `theme.ts`,
   and read again on every theme change, so the palette has one source.
 - **Accent tokens** are split by the surface they sit on. `--color-signal` and
@@ -184,9 +184,9 @@ silently loses the player's case.
 
 - `ScrollReveal` emits one span per character, roughly 900 elements. Word-level
   granularity would cut that by 85% at a coarser visual grain.
-- The hero is `display: none` below 40rem. It carries no text, so nothing is
-  hidden from a crawler or a screen reader; the `h1` sits in the section below it
-  at every width. See [ADR 0008](adr/0008-hide-hero-copy-on-mobile.md).
+- The hero is `display: none` below 40rem. It carries only the decorative quote,
+  so no content is hidden from a crawler or a screen reader; the `h1` sits in the
+  section below it at every width. See [ADR 0008](adr/0008-hide-hero-copy-on-mobile.md).
 - The theme dissolve covers the page rather than resampling it. Browsers do not
   expose page pixels to script, and rasterising the DOM would still miss the WebGL
   canvases.

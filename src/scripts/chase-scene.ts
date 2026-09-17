@@ -135,11 +135,11 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   const camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
   camera.position.z = 10;
 
-  const ROUTE = buildRoute();
-  const LEAD_T = GAP / ROUTE.getLength();
+  const route = buildRoute();
+  const leadT = GAP / route.getLength();
 
   const bounds = { x: 0, y: 0 };
-  for (const point of ROUTE.getPoints(120)) {
+  for (const point of route.getPoints(120)) {
     bounds.x = Math.max(bounds.x, Math.abs(point.x));
     bounds.y = Math.max(bounds.y, Math.abs(point.y));
   }
@@ -190,7 +190,7 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   onThemeChange(paint);
 
   const dummy = new Object3D();
-  const dotAt = Array.from({ length: DOTS }, (_, i) => ROUTE.getPointAt(i / (DOTS - 1)));
+  const dotAt = Array.from({ length: DOTS }, (_, i) => route.getPointAt(i / (DOTS - 1)));
 
   /* Scaled to nothing rather than removed, so the count stays fixed and the
      instance matrix is written once per frame either way. */
@@ -261,13 +261,13 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
     const chase = Math.min(progress, CHASE_END) / CHASE_END;
     const burst = progress <= CHASE_END ? 0 : (progress - CHASE_END) / (1 - CHASE_END);
 
-    const here = ROUTE.getPointAt(chase);
+    const here = route.getPointAt(chase);
     const closing = 1 - MathUtils.smoothstep(chase, 0.86, 1);
-    const lead = Math.min(1, chase + LEAD_T * closing);
-    const ahead = ROUTE.getPointAt(lead);
+    const lead = Math.min(1, chase + leadT * closing);
+    const ahead = route.getPointAt(lead);
 
     chaser.position.set(here.x, here.y, 0);
-    const tangent = ROUTE.getTangentAt(chase);
+    const tangent = route.getTangentAt(chase);
     chaser.rotation.z = Math.atan2(tangent.y, tangent.x);
 
     const shrink = Math.max(0, 1 - burst * 1.6);
@@ -283,7 +283,7 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
 
     // The ghost looks the way it is fleeing.
     if (quarry.group.visible) {
-      const heading = ROUTE.getTangentAt(lead);
+      const heading = route.getTangentAt(lead);
       for (let i = 0; i < quarry.pupilMeshes.length; i++) {
         quarry.pupilMeshes[i].position.set(
           (i === 0 ? -1 : 1) * EYE_X + heading.x * LOOK,

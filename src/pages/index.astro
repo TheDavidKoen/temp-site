@@ -2,7 +2,6 @@
 import {
   ABOUT,
   CONTACT,
-  CONTACT_MAILTO,
   EXPERIENCE_NARRATIVE,
   INTRO,
   MARQUEE_PHRASES,
@@ -116,7 +115,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
           {CONTACT.heading}<QueryMark />
         </p>
         <p class="text-ink-muted">{CONTACT.body}</p>
-        <Button href={CONTACT_MAILTO}>{CONTACT.cta}</Button>
+        <Button href={CONTACT.mailto}>{CONTACT.cta}</Button>
       </div>
 
       <GhostScene />

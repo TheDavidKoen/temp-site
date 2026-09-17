@@ -318,7 +318,6 @@ html[data-theme="dark"] {
 
   /* One offset for every anchor target, so a jump clears the fixed header.
      Changing the header height means changing this. */
-
   main [id] {
     scroll-margin-top: 6rem;
   }

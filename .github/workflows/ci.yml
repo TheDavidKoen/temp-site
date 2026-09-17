@@ -38,7 +38,6 @@ jobs:
       - name: Lint and format
         run: pnpm run lint
 
-
       - name: Production build
         run: pnpm build
 
