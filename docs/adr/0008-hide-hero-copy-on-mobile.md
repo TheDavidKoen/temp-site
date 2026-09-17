@@ -33,3 +33,11 @@ being accepted.
 - The page opens on the scene, then reveals the headline as you scroll past it.
 - The breakpoint-specific `display: none` is gone, so there is no longer a
   viewport at which content is present but unrendered.
+
+## Later changes
+
+The WebGL scene has since left the hero, which is now a CSS glyph field with the
+Welcome wordmark and a quote. The hero is `display: none` again below 40rem, for
+layout rather than to hide copy: the `h1`, the calls to action and all section
+content still render at every width. The only text lost on phones is the
+decorative quote.

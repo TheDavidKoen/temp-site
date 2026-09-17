@@ -8,7 +8,7 @@ The problem this solves, or the decision behind it. Link an ADR if one applies.
 
 ## Checks
 
-- [ ] `pnpm verify` clean (types, Worker types, lint, tests)
+- [ ] `pnpm verify` clean (types, Worker types, lint)
 - [ ] `pnpm build` clean
 - [ ] Checked at narrow, laptop and wide viewports
 - [ ] Animation checked with reduced motion enabled

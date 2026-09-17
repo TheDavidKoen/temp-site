@@ -36,10 +36,10 @@ Every commit takes a type. A subject with no type is the one thing a reviewer
 reading this history will notice.
 
 ```
-feat: add scroll-driven WebGL hero
+feat: add work section with project cards
 
-Pinned 300vh hero assembles a DK monogram as scroll progresses. Three.js
-loads as a lazy chunk behind an IntersectionObserver.
+Each card expands to a description and links, one at a time. Logos are
+inlined so they follow the theme.
 ```
 
 ## Before opening a pull request
@@ -48,8 +48,8 @@ loads as a lazy chunk behind an IntersectionObserver.
 pnpm verify
 ```
 
-That runs `astro check`, the Worker type check, Biome and the test suite. All
-four must be clean. Also run a production build and the budget check, since some
+That runs `astro check`, the Worker type check and Biome. All three must be
+clean. Also run a production build and the budget check, since some
 failures only surface there:
 
 ```sh
@@ -68,8 +68,8 @@ Then check, by eye:
 
 ## Code conventions
 
-**Content goes in `shared/content.ts`,** not in components. Components receive
-typed props. Adding a skill or a phrase should be a data edit, and the terminal
+**Content goes in `shared/content.ts`,** not in components. Components import
+it, so adding a skill, a phrase or a project is a data edit, and the terminal
 picks it up for free because it reads the same module.
 
 **`shared/` imports nothing from `src/` or `functions/`.** It is the leaf both

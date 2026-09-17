@@ -47,9 +47,7 @@ The dev server runs at **http://localhost:4321**.
 | `pnpm check:functions` | Type-check `functions/` against the Workers types |
 | `pnpm lint` | Biome lint and format check |
 | `pnpm lint:fix` | Apply Biome's safe fixes |
-| `pnpm test` | Run the test suite once |
-| `pnpm test:watch` | Run it in watch mode |
-| `pnpm verify` | All four checks above. Run before opening a PR |
+| `pnpm verify` | The three checks above. Run before opening a PR |
 | `pnpm budget` | Assert the performance budget against `dist/` |
 | `pnpm budget -- --markdown` | Print the measurement tables for `docs/performance.md` |
 
@@ -62,7 +60,7 @@ shared/             Imported by both the Astro build and the Worker
 ├── game.ts         Deduction game engine
 └── render.ts       Command result to text
 src/
-├── assets/work/     Project logos, a mark and a wordmark per project
+├── assets/work/    Project logos, a mark and a wordmark per project
 ├── components/     UI components, one concern each
 ├── layouts/        BaseLayout: head, fonts, SEO, chrome
 ├── pages/          Routes (single page)
@@ -147,7 +145,7 @@ Every pull request into `main` runs [`.github/workflows/ci.yml`](.github/workflo
 
 | Job | Does |
 |---|---|
-| `verify` | `astro check`, Worker types, Biome, tests, production build, performance budget |
+| `verify` | `astro check`, Worker types, Biome, production build, performance budget |
 | `lighthouse` | Audits the built output, three runs, desktop preset |
 
 The budget step enforces [`docs/performance.md`](docs/performance.md) and guards

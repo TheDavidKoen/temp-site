@@ -1,5 +1,5 @@
 ---
-import { CONTACT_EMAIL, SITE, SKILL_GROUPS, SOCIAL_LINKS } from '@shared/content';
+import { CONTACT, SITE, SKILL_GROUPS, SOCIAL_LINKS } from '@shared/content';
 
 interface Props {
   title?: string;
@@ -31,7 +31,7 @@ const schema = {
     '@id': `${canonical.origin}/#person`,
     name: SITE.name,
     url: canonical.origin,
-    email: `mailto:${CONTACT_EMAIL}`,
+    email: `mailto:${CONTACT.email}`,
     description,
     jobTitle: ['Digital Project Manager', 'Web Developer'],
     knowsAbout: SKILL_GROUPS.flatMap((group) => group.items),

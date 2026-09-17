@@ -36,7 +36,7 @@ function logo(slug: string) {
 }
 ---
 
-<ul class="work" role="list">
+<ul class="work" role="list" style={`--logo-max: ${MAX_HEIGHT}rem`}>
   {
     PROJECTS.map((project, i) => {
       const { mark, word, style } = logo(project.slug);
@@ -268,7 +268,7 @@ function logo(slug: string) {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 3.25rem;
+    height: var(--logo-max);
   }
 
   .project__mark,

@@ -13,10 +13,6 @@ export const SITE = {
   location: 'South Africa',
 } as const;
 
-export const CONTACT_EMAIL = 'DavidoDawie@gmail.com';
-const CONTACT_SUBJECT = 'DK Contact';
-export const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(CONTACT_SUBJECT)}`;
-
 export const REPO_URL = 'https://github.com/TheDavidKoen/temp-site';
 
 export const NAV_LINKS = [
@@ -212,7 +208,11 @@ export const PROJECTS: readonly Project[] = [
   },
 ];
 
+const EMAIL = 'DavidoDawie@gmail.com';
+
 export const CONTACT = {
+  email: EMAIL,
+  mailto: `mailto:${EMAIL}?subject=${encodeURIComponent('DK Contact')}`,
   heading: 'Looking for someone who can hold both sides of the brief',
   body: 'I bring a strong working knowledge of the requirements and standards needed to deliver a digital product with industry-competitive, technically sound UX. Whether you already have a clear role in mind for me on your project, or you’re looking for guidance on how to get your team or project off the ground, I’d welcome the opportunity to talk through it.',
   cta: 'Let’s get in touch',
