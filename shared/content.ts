@@ -160,7 +160,6 @@ export const EXPERIENCE_NARRATIVE = [
 
 export const WORK = {
   lead: 'Through the years I have planned, developed, deployed and maintained countless web-related products. As someone who has a personal passion for art in its many mediums, I find it fascinating and exciting to hone an individual’s identity into their production.',
-  body: 'Below should hopefully give an idea of my work.',
   repoLabel: 'GitHub',
   liveLabel: 'View project',
   pendingNote: 'Still in the pipeline. Watch this space for developments.',
@@ -196,6 +195,16 @@ export const PROJECTS: readonly Project[] = [
     ],
     repo: 'https://github.com/TheDavidKoen/vanesse',
     live: 'https://open-vsx.org/extension/davidkoen/vanesse',
+  },
+  {
+    slug: 'querated',
+    name: 'Querated',
+    description: [
+      'Querated is an art gallery browser built on The Metropolitan Museum of Art’s open collection. The idea was a way to query large libraries of content while only paying for the data you actually use.',
+      'A GraphQL server sits in front of The Met’s REST API, so the gallery asks for exactly the fields it shows and nothing more.',
+    ],
+    repo: 'https://github.com/TheDavidKoen/querated',
+    live: 'https://querated.vercel.app',
   },
   {
     slug: 'deadwax',

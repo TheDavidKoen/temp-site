@@ -16,7 +16,9 @@ const viewBox = (svg: string): number[] =>
 
 /* Each project has a mark and a word file cut from one lockup with a shared
    vertical range, so their viewBoxes give both widths and the gap between them
-   in the same units. The lockup is scaled to fit MAX_WIDTH by MAX_HEIGHT. */
+   in the same units. The lockup is scaled to fit MAX_WIDTH by MAX_HEIGHT, and
+   every size is capped in cqi so a card narrower than the lockup shrinks it
+   rather than letting it spill. */
 function logo(slug: string) {
   const mark = LOGOS[`../assets/work/${slug}-mark.svg`];
   const word = LOGOS[`../assets/work/${slug}-word.svg`];
@@ -26,24 +28,26 @@ function logo(slug: string) {
   const [wordX, , wordW] = viewBox(word);
   const gap = wordX - (markX + markW);
   const scale = Math.min(MAX_HEIGHT / height, MAX_WIDTH / (markW + gap + wordW));
-  const rem = (units: number): string => `${(units * scale).toFixed(3)}rem`;
+  const total = markW + gap + wordW;
+  const size = (units: number): string =>
+    `min(${(units * scale).toFixed(3)}rem, ${((units / total) * 100).toFixed(3)}cqi)`;
 
   return {
     mark,
     word,
-    style: `--logo-h: ${rem(height)}; --mark-w: ${rem(markW)}; --gap: ${rem(gap)}; --word-w: ${rem(wordW)}`,
+    style: `--logo-h: ${size(height)}; --mark-w: ${size(markW)}; --gap: ${size(gap)}; --word-w: ${size(wordW)}`,
   };
 }
 ---
 
 <ul class="work" role="list" style={`--logo-max: ${MAX_HEIGHT}rem`}>
   {
-    PROJECTS.map((project, i) => {
+    PROJECTS.map((project) => {
       const { mark, word, style } = logo(project.slug);
       const id = `project-${project.slug}`;
 
       return (
-        <li class="project" style={`--col: ${i % 3}`} data-project>
+        <li class="project" data-project>
           <h3 class="project__title">
             <button
               class="project__head"
@@ -160,22 +164,6 @@ function logo(slug: string) {
     margin: 0;
     padding: 0;
     list-style: none;
-
-    /* Start, not stretch, so opening one card does not pull its row neighbours
-       taller with it. */
-    align-items: start;
-  }
-
-  @media (width >= 40rem) {
-    .work {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (width >= 64rem) {
-    .work {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
   }
 
   .project {
@@ -203,12 +191,12 @@ function logo(slug: string) {
   }
 
   /* The entrance animates translate, not transform, so it never fights the
-     hover lift. Staggered by column. */
+     hover lift. */
   @supports (animation-timeline: view()) {
     .project {
       animation: project-in linear both;
       animation-timeline: view();
-      animation-range: entry calc(var(--col) * 12%) entry calc(70% + var(--col) * 12%);
+      animation-range: entry 0% entry 70%;
     }
   }
 
@@ -233,6 +221,7 @@ function logo(slug: string) {
     width: 100%;
     padding: 1.75rem 3rem;
     color: var(--color-ink);
+    container-type: inline-size;
     background: none;
     border: 0;
     border-radius: 0.75rem;
@@ -387,12 +376,6 @@ function logo(slug: string) {
     flex-wrap: wrap;
     gap: 0.75rem;
     margin-top: 1.5rem;
-  }
-
-  @media (width >= 64rem) {
-    .project__links {
-      justify-content: center;
-    }
   }
 
   .pending {
