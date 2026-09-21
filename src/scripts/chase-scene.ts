@@ -29,9 +29,7 @@ const DEPTH = 0.5;
 
 const BALL_R = 0.13;
 
-/* Sized so the ghost still clears the mouth at the tightest point: the route
-   keeps pacman and quarry at least 1.33 apart, and the two together span about
-   0.92. */
+/* Sized so the ghost clears the mouth at the tightest point of the route. */
 const QUARRY = {
   halfWidth: 0.22,
   domeY: 0.05,
@@ -51,19 +49,15 @@ const TRAIL_GAP = 0.028;
 
 const CHASE_END = 0.82;
 
-/* FOLLOW is how fast the chase catches up with the scroll; MAX_RATE is the most
-   of the route it may cover per second. Reading scrollY directly moved the
-   pacman up to 123px in a single frame on one wheel notch. Together these turn
-   that into a glide of about 11px a frame, settling 2.2s after scrolling stops. */
+/* FOLLOW sets how fast the chase catches up with the scroll; MAX_RATE caps the share of
+   the route covered per second. */
 const FOLLOW = 4;
 const MAX_RATE = 0.35;
 const GAP = 1.9;
 const MARGIN = 2.0;
 
-/* BLAST and FADE are a pair. The pieces must be invisible by the time they
-   reach the frustum edge, or the canvas clips the burst into a box. At these
-   values they are gone at burst 0.56, having travelled 1.73 of the 2.0
-   available. Raising BLAST without lowering FADE brings the box back. */
+/* BLAST and FADE are a pair: the pieces must fade before reaching the frustum edge, or
+   the canvas clips the burst into a box. */
 const BLAST = 2.0;
 const FADE = 1.8;
 
@@ -74,11 +68,8 @@ const X_MAX = 3.2;
 const MIN_RUN = 1.3;
 const START = new Vector3(-X_MAX, Y_TOP, 0);
 
-/* Rebuilt per load so the chase is never the same shape twice, always from the
-   same corner. Runs are axis aligned, so every turn is a right angle.
-   The drop is uniform on purpose: an uneven one produces verticals shorter than
-   GAP, and the dot then cuts the corner of a narrow turn straight into the
-   mouth. Keeping every segment long makes the plain arc length lead safe. */
+/* Rebuilt per load, always from the same corner. The drop is uniform on purpose: a
+   short vertical lets the dot cut a corner into the mouth. */
 function buildRoute(): CurvePath<Vector3> {
   const drop = (Y_TOP - Y_BOTTOM) / LEGS;
   const corners = [START.clone()];
@@ -95,14 +86,12 @@ function buildRoute(): CurvePath<Vector3> {
   }
 
   const route = new CurvePath<Vector3>();
-  for (let i = 1; i < corners.length; i++) {
-    route.add(new LineCurve3(corners[i - 1], corners[i]));
+  for (const [i, corner] of corners.slice(1).entries()) {
+    route.add(new LineCurve3(corners[i], corner));
   }
   return route;
 }
 
-/* Filled rather than wireframe, since an outline this small reads as noise. The
-   pupils are kept separate so they can look along the route. */
 function createQuarry() {
   const shape = new Shape(ghostOutline(QUARRY).map(([x, y]) => new Vector2(x, y)));
   const body = new MeshBasicMaterial({ transparent: true });
@@ -138,17 +127,15 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   const route = buildRoute();
   const leadT = GAP / route.getLength();
 
-  const bounds = { x: 0, y: 0 };
-  for (const point of route.getPoints(120)) {
-    bounds.x = Math.max(bounds.x, Math.abs(point.x));
-    bounds.y = Math.max(bounds.y, Math.abs(point.y));
-  }
+  const outline = route.getPoints(120);
+  const bounds = {
+    x: Math.max(...outline.map((point) => Math.abs(point.x))),
+    y: Math.max(...outline.map((point) => Math.abs(point.y))),
+  };
 
   const pacman = createPacman(RADIUS, DEPTH);
 
-  /* Outer group carries the travel angle, inner group a fixed tilt so the
-     front and back loops separate instead of overlapping under an
-     axis-aligned orthographic camera. */
+  /* The fixed tilt separates the front and back loops under the orthographic camera. */
   const chaser = new Group();
   const tilt = new Group();
   tilt.rotation.set(-0.3, 0.42, 0);
@@ -168,8 +155,6 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   const dots = new InstancedMesh(new CircleGeometry(DOT_R, 10), dotMaterial, DOTS);
   scene.add(dots);
 
-  /* Colours come from the tokens and are read again on every theme change,
-     so the scene can never drift from the palette. */
   const paint = (): void => {
     const ink = token('--color-ink');
     const signal = token('--color-signal');
@@ -192,8 +177,6 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   const dummy = new Object3D();
   const dotAt = Array.from({ length: DOTS }, (_, i) => route.getPointAt(i / (DOTS - 1)));
 
-  /* Scaled to nothing rather than removed, so the count stays fixed and the
-     instance matrix is written once per frame either way. */
   const writeDots = (reached: number): void => {
     for (let i = 0; i < DOTS; i++) {
       const t = i / (DOTS - 1);
@@ -214,11 +197,8 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
     stageHeight = rect.height;
   };
 
-  /* Progress across the panel's whole pass through the viewport, not across a
-     pinned stage: this element is shorter than the screen, so the pinned model
-     produces negative travel and the chase never starts.
-     Measured on resize and read from scrollY per frame, so the loop never
-     forces a layout. */
+  /* Progress across the panel's pass through the viewport. The panel is shorter than
+     the screen, so a pinned model would never start. */
   const progressOf = (): number => {
     const span = window.innerHeight + stageHeight;
     return span <= 0
@@ -250,7 +230,7 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   const tick = (now: number): void => {
     frame = requestAnimationFrame(tick);
 
-    // Clamped so a frame after a tab switch cannot fling the chase forward.
+    // Clamped so the first frame after a tab switch cannot fling the chase forward.
     const dt = lastFrame ? Math.min(0.05, (now - lastFrame) / 1000) : 0;
     lastFrame = now;
 
@@ -281,7 +261,6 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
     quarry.group.scale.setScalar(shrink);
     for (const material of quarryMaterials) material.opacity = fade;
 
-    // The ghost looks the way it is fleeing.
     if (quarry.group.visible) {
       const heading = route.getTangentAt(lead);
       for (let i = 0; i < quarry.pupilMeshes.length; i++) {
@@ -304,8 +283,7 @@ export function initChaseScene(canvas: HTMLCanvasElement, stage: HTMLElement): v
   const start = (): void => {
     if (running) return;
     running = true;
-    // Lands where the page already is, rather than replaying from the start
-    // after a reload partway down.
+    // Lands where the page already is after a reload partway down.
     shown = progressOf();
     lastFrame = 0;
     frame = requestAnimationFrame(tick);

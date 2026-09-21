@@ -1,7 +1,5 @@
 /**
- * Shared open/close wiring for the modal dialogs. Both the terminal and the
- * stack sheet need identical focus and dismissal behaviour, so it lives here
- * rather than being written twice.
+ * Open and close wiring shared by the terminal and the stack sheet.
  */
 export function initDialog(
   dialog: HTMLDialogElement,
@@ -9,9 +7,8 @@ export function initDialog(
   close: HTMLElement,
   onOpen?: () => void,
 ): void {
-  /* dialog returns focus to the trigger on close and the browser treats that
-     restoration as keyboard driven, so a mouse user gets a focus ring they
-     never asked for. Tracking the input method keeps it for keyboard only. */
+  /* The browser treats focus returning to the trigger as keyboard driven, so a mouse
+     user would get a stray focus ring. */
   let viaPointer = false;
 
   trigger.addEventListener('click', () => {

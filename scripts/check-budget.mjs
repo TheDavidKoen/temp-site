@@ -29,10 +29,8 @@ const js = files.filter((f) => f.endsWith('.js'));
 const html = files.filter((f) => f.endsWith('.html'));
 const fonts = files.filter((f) => f.endsWith('.woff2'));
 
-/* Anchored to the chunk names the build actually emits, so an unrelated file that
-   merely contains "three" cannot exempt itself from the critical path. Three.js is
-   forced into a chunk named three in the Astro config; left to Rollup it was folded
-   into whichever shared module first imported it, and renamed with it. */
+/* Anchored to emitted chunk names, so a file that merely contains "three" cannot exempt
+   itself. astro.config.ts pins Three.js to its own chunk. */
 const DEFERRED = /^(three|figures|chase-scene|ghost-scene)\./;
 const isDeferred = (f) => DEFERRED.test(basename(f));
 

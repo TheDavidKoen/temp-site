@@ -70,7 +70,7 @@ const HANDLERS = {
 
 const COMMANDS = Object.keys(HANDLERS);
 
-const isGameVerb = (verb: string): boolean => (GAME_VERBS as readonly string[]).includes(verb);
+const isGameVerb = (verb: string): boolean => GAME_VERBS.includes(verb);
 
 export function run(input: string, state: GameState | null = null): CommandResult {
   const trimmed = input.trim();

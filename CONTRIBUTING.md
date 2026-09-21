@@ -3,7 +3,8 @@
 ## Branching
 
 `main` is always deployable. Work happens on short-lived branches merged via
-pull request.
+pull request. Pull requests are squash merged, so the pull request title becomes the commit
+subject and must follow the commit format below.
 
 | Prefix | For |
 |---|---|
@@ -29,17 +30,13 @@ git checkout -b feat/thing
 
 ## Commits
 
-[Conventional Commits](https://www.conventionalcommits.org/). Subject in the
-imperative, under 70 characters. Use the body to explain *why*, not what.
-
-Every commit takes a type. A subject with no type is the one thing a reviewer
-reading this history will notice.
+[Conventional Commits](https://www.conventionalcommits.org/). One short subject in the
+imperative, under about 70 characters, naming the kind of change rather than listing every edit.
+Authorship is visible on GitHub, so no author or co-author lines.
 
 ```
-feat: add work section with project cards
-
-Each card expands to a description and links, one at a time. Logos are
-inlined so they follow the theme.
+feat: add a project to the work section
+docs: update the documentation
 ```
 
 ## Before opening a pull request
@@ -48,17 +45,9 @@ inlined so they follow the theme.
 pnpm verify
 ```
 
-That runs `astro check`, the Worker type check and Biome. All three must be
-clean. Also run a production build and the budget check, since some
-failures only surface there:
-
-```sh
-pnpm build
-pnpm run budget
-```
-
-CI runs all of this plus Lighthouse on every pull request, so a red check means
-one of these failed. Reproduce it locally rather than pushing again to see.
+That runs the type checks, Biome, the production build and the performance budget. All must be
+clean. CI runs the same steps, then a dependency audit and Lighthouse, so a red check means one
+of them failed. Reproduce it locally rather than pushing again to see.
 
 Then check, by eye:
 

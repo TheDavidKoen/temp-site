@@ -123,9 +123,8 @@ const dots = Array.from({ length: DOTS }, (_, i) => ({
     will-change: transform;
   }
 
-  /* Matches the specificity of the data-active rule above. A plain .trail here
-     loses to it, so a window that loaded wide and was then narrowed kept the
-     dots on a viewport that should never show them. */
+  /* Matches the specificity of the data-active rule, or a window narrowed after load
+     keeps showing the dots. */
   @media (width < 64rem), (pointer: coarse) {
     .trail,
     .trail[data-active='true'] {

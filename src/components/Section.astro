@@ -9,9 +9,8 @@ interface Props {
 
 const { id, label, class: className } = Astro.props;
 
-/* With an aside the section splits on desktop: the label and aside stay pinned
-   on the left while the main content scrolls past on the right. top-24 matches
-   the anchor offset in global.css, which clears the fixed header. */
+/* With an aside the section splits on desktop and pins the aside. top-24 matches the
+   anchor offset in global.css. */
 const split = Astro.slots.has('aside');
 ---
 

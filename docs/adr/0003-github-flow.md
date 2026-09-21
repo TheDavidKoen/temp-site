@@ -25,6 +25,8 @@ and their diffs permanently. Stale branches invite work from an outdated base.
 ## Consequences
 
 - Every change is reviewable as a self-contained diff.
+- Pull requests are squash merged, so `main` reads as one commit per change,
+  titled by its pull request.
 - The pull request trail is the durable record, not the branch list.
 - A branch that has already been merged is spent: further work starts a new one,
   because GitHub will not reopen a merged PR for new commits.

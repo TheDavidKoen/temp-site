@@ -113,8 +113,7 @@ function logo(slug: string) {
     if (panel) panel.inert = !open;
   };
 
-  /* Everything except the card or note the click landed in closes, which is
-     also what keeps a single card open at a time. */
+  /* Closes everything except what was clicked, which also keeps one card open at a time. */
   const closeAll = (keepCard?: Element | null, keepNote?: Element | null): void => {
     for (const card of cards) {
       if (card !== keepCard && card.hasAttribute('data-open')) setOpen(card, false);
@@ -140,7 +139,6 @@ function logo(slug: string) {
     });
   }
 
-  // Tapping toggles the note, for touch screens where there is no hover.
   for (const note of notes) {
     note.querySelector('[data-pending-trigger]')?.addEventListener('click', () => {
       note.toggleAttribute('data-open');
@@ -245,14 +243,11 @@ function logo(slug: string) {
     background-color: var(--color-signal);
   }
 
-  /* Matches the dock toggle: the plus unwinds into a cross. */
   .project[data-open] .project__icon {
     transform: rotate(135deg);
     background-color: var(--color-signal);
   }
 
-  /* A fixed box, so every card's head is the same height whatever the logo's
-     proportions. Centred, so the mark glides to the middle as the word folds. */
   .project__logo {
     display: flex;
     align-items: center;
@@ -297,7 +292,6 @@ function logo(slug: string) {
     transform: scale(1.12) rotate(-5deg);
   }
 
-  /* Folds from the right: the svg keeps its width while its box narrows. */
   .project__word {
     width: var(--word-w);
     margin-left: var(--gap);
@@ -339,8 +333,7 @@ function logo(slug: string) {
     overflow: visible;
   }
 
-  /* Spacing sits on this child rather than the clip, or the collapsed row would
-     keep its height. The side margins leave room for focus outlines. */
+  /* Spacing sits here, not on the clip, or the collapsed row would keep its height. */
   .project__body {
     margin-inline: 1.5rem;
     padding-block: 1.25rem 1.5rem;
@@ -383,8 +376,6 @@ function logo(slug: string) {
     display: inline-block;
   }
 
-  /* Anchored to the button's right edge so it opens back over the card rather
-     than past the edge of the screen. */
   .pending__tip {
     right: 0;
     bottom: calc(100% + 0.75rem);

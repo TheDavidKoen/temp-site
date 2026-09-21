@@ -15,7 +15,6 @@ const REVEAL_MS = 380;
 export const currentTheme = (): Theme =>
   document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
 
-/** A colour token as the active theme resolves it. */
 export const token = (name: string): string =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -33,8 +32,7 @@ function apply(theme: Theme): void {
 }
 
 function shuffled(count: number): Uint32Array {
-  const order = new Uint32Array(count);
-  for (let i = 0; i < count; i++) order[i] = i;
+  const order = Uint32Array.from({ length: count }, (_, i) => i);
   for (let i = count - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [order[i], order[j]] = [order[j], order[i]];
@@ -42,11 +40,9 @@ function shuffled(count: number): Uint32Array {
   return order;
 }
 
-/* Floods the viewport with the current ink in random square cells, swaps the
-   theme under full cover, then clears the cells in a fresh order. Dark mode
-   swaps the two neutrals, so the ink it covers with is the next theme's ground.
-   Browsers do not expose page pixels to script, so this dissolves over the page
-   rather than resampling it. */
+/* Covers the viewport in random cells of the current ink, swaps the theme under full
+   cover, then clears the cells. Browsers do not expose page pixels, so it dissolves
+   over the page rather than resampling it. */
 function dissolve(swap: () => void): Promise<void> {
   return new Promise((resolve) => {
     const width = document.documentElement.clientWidth;
@@ -120,12 +116,11 @@ function dissolve(swap: () => void): Promise<void> {
   });
 }
 
-/** Switches theme, remembers the choice, and dissolves between the palettes. */
 export function setTheme(theme: Theme): Promise<void> {
   try {
     localStorage.setItem(STORAGE_KEY, theme);
   } catch {
-    // Private browsing can refuse storage; the switch still applies to this visit.
+    // Storage refused in private browsing: the switch still applies to this visit.
   }
 
   if (theme === currentTheme()) return Promise.resolve();

@@ -40,40 +40,32 @@ const HALF_H = (TOP - BOTTOM) / 2;
    changes the framing. */
 const REACH = Math.hypot(GHOST.halfWidth + DEPTH / 2, HALF_H) + BOB + 0.18;
 
+const lineGeometry = (positions: number[]): BufferGeometry =>
+  new BufferGeometry().setAttribute('position', new Float32BufferAttribute(positions, 3));
+
 function bodyGeometry(): BufferGeometry {
   const points = ghostOutline(GHOST);
   const front = DEPTH / 2;
   const back = -DEPTH / 2;
-  const positions: number[] = [];
 
-  for (let i = 0; i < points.length; i++) {
-    const [ax, ay] = points[i];
-    const [bx, by] = points[(i + 1) % points.length];
-
-    positions.push(ax, ay, front, bx, by, front);
-    positions.push(ax, ay, back, bx, by, back);
-    if (i % RIB_EVERY === 0) positions.push(ax, ay, front, ax, ay, back);
-  }
-
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  return geometry;
+  return lineGeometry(
+    points.flatMap(([ax, ay], i) => {
+      const [bx, by] = points[(i + 1) % points.length];
+      const rib = i % RIB_EVERY === 0 ? [ax, ay, front, ax, ay, back] : [];
+      return [ax, ay, front, bx, by, front, ax, ay, back, bx, by, back, ...rib];
+    }),
+  );
 }
 
-function ringGeometry(radius: number, steps = 28): BufferGeometry {
-  const positions: number[] = [];
-
-  for (let i = 0; i < steps; i++) {
-    const a = (i / steps) * Math.PI * 2;
-    const b = ((i + 1) / steps) * Math.PI * 2;
-    positions.push(Math.cos(a) * radius, Math.sin(a) * radius, 0);
-    positions.push(Math.cos(b) * radius, Math.sin(b) * radius, 0);
-  }
-
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  return geometry;
-}
+const ringGeometry = (radius: number, steps = 28): BufferGeometry =>
+  lineGeometry(
+    Array.from({ length: steps }, (_, i) =>
+      [i, i + 1].flatMap((step) => {
+        const angle = (step / steps) * Math.PI * 2;
+        return [Math.cos(angle) * radius, Math.sin(angle) * radius, 0];
+      }),
+    ).flat(),
+  );
 
 export function initGhostScene(canvas: HTMLCanvasElement): void {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
@@ -82,7 +74,6 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
   const scene = new Scene();
   const camera = new PerspectiveCamera(38, 1, 0.1, 100);
 
-  // Both figures hang off one group, so they share the bob and the pointer tilt.
   const figure = new Group();
   scene.add(figure);
 
@@ -117,8 +108,6 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
   hunter.add(pacmanEye);
   figure.add(hunter);
 
-  /* Colours come from the tokens and are read again on every theme change,
-     so the scene can never drift from the palette. */
   const paint = (): void => {
     const ink = token('--color-ink');
     inkLines.color.set(ink);
@@ -190,8 +179,7 @@ export function initGhostScene(canvas: HTMLCanvasElement): void {
   resize();
   new ResizeObserver(resize).observe(canvas);
   window.addEventListener('pointermove', onPointerMove, { passive: true });
-  /* Coalesced to one read per frame: scroll can fire several times a frame and
-     getBoundingClientRect forces a synchronous layout on every call. */
+  /* One read per frame: getBoundingClientRect forces a layout on every call. */
   let rectPending = false;
   window.addEventListener(
     'scroll',

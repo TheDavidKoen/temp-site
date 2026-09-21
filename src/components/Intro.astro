@@ -220,8 +220,7 @@ const NAME = SITE.name;
     }
   }
 
-  /* The curtain stays dark in both themes, so it keeps the light palette's
-     values instead of following the dark swap. See ADR 0013. */
+  /* Dark in both themes, so it pins the light palette. See ADR 0013. */
   :global(html[data-theme='dark']) .intro {
     --color-ink: #101a1c;
     --color-surface: #f5f5f5;
