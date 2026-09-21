@@ -1,7 +1,7 @@
 {
   "name": "davidkoen-site",
   "type": "module",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "packageManager": "pnpm@11.22.0",
   "engines": {
     "node": ">=22.12.0"
@@ -10,28 +10,26 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check",
-    "check:functions": "tsc -p functions/tsconfig.json --noEmit",
+    "typecheck": "astro check && tsc -p functions/tsconfig.json --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "verify": "pnpm run check && pnpm run check:functions && pnpm run lint",
-    "astro": "astro",
-    "budget": "node scripts/check-budget.mjs"
+    "budget": "node scripts/check-budget.mjs",
+    "verify": "pnpm run typecheck && pnpm run lint && pnpm run build && pnpm run budget"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/sitemap": "^3.7.4",
     "@tailwindcss/vite": "^4.3.3",
-    "astro": "^7.2.4",
+    "astro": "^7.3.3",
     "tailwindcss": "^4.3.3",
     "three": "^0.185.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@biomejs/biome": "^2.5.9",
-    "@cloudflare/workers-types": "^5.20260823.1",
+    "@biomejs/biome": "^2.5.14",
+    "@cloudflare/workers-types": "^5.20260920.1",
     "@lhci/cli": "^0.15.1",
     "@types/three": "^0.185.4",
     "typescript": "^6.0.3",
-    "wrangler": "^4.125.0"
+    "wrangler": "^4.135.0"
   }
 }

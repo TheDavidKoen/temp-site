@@ -39,12 +39,11 @@ const { title, description } = Astro.props;
         const root = document.documentElement;
         root.dataset.dock = 'closed';
 
-        // Light unless the visitor has chosen dark; the system setting is ignored.
         let dark = false;
         try {
           dark = localStorage.getItem('theme') === 'dark';
         } catch {
-          // Storage can be refused in private browsing; stay light.
+          // Storage refused in private browsing: stay light.
         }
         root.dataset.theme = dark ? 'dark' : 'light';
 

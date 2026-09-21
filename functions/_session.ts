@@ -13,11 +13,11 @@ interface Envelope {
   readonly state: GameState;
 }
 
-const toBase64Url = (bytes: Uint8Array): string => {
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-};
+const toBase64Url = (bytes: Uint8Array): string =>
+  btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 
 const fromBase64Url = (value: string): Uint8Array => {
   const padded = value.replace(/-/g, '+').replace(/_/g, '/');

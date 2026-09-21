@@ -71,25 +71,16 @@ const WEAPON_DESC: Record<string, string> = {
   bust: 'Chipped at the brow. It has been moved recently and put back wrong.',
 };
 
-const NAMES: Record<string, string> = {
-  gandalf: 'Gandalf',
-  aragorn: 'Aragorn',
-  legolas: 'Legolas',
-  gimli: 'Gimli',
-  boromir: 'Boromir',
-  galadriel: 'Galadriel',
-};
+const NAMES: Record<string, string> = Object.fromEntries(
+  SUSPECTS.map((suspect) => [suspect, suspect[0].toUpperCase() + suspect.slice(1)]),
+);
 
-const DIRECTIONS: Record<string, string> = {
-  n: 'north',
-  s: 'south',
-  e: 'east',
-  w: 'west',
-  north: 'north',
-  south: 'south',
-  east: 'east',
-  west: 'west',
-};
+const DIRECTIONS: Record<string, string> = Object.fromEntries(
+  ['north', 'south', 'east', 'west'].flatMap((way) => [
+    [way, way],
+    [way[0], way],
+  ]),
+);
 
 function rng(seed: string): () => number {
   let h = 2166136261;
@@ -110,9 +101,7 @@ function shuffle<T>(items: readonly T[], next: () => number): T[] {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(next() * (i + 1));
-    const swap = copy[i];
-    copy[i] = copy[j];
-    copy[j] = swap;
+    [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
 }
@@ -139,21 +128,14 @@ function buildCase(seed: string): Case {
     ...ROOMS.filter((r) => r !== scene),
   ];
 
-  const holder: Record<string, string> = {};
-  shuffle(spare, next).forEach((card, i) => {
-    holder[card] = SUSPECTS[i % SUSPECTS.length];
-  });
+  const holder = Object.fromEntries(
+    shuffle(spare, next).map((card, i) => [card, SUSPECTS[i % SUSPECTS.length]]),
+  );
 
   const suspectRooms = shuffle(ROOMS, next);
   const weaponRooms = shuffle(ROOMS, next);
-  const whereSuspect: Record<string, string> = {};
-  const whereWeapon: Record<string, string> = {};
-  SUSPECTS.forEach((s, i) => {
-    whereSuspect[s] = suspectRooms[i];
-  });
-  WEAPONS.forEach((w, i) => {
-    whereWeapon[w] = weaponRooms[i];
-  });
+  const whereSuspect = Object.fromEntries(SUSPECTS.map((s, i) => [s, suspectRooms[i]]));
+  const whereWeapon = Object.fromEntries(WEAPONS.map((w, i) => [w, weaponRooms[i]]));
 
   return { culprit, weapon, scene, holder, whereSuspect, whereWeapon };
 }
@@ -462,7 +444,7 @@ export function play(state: GameState, input: string): { blocks: Block[]; state:
   }
 }
 
-export const GAME_VERBS = [
+export const GAME_VERBS: readonly string[] = [
   'look',
   'l',
   'x',
@@ -472,12 +454,5 @@ export const GAME_VERBS = [
   'notebook',
   'note',
   'accuse',
-  'n',
-  's',
-  'e',
-  'w',
-  'north',
-  'south',
-  'east',
-  'west',
-] as const;
+  ...Object.keys(DIRECTIONS),
+];

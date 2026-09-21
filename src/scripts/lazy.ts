@@ -11,7 +11,6 @@ export const canRenderScene = (): boolean =>
   (device.deviceMemory ?? 8) >= 4 &&
   (device.hardwareConcurrency ?? 8) >= 4;
 
-/** Runs `callback` once, the first time `target` intersects. */
 export function onceVisible(
   target: Element,
   callback: () => void,

@@ -1,11 +1,12 @@
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, fontProviders } from 'astro/config';
+import securityHeaders from './integrations/security-headers';
 
 export default defineConfig({
   site: 'https://davidkoen.is-a.dev',
   devToolbar: { enabled: false },
-  integrations: [sitemap()],
+  integrations: [sitemap(), securityHeaders()],
   fonts: [
     {
       name: 'Space Grotesk',
@@ -38,9 +39,8 @@ export default defineConfig({
       cssMinify: false,
       rollupOptions: {
         output: {
-          /* Three.js in a chunk of its own, shared by both scenes. Left to Rollup it
-             was folded into figures.ts, the first module they share, which moved it
-             out from under the budget script's deferred pattern. */
+          /* Three.js in its own chunk, or Rollup folds it into figures.ts and the
+             budget counts it as critical path. */
           manualChunks: (id: string) => (id.includes('/node_modules/three/') ? 'three' : undefined),
         },
       },

@@ -26,8 +26,7 @@ export interface Pacman {
   draw(mouth: number, blast?: number): void;
 }
 
-/* Two outlines a depth apart, joined by ribs, rewritten in place on each draw
-   rather than rebuilt, so animating the mouth allocates nothing. */
+/* Rewritten in place on each draw, so animating the mouth allocates nothing. */
 export function createPacman(radius: number, depth: number): Pacman {
   const positions = new Float32Array(SEGMENTS * 2 * 3);
   const attribute = new BufferAttribute(positions, 3);
@@ -89,8 +88,6 @@ export interface GhostOutline {
   readonly skirtSteps: number;
 }
 
-/* A dome over straight sides, closed by a wavy skirt, traced as one loop from
-   the left of the dome. Stroked by the pointer scene and filled by the chase. */
 export function ghostOutline(ghost: GhostOutline): Point[] {
   const points: Point[] = [];
 

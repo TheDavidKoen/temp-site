@@ -167,7 +167,7 @@ browser / curl ──▶ index.ts ──▶ commands.ts ──▶ content.ts  (C
 ```
 
 `functions/` compiles under its own tsconfig with Workers types and no DOM lib,
-and `astro check` skips it, so CI runs `check:functions` separately. Without that
+and `astro check` skips it, so `typecheck` runs `tsc` over it separately. Without that
 step a broken endpoint passes every other gate and fails only at the edge.
 
 Game state lives in the client because the server keeps none. That is safe only

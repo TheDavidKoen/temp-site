@@ -18,8 +18,8 @@
   if (toggle && stowable.length) {
     const isOpen = (): boolean => toggle.getAttribute('aria-expanded') === 'true';
 
-    /* inert, not just pointer-events: a stowed bubble is still in the document,
-       so without it the bubbles stay reachable by keyboard while invisible. */
+    /* inert, not just pointer-events, or stowed bubbles stay reachable by keyboard
+       while invisible. */
     const setOpen = (open: boolean): void => {
       document.documentElement.dataset.dock = open ? 'open' : 'closed';
       toggle.setAttribute('aria-expanded', String(open));
@@ -34,16 +34,14 @@
       setOpen(!isOpen());
     });
 
-    /* click rather than pointerdown: a touch that turns into a scroll never
-       fires it, so the dock does not collapse the moment a finger lands. */
+    /* click rather than pointerdown, so a touch that turns into a scroll does not
+       collapse the dock. */
     document.addEventListener('click', (event) => {
       if (!isOpen()) return;
 
-      // A modal is its own dismissal surface, so leave the dock as it was.
       if (document.querySelector('dialog[open]')) return;
 
-      /* Dock members only. The theme switch shares the bubble's look but is not
-         part of the dock, so clicking it should close the dock like anywhere else. */
+      /* The theme switch shares the launcher look but is not part of the dock. */
       const target = event.target;
       const inDock = target instanceof Element && target.closest('.launcher--toggle, .launcher--stowable');
       if (!inDock) setOpen(false);
@@ -63,8 +61,7 @@
     transition: transform 0.4s var(--ease-spring);
   }
 
-  /* 135 rather than 45, so the plus unwinds anticlockwise into a cross and the
-     open and close spins do not retrace each other. */
+  /* 135, not 45, so opening and closing spin in different directions. */
   .launcher--toggle[aria-expanded='true'] .launcher__mark {
     transform: rotate(135deg);
   }

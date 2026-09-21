@@ -43,13 +43,12 @@ The dev server runs at **http://localhost:4321**.
 | `pnpm dev` | Start the dev server |
 | `pnpm build` | Production build to `dist/` |
 | `pnpm preview` | Serve the built output |
-| `pnpm check` | Type and template diagnostics (`astro check`) |
-| `pnpm check:functions` | Type-check `functions/` against the Workers types |
+| `pnpm run typecheck` | `astro check`, then `functions/` against the Workers types |
 | `pnpm lint` | Biome lint and format check |
-| `pnpm lint:fix` | Apply Biome's safe fixes |
-| `pnpm verify` | The three checks above. Run before opening a PR |
-| `pnpm budget` | Assert the performance budget against `dist/` |
-| `pnpm budget -- --markdown` | Print the measurement tables for `docs/performance.md` |
+| `pnpm run lint:fix` | Apply Biome's safe fixes |
+| `pnpm run budget` | Assert the performance budget against `dist/`, after a build |
+| `pnpm run budget -- --markdown` | Print the measurement tables for `docs/performance.md` |
+| `pnpm verify` | Types, lint, build and budget. Run before opening a PR |
 
 ## Project structure
 
@@ -67,6 +66,7 @@ src/
 ├── scripts/        Standalone modules, loaded on demand
 └── styles/         global.css, design tokens in @theme
 functions/          Cloudflare Pages Function behind /api/cli
+integrations/       Astro build hooks: security headers
 scripts/            Build-time checks
 docs/
 ├── adr/            Architecture decision records
@@ -134,6 +134,20 @@ need no key.
 `pnpm dev` does not serve `/api/cli`, because Astro knows nothing about Pages
 Functions. Use `wrangler pages dev dist` for anything touching the endpoint.
 
+## Privacy and security
+
+No analytics, no tracking and no third-party requests. The only cookie is the game session,
+signed and scoped to `/api/cli`.
+
+| Guard | Detail |
+|---|---|
+| Content Security Policy | Inline scripts allowed by hash only, rebuilt from the built HTML on every deploy |
+| Headers | HSTS, frame denial, strict referrer policy, permissions policy, cross-origin opener isolation |
+| API | Fixed command allowlist, 120-character input cap, 30 requests per 10 seconds per address |
+| Session | HMAC-SHA256 signed, `HttpOnly`, `Secure`, `SameSite=Lax`, six-hour expiry |
+
+See [SECURITY.md](SECURITY.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, commit format and the
@@ -143,10 +157,18 @@ pre-PR checklist.
 
 Every pull request into `main` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
-| Job | Does |
-|---|---|
-| `verify` | `astro check`, Worker types, Biome, production build, performance budget |
-| `lighthouse` | Audits the built output, three runs, desktop preset |
+| Job | Step | Does |
+|---|---|---|
+| Verify | Types | `astro check` and the Worker types |
+| Verify | Lint and format | Biome |
+| Verify | Production build | `astro build`, which also writes the security headers |
+| Verify | Performance budget | Fails over budget, or if a minifier breaks the scroll timelines |
+| Verify | Dependency audit | Fails on a high or critical advisory in production dependencies |
+| Lighthouse | Audit | Three desktop runs: SEO 100, accessibility and best practices 95 or higher |
+
+Actions are pinned to commit SHAs, and Dependabot keeps them and the npm dependencies current.
+Pushing a `v*.*.*` tag runs [`release.yml`](.github/workflows/release.yml), which checks the
+tag against `package.json` and publishes a GitHub release from `CHANGELOG.md`.
 
 The budget step enforces [`docs/performance.md`](docs/performance.md) and guards
 a regression that is otherwise invisible: a minifier folding `animation-timeline`

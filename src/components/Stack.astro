@@ -82,8 +82,7 @@ const ADR_BASE = `${REPO_URL}/blob/main/docs/adr`;
     background-color: var(--color-surface-raised);
     border-radius: 0.75rem;
 
-    /* Must not scroll itself, or it grows a scrollbar alongside the body's and
-       the header scrolls away with it. */
+    /* Must not scroll itself, or the header scrolls away with a second scrollbar. */
     overflow: hidden;
   }
 
@@ -181,7 +180,6 @@ const ADR_BASE = `${REPO_URL}/blob/main/docs/adr`;
     object-position: left center;
   }
 
-  /* The logos are single-colour black SVGs and vanish on the dark sheet. */
   :global(html[data-theme='dark']) .stack__logo {
     filter: invert(1);
   }
