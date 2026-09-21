@@ -22,24 +22,24 @@ pnpm build && pnpm run budget -- --markdown
 
 | Asset | Raw | Gzip |
 |---|---|---|
-| HTML | 242 KB | **30.0 KB** |
-| CSS | 59 KB | **10.5 KB** |
+| HTML | 251 KB | **32.8 KB** |
+| CSS | 58 KB | **10.5 KB** |
 | Page scripts | 7 KB | **4.2 KB** |
 | `chase-scene` (deferred) | 4 KB | **1.9 KB** |
 | `figures` (deferred) | 1 KB | **0.6 KB** |
 | `ghost-scene` (deferred) | 3 KB | **1.4 KB** |
 | `three` (deferred) | 532 KB | **132.9 KB** |
 | Fonts | 5 x woff2 | self-hosted |
-| Total `dist/` | 1126 KB | |
+| Total `dist/` | 1134 KB | |
 
-**Critical path: 44.7 KB gzip** against a 50 KB budget.
+**Critical path: 47.4 KB gzip** against a 50 KB budget.
 **Deferred WebGL: 136.8 KB gzip** against a 180 KB budget.
 
 The HTML is large for a single page because two effects are rendered as elements:
 the hero glyph field is 1400 spans and `ScrollReveal` emits one span per character.
 It gzips to a fifth of its raw size because that markup is almost entirely
 repetition. The project logos are inlined too, so they take the theme colour.
-Each distinct glyph is drawn once and reused, which keeps all three near 6.6 KB gzip.
+Each distinct glyph is drawn once and reused, which keeps all four near 9 KB gzip.
 
 The Three.js figure depends on the library being imported by name.
 `import * as THREE` would defeat tree-shaking and roughly double it. The library is

@@ -8,13 +8,36 @@ interface Props {
 }
 
 const { id, label, class: className } = Astro.props;
+
+/* With an aside the section splits on desktop: the label and aside stay pinned
+   on the left while the main content scrolls past on the right. top-24 matches
+   the anchor offset in global.css, which clears the fixed header. */
+const split = Astro.slots.has('aside');
 ---
 
 <section id={id} class:list={['border-t border-surface-muted py-[var(--section-space)]', className]}>
   <Container>
-    <h2 class="label">{label}</h2>
-    <div class="mt-10">
-      <slot />
-    </div>
+    {
+      split ? (
+        <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.75fr)] lg:gap-16">
+          <div class="lg:sticky lg:top-24 lg:self-start">
+            <h2 class="label">{label}</h2>
+            <div class="mt-10">
+              <slot name="aside" />
+            </div>
+          </div>
+          <div>
+            <slot />
+          </div>
+        </div>
+      ) : (
+        <Fragment>
+          <h2 class="label">{label}</h2>
+          <div class="mt-10">
+            <slot />
+          </div>
+        </Fragment>
+      )
+    }
   </Container>
 </section>

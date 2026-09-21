@@ -101,11 +101,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     }
   </PinnedText>
 
-  <Section id="work" label="Work" class="lg:text-center">
-    <SectionLead lead={WORK.lead} body={WORK.body} centred />
-    <div class="mt-12">
-      <Work />
-    </div>
+  <Section id="work" label="Work">
+    <SectionLead slot="aside" lead={WORK.lead} />
+    <Work />
   </Section>
 
   <Section id="contact" label="Contact">
