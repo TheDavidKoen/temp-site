@@ -82,6 +82,14 @@ const seed = (i: number): string =>
     view-timeline: --hero block;
   }
 
+  /* Without scroll timelines nothing plays across the extra height, so the hero
+     is one screen tall. */
+  @supports not (animation-timeline: view()) {
+    .hero {
+      height: 100dvh;
+    }
+  }
+
   @media (width < 40rem) {
     .hero {
       display: none;

@@ -28,12 +28,12 @@ pnpm build && pnpm run budget -- --markdown
 | `chase-scene` (deferred) | 4 KB | **1.9 KB** |
 | `figures` (deferred) | 1 KB | **0.6 KB** |
 | `ghost-scene` (deferred) | 3 KB | **1.4 KB** |
-| `three` (deferred) | 532 KB | **132.9 KB** |
+| `three` (deferred) | 542 KB | **134.8 KB** |
 | Fonts | 5 x woff2 | self-hosted |
-| Total `dist/` | 1134 KB | |
+| Total `dist/` | 1145 KB | |
 
 **Critical path: 47.4 KB gzip** against a 50 KB budget.
-**Deferred WebGL: 136.8 KB gzip** against a 180 KB budget.
+**Deferred WebGL: 138.6 KB gzip** against a 180 KB budget.
 
 The HTML is large for a single page because two effects are rendered as elements:
 the hero glyph field is 1400 spans and `ScrollReveal` emits one span per character.

@@ -27,5 +27,7 @@ already carrying a 127 KB WebGL chunk.
 - `prefers-reduced-motion` needs handling per component. The global kill switch
   only shortens durations, which parks a scroll-driven animation mid-sweep
   rather than stopping it.
-- Unsupported browsers get static content via `@supports`, so no separate
-  fallback path is maintained.
+- Unsupported browsers, Firefox among them at the time of writing, get static
+  content via `@supports`, so no separate fallback path is maintained. The two
+  pinned sections collapse to normal height there, so the static page has no
+  stretch of scrolling where nothing changes.
