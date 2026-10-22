@@ -43,7 +43,7 @@ paint:
 | `chase-scene` (Three.js) | 1.9 KB | Dynamic import behind an `IntersectionObserver` |
 | `ghost-scene` (Three.js) | 1.4 KB | Dynamic import behind an `IntersectionObserver` |
 | `figures` | 0.6 KB | Dynamic, the pacman and ghost geometry both scenes draw |
-| `three` | 132.9 KB | Dynamic, shared by both scenes, pinned to its own chunk |
+| `three` | 134.8 KB | Dynamic, shared by both scenes, pinned to its own chunk |
 
 The Three.js chunk is never on the critical path. It is fetched only once a scene
 is near the viewport, and not at all when the visitor prefers reduced motion or
@@ -121,7 +121,8 @@ All scroll effects are native CSS scroll-driven animations
 (`animation-timeline`), not JavaScript. They run off the main thread and degrade
 to static content in browsers without support, via `@supports`.
 
-Two sections pin while their animation plays:
+Two sections pin while their animation plays. Where scroll timelines are
+unsupported, both drop to normal height instead:
 
 | Section | Height | Mechanism |
 |---|---|---|

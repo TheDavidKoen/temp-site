@@ -56,6 +56,23 @@ const { id, label }: Props = Astro.props;
     height: 1px;
   }
 
+  /* Without scroll timelines the reveal never plays, so the section collapses
+     to a normal one instead of pinning static text. */
+  @supports not (animation-timeline: view()) {
+    .pin {
+      height: auto;
+    }
+
+    .pin__stage {
+      position: static;
+      min-height: 0;
+    }
+
+    .pin__anchor {
+      top: 0;
+    }
+  }
+
   .pin__body {
     display: grid;
     gap: 1.75rem;
