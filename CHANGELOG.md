@@ -6,6 +6,18 @@ All notable changes to this site are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Deadwax links to its live demo, so every Work card now opens a live project
+
+### Fixed
+
+- Pinned sections collapse to normal height in browsers without scroll timelines
+
+### Security
+
+- Dependencies updated to clear newly published advisories
+
 ## [1.0.0] - 2026-09-21
 
 ### Added

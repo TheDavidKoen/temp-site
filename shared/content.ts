@@ -162,17 +162,15 @@ export const WORK = {
   lead: 'Through the years I have planned, developed, deployed and maintained countless web-related products. As someone who has a personal passion for art in its many mediums, I find it fascinating and exciting to hone an individual’s identity into their production.',
   repoLabel: 'GitHub',
   liveLabel: 'View project',
-  pendingNote: 'Still in the pipeline. Watch this space for developments.',
 } as const;
 
-/* slug names the logo pair in src/assets/work. A project without live shows
-   WORK.pendingNote in place of a link. */
+/* slug names the logo pair in src/assets/work. */
 interface Project {
   readonly slug: string;
   readonly name: string;
   readonly description: readonly string[];
   readonly repo: string;
-  readonly live?: string;
+  readonly live: string;
 }
 
 export const PROJECTS: readonly Project[] = [
@@ -210,10 +208,11 @@ export const PROJECTS: readonly Project[] = [
     slug: 'deadwax',
     name: 'Deadwax',
     description: [
-      'Deadwax is an idea for an agentic music librarian built with LangChain and Google Gemini. It answers natural-language questions about a personal listening history and assembles playlists against hard constraints.',
-      'It is still a work in progress, and the vision is a platform that builds playlists for users based on their prompts.',
+      'Deadwax is an AI music librarian that answers questions about your music in plain English and builds playlists to a brief, without ever letting the model do the maths.',
+      'LangChain and Google Gemini read the question and choose the tools, while every count, total and playlist check runs in plain Python, so the figures it quotes are exact. A validator rejects any playlist that breaks the brief, impossible requests are refused rather than padded, and a 25-case evaluation suite measures how often it gets the answer right.',
     ],
     repo: 'https://github.com/TheDavidKoen/deadwax',
+    live: 'https://deadwax-demo.onrender.com/',
   },
 ];
 
