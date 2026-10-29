@@ -14,6 +14,10 @@ All notable changes to this site are recorded here. The format follows
 
 - Pinned sections collapse to normal height in browsers without scroll timelines
 
+### Security
+
+- Dependencies updated to clear newly published advisories
+
 ## [1.0.0] - 2026-09-21
 
 ### Added
