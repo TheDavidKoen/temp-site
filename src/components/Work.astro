@@ -77,20 +77,9 @@ function logo(slug: string) {
                   <Button href={project.repo} variant="outline" external>
                     {WORK.repoLabel}
                   </Button>
-                  {project.live ? (
-                    <Button href={project.live} external>
-                      {WORK.liveLabel}
-                    </Button>
-                  ) : (
-                    <span class="pending" data-pending>
-                      <Button aria-describedby={`${id}-note`} data-pending-trigger>
-                        {WORK.liveLabel}
-                      </Button>
-                      <span class="tip pending__tip" id={`${id}-note`} role="tooltip">
-                        {WORK.pendingNote}
-                      </span>
-                    </span>
-                  )}
+                  <Button href={project.live} external>
+                    {WORK.liveLabel}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -103,51 +92,30 @@ function logo(slug: string) {
 
 <script>
   const cards = [...document.querySelectorAll<HTMLElement>('[data-project]')];
-  const notes = [...document.querySelectorAll<HTMLElement>('[data-pending]')];
 
   const setOpen = (card: HTMLElement, open: boolean): void => {
     card.toggleAttribute('data-open', open);
-    card.removeAttribute('data-settled');
     card.querySelector('[data-project-toggle]')?.setAttribute('aria-expanded', String(open));
     const panel = card.querySelector<HTMLElement>('[data-project-panel]');
     if (panel) panel.inert = !open;
   };
 
-  /* Closes everything except what was clicked, which also keeps one card open at a time. */
-  const closeAll = (keepCard?: Element | null, keepNote?: Element | null): void => {
+  /* Closes every card except the one clicked, which also keeps one open at a time. */
+  const closeAll = (keep?: Element | null): void => {
     for (const card of cards) {
-      if (card !== keepCard && card.hasAttribute('data-open')) setOpen(card, false);
-    }
-    for (const note of notes) {
-      if (note !== keepNote) note.removeAttribute('data-open');
+      if (card !== keep && card.hasAttribute('data-open')) setOpen(card, false);
     }
   };
 
   for (const card of cards) {
-    const toggle = card.querySelector<HTMLButtonElement>('[data-project-toggle]');
-    const panel = card.querySelector<HTMLElement>('[data-project-panel]');
-    if (!toggle || !panel) continue;
-
-    toggle.addEventListener('click', () => setOpen(card, !card.hasAttribute('data-open')));
-
-    /* The panel only clips while it animates. Once open it lets content spill,
-       so the pipeline note can rise above the card's text. */
-    panel.addEventListener('transitionend', (event) => {
-      if (event.target === panel && card.hasAttribute('data-open')) {
-        card.setAttribute('data-settled', '');
-      }
-    });
-  }
-
-  for (const note of notes) {
-    note.querySelector('[data-pending-trigger]')?.addEventListener('click', () => {
-      note.toggleAttribute('data-open');
-    });
+    card
+      .querySelector('[data-project-toggle]')
+      ?.addEventListener('click', () => setOpen(card, !card.hasAttribute('data-open')));
   }
 
   document.addEventListener('click', (event) => {
     const target = event.target instanceof Element ? event.target : null;
-    closeAll(target?.closest('[data-project]'), target?.closest('[data-pending]'));
+    closeAll(target?.closest('[data-project]'));
   });
 
   document.addEventListener('keydown', (event) => {
@@ -181,11 +149,6 @@ function logo(slug: string) {
 
   .project[data-open] {
     border-color: var(--color-signal);
-  }
-
-  .project[data-settled] {
-    position: relative;
-    z-index: 1;
   }
 
   /* The entrance animates translate, not transform, so it never fights the
@@ -329,10 +292,6 @@ function logo(slug: string) {
     overflow: hidden;
   }
 
-  .project[data-settled] .project__clip {
-    overflow: visible;
-  }
-
   /* Spacing sits here, not on the clip, or the collapsed row would keep its height. */
   .project__body {
     margin-inline: 1.5rem;
@@ -369,41 +328,6 @@ function logo(slug: string) {
     flex-wrap: wrap;
     gap: 0.75rem;
     margin-top: 1.5rem;
-  }
-
-  .pending {
-    position: relative;
-    display: inline-block;
-  }
-
-  .pending__tip {
-    right: 0;
-    bottom: calc(100% + 0.75rem);
-    z-index: 2;
-    width: min(15rem, 70vw);
-    line-height: 1.5;
-    text-align: left;
-    white-space: normal;
-    transform: translateY(0.4rem);
-  }
-
-  .pending__tip::after {
-    top: 100%;
-    right: 1.5rem;
-    border-top-color: var(--color-ink);
-  }
-
-  .pending[data-open] .pending__tip,
-  .pending:has(:focus-visible) .pending__tip {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  @media (hover: hover) {
-    .pending:hover .pending__tip {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
