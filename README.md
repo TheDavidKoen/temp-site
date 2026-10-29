@@ -185,10 +185,10 @@ preview URL.
 | Framework preset | Astro |
 | Build command | `pnpm build` |
 | Output directory | `dist` |
-| Node version | `.node-version` (22.14.0) |
+| Node version | `.node-version` (22.23.4) |
 
-The Node version is pinned in `.node-version` because Astro 7 requires
-`>=22.12.0` and Cloudflare's default build image ships an older release. The
+The Node version is pinned in `.node-version` because Astro 7.4 requires
+`>=22.23.4` and Cloudflare's default build image ships an older release. The
 package manager is detected from `pnpm-lock.yaml`.
 
 **There is deliberately no `wrangler.toml`.** Adding one to a Pages project that
