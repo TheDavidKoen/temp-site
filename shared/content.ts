@@ -168,6 +168,7 @@ export const WORK = {
 interface Project {
   readonly slug: string;
   readonly name: string;
+  readonly category: string;
   readonly description: readonly string[];
   readonly repo: string;
   readonly live: string;
@@ -177,6 +178,7 @@ export const PROJECTS: readonly Project[] = [
   {
     slug: 'missed-mix',
     name: 'Missed Mix',
+    category: 'SSR App',
     description: [
       'Missed Mix is an idea for a music application that encourages people to meet through nothing more, or less, than one another’s music taste.',
       'The Spotify Web API supplies the catalogue, so a profile is built from real songs, artists and albums. From there a server-side state machine, held in MongoDB and gated by signed sessions, keeps the messaging portal between two accounts sealed until both have made the handshake.',
@@ -187,6 +189,7 @@ export const PROJECTS: readonly Project[] = [
   {
     slug: 'vanesse',
     name: 'Vanessë',
+    category: 'VSC Extension',
     description: [
       'Vanessë is a custom, open-source VS Code theme that uses beautiful colour tones to make an IDE that is relaxing to work with.',
       'Its lemon, lime, violet and blue tones sit on a deep night sky, with 82 matching file icons. Every colour is generated from TypeScript and tested against WCAG AA contrast in CI, so the palette stays easy on the eyes through longer code sprints.',
@@ -197,6 +200,7 @@ export const PROJECTS: readonly Project[] = [
   {
     slug: 'querated',
     name: 'Querated',
+    category: 'GraphQL API',
     description: [
       'Querated is an art gallery browser built on The Metropolitan Museum of Art’s open collection. The idea was a way to query large libraries of content while only paying for the data you actually use.',
       'A GraphQL server sits in front of The Met’s REST API, so the gallery asks for exactly the fields it shows and nothing more.',
@@ -207,6 +211,7 @@ export const PROJECTS: readonly Project[] = [
   {
     slug: 'deadwax',
     name: 'Deadwax',
+    category: 'AI Agent',
     description: [
       'Deadwax is an AI music librarian that answers questions about your music in plain English and builds playlists to a brief, without ever letting the model do the maths.',
       'LangChain and Google Gemini read the question and choose the tools, while every count, total and playlist check runs in plain Python, so the figures it quotes are exact. A validator rejects any playlist that breaks the brief, impossible requests are refused rather than padded, and a 25-case evaluation suite measures how often it gets the answer right.',

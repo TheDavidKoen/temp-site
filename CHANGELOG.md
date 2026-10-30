@@ -6,6 +6,10 @@ All notable changes to this site are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- A Work menu in the header listing each project with its logo, name and category
+
 ### Changed
 
 - Deadwax links to its live demo, so every Work card now opens a live project

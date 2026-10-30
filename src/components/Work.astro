@@ -1,12 +1,7 @@
 ---
 import { PROJECTS, WORK } from '@shared/content';
 import Button from '@/components/Button.astro';
-
-const LOGOS = import.meta.glob<string>('../assets/work/*.svg', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-});
+import { workLogo } from '@/lib/work-logos';
 
 const MAX_HEIGHT = 3.25;
 const MAX_WIDTH = 14;
@@ -14,16 +9,13 @@ const MAX_WIDTH = 14;
 const viewBox = (svg: string): number[] =>
   (svg.match(/viewBox="([^"]+)"/)?.[1] ?? '').split(' ').map(Number);
 
-/* Each project has a mark and a word file cut from one lockup with a shared
-   vertical range, so their viewBoxes give both widths and the gap between them
-   in the same units. The lockup is scaled to fit MAX_WIDTH by MAX_HEIGHT, and
-   every size is capped in cqi so a card narrower than the lockup shrinks it
-   rather than letting it spill. */
+/* The shared vertical range means the viewBoxes give both widths and the gap
+   between them in the same units. The lockup is scaled to fit MAX_WIDTH by
+   MAX_HEIGHT, and every size is capped in cqi so a card narrower than the lockup
+   shrinks it rather than letting it spill. These inlined copies also carry the
+   glyph defs the header's work menu reuses. */
 function logo(slug: string) {
-  const mark = LOGOS[`../assets/work/${slug}-mark.svg`];
-  const word = LOGOS[`../assets/work/${slug}-word.svg`];
-  if (!mark || !word) throw new Error(`Missing logo files for ${slug}`);
-
+  const { mark, word } = workLogo(slug);
   const [markX, , markW, height] = viewBox(mark);
   const [wordX, , wordW] = viewBox(word);
   const gap = wordX - (markX + markW);
@@ -47,7 +39,7 @@ function logo(slug: string) {
       const id = `project-${project.slug}`;
 
       return (
-        <li class="project" data-project>
+        <li class="project" id={`work-${project.slug}`} data-project>
           <h3 class="project__title">
             <button
               class="project__head"
@@ -113,10 +105,19 @@ function logo(slug: string) {
       ?.addEventListener('click', () => setOpen(card, !card.hasAttribute('data-open')));
   }
 
+  /* Links to #work-<slug>, such as the header's work menu, open their card. */
+  const linkedCard = (hash: string): HTMLElement | undefined =>
+    cards.find((card) => `#${card.id}` === hash);
+
   document.addEventListener('click', (event) => {
     const target = event.target instanceof Element ? event.target : null;
-    closeAll(target?.closest('[data-project]'));
+    const linked = linkedCard(target?.closest('a')?.hash ?? '');
+    closeAll(linked ?? target?.closest('[data-project]'));
+    if (linked) setOpen(linked, true);
   });
+
+  const landed = linkedCard(location.hash);
+  if (landed) setOpen(landed, true);
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeAll();

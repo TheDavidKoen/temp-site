@@ -1,7 +1,24 @@
 ---
-import { NAV_LINKS } from '@shared/content';
+import { NAV_LINKS, PROJECTS } from '@shared/content';
 import Container from '@/components/Container.astro';
 import Wordmark from '@/components/Wordmark.astro';
+import { workLogo } from '@/lib/work-logos';
+
+/* The wordmarks are each project's name outlined in its own typeface. Dropping
+   the defs leaves only <use> references to the glyphs Work.astro already inlines,
+   about 1.3 KB gzip against 7.9 KB for a second full copy, so this menu needs
+   Work on the same page. */
+const withoutDefs = (svg: string): string => svg.replace(/<defs>[\s\S]*?<\/defs>/, '');
+
+/* A wordmark's first group is the name. Anything after it, such as Deadwax's rule
+   and subtitle, belongs to the full lockup. */
+const nameOnly = (svg: string): string =>
+  svg.replace(/(<g[^>]*>[\s\S]*?<\/g>)[\s\S]*(?=<\/svg>)/, '$1');
+
+const MENU = PROJECTS.map(({ slug, name, category }) => {
+  const { mark, word } = workLogo(slug);
+  return { slug, name, category, mark: withoutDefs(mark), word: nameOnly(withoutDefs(word)) };
+});
 ---
 
 <header class="header">
@@ -30,10 +47,42 @@ import Wordmark from '@/components/Wordmark.astro';
         <ul class="nav__list" style={`--n: ${NAV_LINKS.length}`}>
           {
             NAV_LINKS.map(({ href, label }, i) => (
-              <li style={`--i: ${i}`}>
+              <li class={href === '#work' ? 'nav__has-menu' : undefined} style={`--i: ${i}`}>
                 <a href={href} class="link-slide label text-ink-muted">
                   {label}
                 </a>
+                {href === '#work' && (
+                  <>
+                    {/* Below 40rem the link gives way to this toggle, which expands the menu in place. */}
+                    <button
+                      type="button"
+                      class="nav__toggle label text-ink-muted"
+                      aria-expanded="false"
+                      aria-controls="work-menu"
+                    >
+                      {label}
+                      <span class="nav__toggle-icon" aria-hidden="true" />
+                    </button>
+                    <div class="menu" id="work-menu">
+                      <ul class="menu__list" role="list">
+                        {MENU.map((project) => (
+                          <li>
+                            <a
+                              href={`#work-${project.slug}`}
+                              class="menu__link"
+                              data-slug={project.slug}
+                            >
+                              <span class="menu__mark" aria-hidden="true" set:html={project.mark} />
+                              <span class="menu__word" aria-hidden="true" set:html={project.word} />
+                              <span class="sr-only">{project.name}</span>
+                              <span class="label menu__category">{project.category}</span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                )}
               </li>
             ))
           }
@@ -44,19 +93,36 @@ import Wordmark from '@/components/Wordmark.astro';
 </header>
 
 <script>
+  /* The files share their lockup's height, so a lighter or shorter name sits in
+     empty space. Cropping each to its drawn bounds renders every name at one size.
+     The width and height attributes set the aspect ratio, so they change with it. */
+  for (const word of document.querySelectorAll<SVGSVGElement>('.menu__word svg')) {
+    const { x, y, width, height } = word.getBBox();
+    word.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
+    word.setAttribute('width', String(width));
+    word.setAttribute('height', String(height));
+  }
+
   const burger = document.querySelector<HTMLButtonElement>('.nav__burger');
   const list = document.getElementById('primary-nav');
+  const workToggle = document.querySelector<HTMLButtonElement>('.nav__toggle');
+
+  const toggled = (button: HTMLButtonElement | null): boolean =>
+    button?.getAttribute('aria-expanded') === 'true';
+
+  workToggle?.addEventListener('click', () => {
+    workToggle.setAttribute('aria-expanded', String(!toggled(workToggle)));
+  });
 
   if (burger && list) {
     const setOpen = (open: boolean): void => {
       burger.setAttribute('aria-expanded', String(open));
       burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       list.dataset.open = String(open);
+      if (!open) workToggle?.setAttribute('aria-expanded', 'false');
     };
 
-    burger.addEventListener('click', () => {
-      setOpen(burger.getAttribute('aria-expanded') !== 'true');
-    });
+    burger.addEventListener('click', () => setOpen(!toggled(burger)));
 
     list.addEventListener('click', (event) => {
       if ((event.target as HTMLElement).closest('a')) setOpen(false);
@@ -114,8 +180,96 @@ import Wordmark from '@/components/Wordmark.astro';
     gap: 2rem;
   }
 
-  .nav__burger {
+  .nav__burger,
+  .nav__toggle {
     display: none;
+  }
+
+  .menu__list {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .menu__link {
+    display: grid;
+    grid-template-columns: 1.5rem auto 1fr;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.6rem 0.75rem;
+    color: var(--color-ink);
+    border-radius: 0.5rem;
+    transition: background-color 0.2s linear;
+  }
+
+  .menu__link:hover,
+  .menu__link:focus-visible {
+    background-color: color-mix(in srgb, var(--color-surface-muted) 55%, transparent);
+  }
+
+  .menu__mark :global(svg) {
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .menu__word :global(svg) {
+    display: block;
+    width: auto;
+    height: 1rem;
+  }
+
+  /* Vanessë's hairline face breaks up at this size. The stroke is in font units,
+     inherited by every glyph, and spills past the cropped bounds. */
+  .menu__link[data-slug='vanesse'] .menu__word :global(svg) {
+    overflow: visible;
+    stroke: currentColor;
+    stroke-width: 45;
+  }
+
+  .menu__category {
+    justify-self: end;
+    margin-left: 1rem;
+  }
+
+  @media (width >= 40rem) {
+    .nav__has-menu {
+      position: relative;
+    }
+
+    .menu {
+      position: absolute;
+      top: calc(100% + 1rem);
+      right: -1rem;
+      width: max-content;
+      padding: 0.5rem;
+      background-color: var(--color-surface-raised);
+      border: 1px solid var(--color-surface-muted);
+      border-radius: 0.75rem;
+      box-shadow: 0 14px 32px color-mix(in srgb, var(--color-scrim) 16%, transparent);
+      opacity: 0;
+      visibility: hidden;
+      translate: 0 -0.5rem;
+      transition:
+        opacity 0.2s linear,
+        translate 0.3s var(--ease-out-quint),
+        visibility 0s linear 0.3s;
+    }
+
+    /* Bridges the gap below the link, so the pointer can reach the menu
+       without leaving the item and closing it. */
+    .menu::before {
+      content: "";
+      position: absolute;
+      inset: -1.1rem 0 100%;
+    }
+
+    .nav__has-menu:hover .menu,
+    .nav__has-menu:focus-within .menu {
+      opacity: 1;
+      visibility: visible;
+      translate: 0 0;
+      transition-delay: 0s;
+    }
   }
 
   @media (width < 40rem) {
@@ -177,7 +331,7 @@ import Wordmark from '@/components/Wordmark.astro';
       transition-delay: 0s;
     }
 
-    .nav__list li {
+    .nav__list > li {
       width: 100%;
       border-top: 1px solid var(--color-surface-muted);
       opacity: 0;
@@ -190,17 +344,72 @@ import Wordmark from '@/components/Wordmark.astro';
       transition-delay: calc((var(--n) - 1 - var(--i)) * 0.03s);
     }
 
-    .nav__panel[data-open='true'] li {
+    .nav__panel[data-open='true'] .nav__list > li {
       opacity: 1;
       transform: rotateX(0deg);
       transition-delay: calc((var(--i) + 1) * 0.05s);
     }
 
-    .nav__list a {
+    .nav__list > li > a,
+    .nav__toggle {
       display: block;
       width: 100%;
       padding: 1rem 1.5rem;
       text-align: left;
+    }
+
+    .nav__list > .nav__has-menu > a {
+      display: none;
+    }
+
+    .nav__toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: none;
+      border: 0;
+      cursor: pointer;
+    }
+
+    .nav__toggle-icon {
+      width: 0.85rem;
+      height: 0.85rem;
+      background-color: currentColor;
+      mask: url('/plus.svg') center / contain no-repeat;
+      transition: transform 0.46s var(--ease-spring);
+    }
+
+    .nav__toggle[aria-expanded='true'] .nav__toggle-icon {
+      transform: rotate(135deg);
+    }
+
+    /* Same 0fr to 1fr expand as the Work cards. Spacing sits on the rows, since
+       padding on the list would hold the collapsed track open. */
+    .menu {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.34s var(--ease-out-quint);
+    }
+
+    .nav__toggle[aria-expanded='true'] + .menu {
+      grid-template-rows: 1fr;
+    }
+
+    .menu__list {
+      min-height: 0;
+      padding-inline: 0.75rem 1rem;
+      overflow: hidden;
+      visibility: hidden;
+      transition: visibility 0s linear 0.34s;
+    }
+
+    .nav__toggle[aria-expanded='true'] + .menu .menu__list {
+      visibility: visible;
+      transition-delay: 0s;
+    }
+
+    .menu__list > li:last-child {
+      padding-bottom: 0.75rem;
     }
   }
 </style>
