@@ -7,7 +7,7 @@ no database, no CMS.
 
 ```
 shared/      content and logic imported by both the page and the Worker
-src/         the Astro site
+src/         the Astro site; src/lib holds build-time helpers
 functions/   the Cloudflare Pages Function behind /api/cli
 scripts/     build-time checks
 docs/        this, plus the decision records
@@ -81,6 +81,15 @@ wordmark cut from one lockup, with the lettering converted to outlines. The two
 share a vertical range, so `Work.astro` reads their widths and the gap between
 them straight from the viewBoxes. They are inlined so they take the theme's ink,
 and each distinct glyph is stored once and placed with `<use>`.
+
+The Work menu in the header shows the same logos without a second copy of the
+glyphs. It inlines each file with its `<defs>` removed, so its `<use>` references
+resolve to the definitions `Work.astro` already put on the page. That costs about
+1.3 KB gzip against 7.9 KB for full copies, and it means the menu only works on a
+page that also renders `Work`. It keeps only the name from each wordmark, and a
+small script crops each to its drawn bounds, so the names share one height. Below
+40rem the Work link is replaced by a toggle that expands the menu in place. Its links point to `#work-<slug>`, which opens the
+matching card, on a click or on arrival.
 
 ## Design tokens
 

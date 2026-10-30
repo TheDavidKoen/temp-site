@@ -22,17 +22,17 @@ pnpm build && pnpm run budget -- --markdown
 
 | Asset | Raw | Gzip |
 |---|---|---|
-| HTML | 250 KB | **32.6 KB** |
-| CSS | 57 KB | **10.4 KB** |
+| HTML | 258 KB | **34.2 KB** |
+| CSS | 61 KB | **10.8 KB** |
 | Page scripts | 8 KB | **4.3 KB** |
 | `chase-scene` (deferred) | 4 KB | **1.9 KB** |
 | `figures` (deferred) | 1 KB | **0.6 KB** |
 | `ghost-scene` (deferred) | 3 KB | **1.4 KB** |
 | `three` (deferred) | 542 KB | **134.8 KB** |
 | Fonts | 5 x woff2 | self-hosted |
-| Total `dist/` | 1143 KB | |
+| Total `dist/` | 1154 KB | |
 
-**Critical path: 47.3 KB gzip** against a 50 KB budget.
+**Critical path: 49.3 KB gzip** against a 50 KB budget.
 **Deferred WebGL: 138.6 KB gzip** against a 180 KB budget.
 
 The HTML is large for a single page because two effects are rendered as elements:
