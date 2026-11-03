@@ -76,9 +76,11 @@ const seed = (i: number): string =>
 
 <style>
   /* Declares --hero, which the header reveal in Header.astro also animates
-     against. Renaming it here silently disables that. */
+     against. Renaming it here silently disables that. The height sets 112vh of
+     pinned scroll, the length the quote takes to read, and the welcome drift
+     spans all of it, so the two finish together as the stage unpins. */
   .hero {
-    height: 300vh;
+    height: 212vh;
     view-timeline: --hero block;
   }
 
@@ -208,13 +210,13 @@ const seed = (i: number): string =>
     .hero__quote-word {
       animation: quote-word linear both;
       animation-timeline: --hero;
-      animation-range: contain calc(8% + var(--d) * 30%) contain calc(22% + var(--d) * 30%);
+      animation-range: contain calc(14% + var(--d) * 54%) contain calc(39% + var(--d) * 54%);
     }
 
     .hero__quote-by {
       animation: quote-word linear both;
       animation-timeline: --hero;
-      animation-range: contain 42% contain 56%;
+      animation-range: contain 75% contain 100%;
     }
   }
 

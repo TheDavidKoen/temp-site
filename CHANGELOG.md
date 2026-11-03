@@ -13,6 +13,7 @@ All notable changes to this site are recorded here. The format follows
 ### Changed
 
 - Deadwax links to its live demo, so every Work card now opens a live project
+- The hero is shorter, so the welcome drift ends as the quote finishes
 
 ### Fixed
 
