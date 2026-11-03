@@ -135,7 +135,7 @@ unsupported, both drop to normal height instead:
 
 | Section | Height | Mechanism |
 |---|---|---|
-| Hero | 300vh (hidden below 40rem) | Sticky stage; named `view-timeline: --hero` |
+| Hero | 212vh (hidden below 40rem) | Sticky stage; named `view-timeline: --hero` |
 | Experience | 380vh (300vh mobile) | Sticky stage; named `view-timeline: --exp` |
 
 The one exception is the chase beside the introduction. That panel is shorter
